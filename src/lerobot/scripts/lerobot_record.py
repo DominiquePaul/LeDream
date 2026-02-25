@@ -69,6 +69,7 @@ lerobot-record \
 
 import logging
 import time
+from collections import deque
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from pprint import pformat
@@ -275,6 +276,18 @@ class RecordConfig:
 """
 
 
+def _make_progress_bar(elapsed_s: float, total_s: float, width: int = 30) -> str:
+    """Create a compact ASCII progress bar for timed loops."""
+    if total_s <= 0:
+        return f"[{'?' * width}] {elapsed_s:.1f}s / ??s"
+
+    ratio = min(max(elapsed_s / total_s, 0.0), 1.0)
+    filled = int(width * ratio)
+    empty = width - filled
+    bar = "#" * filled + "-" * empty
+    return f"[{bar}] {elapsed_s:.1f}s / {total_s:.1f}s"
+
+
 @safe_stop_image_writer
 def record_loop(
     robot: Robot,
@@ -298,6 +311,7 @@ def record_loop(
     single_task: str | None = None,
     display_data: bool = False,
     display_compressed_images: bool = False,
+    phase_label: str = "Control",
 ):
     if dataset is not None and dataset.fps != fps:
         raise ValueError(f"The dataset fps should be equal to requested fps ({dataset.fps} != {fps}).")
@@ -333,7 +347,8 @@ def record_loop(
         preprocessor.reset()
         postprocessor.reset()
 
-    timestamp = 0
+    timestamp = 0.0
+    frame_times_s = deque(maxlen=10)
     start_episode_t = time.perf_counter()
     while timestamp < control_time_s:
         start_loop_t = time.perf_counter()
@@ -423,6 +438,17 @@ def record_loop(
         precise_sleep(max(sleep_time_s, 0.0))
 
         timestamp = time.perf_counter() - start_episode_t
+        loop_dt_s = time.perf_counter() - start_loop_t
+        frame_times_s.append(loop_dt_s)
+
+        avg_loop_s = sum(frame_times_s) / len(frame_times_s)
+        hz = int(1.0 / avg_loop_s) if avg_loop_s > 0 else 0
+        progress = _make_progress_bar(timestamp, float(control_time_s))
+        print(f"\r{phase_label}: {progress} @ {hz}Hz", end="", flush=True)
+
+    # Keep terminal output readable when loop exits.
+    if frame_times_s:
+        print()
 
 
 @parser.wrap()
@@ -543,6 +569,7 @@ def record(cfg: RecordConfig) -> LeRobotDataset:
                     single_task=cfg.dataset.single_task,
                     display_data=cfg.display_data,
                     display_compressed_images=display_compressed_images,
+                    phase_label="Recording",
                 )
 
                 # Execute a few seconds without recording to give time to manually reset the environment
@@ -567,6 +594,7 @@ def record(cfg: RecordConfig) -> LeRobotDataset:
                         control_time_s=cfg.dataset.reset_time_s,
                         single_task=cfg.dataset.single_task,
                         display_data=cfg.display_data,
+                        phase_label="Reset",
                     )
 
                 if events["rerecord_episode"]:
