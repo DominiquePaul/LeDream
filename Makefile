@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-.PHONY: tests teleop-arms record-arms
+.PHONY: tests teleop-arms record-arms biteleop biterecord
 
 PYTHON_PATH := $(shell which python)
 
@@ -41,7 +41,7 @@ DATASET_TASK ?= Place PCB into testing device, wait, and place into right box.
 DATASET_NUM_EPISODES ?= 50
 DATASET_EPISODE_TIME_S ?= 1200
 DATASET_RESET_TIME_S ?= 0.0
-FPS ?= 30
+FPS ?= 50
 DISPLAY_DATA ?= false
 JOINT_VELOCITY_SCALING ?= 1.0
 
@@ -221,6 +221,36 @@ record-arms:
 		--teleop.type=bi_so_leader \
 		--teleop.left_arm_config.port=$(LEFT_LEADER_PORT) \
 		--teleop.right_arm_config.port=$(RIGHT_LEADER_PORT) \
+		--robot.joint_velocity_scaling=$(JOINT_VELOCITY_SCALING) \
+		--fps=$(FPS) \
+		--display_data=$(DISPLAY_DATA) \
+		--dataset.repo_id=$(DATASET_REPO_ID) \
+		--dataset.single_task="$(DATASET_TASK)" \
+		--dataset.num_episodes=$(DATASET_NUM_EPISODES) \
+		--dataset.episode_time_s=$(DATASET_EPISODE_TIME_S) \
+		--dataset.reset_time_s=$(DATASET_RESET_TIME_S) \
+		--dataset.push_to_hub=false
+
+biteleop:
+	lerobot-teleoperate \
+		--robot.type=bi_dk1_follower \
+		--teleop.type=bi_dk1_leader \
+		--teleop.left_arm_port=$(LEFT_LEADER_PORT) \
+		--robot.left_arm_port=$(LEFT_FOLLOWER_PORT) \
+		--teleop.right_arm_port=$(RIGHT_LEADER_PORT) \
+		--robot.right_arm_port=$(RIGHT_FOLLOWER_PORT) \
+		--robot.joint_velocity_scaling=$(JOINT_VELOCITY_SCALING) \
+		--fps=$(FPS) \
+		--display_data=$(DISPLAY_DATA)
+
+biterecord:
+	lerobot-record \
+		--robot.type=bi_dk1_follower \
+		--teleop.type=bi_dk1_leader \
+		--teleop.left_arm_port=$(LEFT_LEADER_PORT) \
+		--robot.left_arm_port=$(LEFT_FOLLOWER_PORT) \
+		--teleop.right_arm_port=$(RIGHT_LEADER_PORT) \
+		--robot.right_arm_port=$(RIGHT_FOLLOWER_PORT) \
 		--robot.joint_velocity_scaling=$(JOINT_VELOCITY_SCALING) \
 		--fps=$(FPS) \
 		--display_data=$(DISPLAY_DATA) \
