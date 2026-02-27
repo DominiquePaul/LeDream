@@ -12,13 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-.PHONY: tests teleop-arms record-arms biteleop biterecord
+.PHONY: tests teleop-arms record-arms biteleop biterecord snapshot cam-tuner
 
 PYTHON_PATH := $(shell which python)
 
-# If uv is installed and a virtual environment exists, use it
-UV_CHECK := $(shell command -v uv)
-ifneq ($(UV_CHECK),)
+# Prefer the project virtualenv whenever it exists.
+ifneq ("$(wildcard .venv/bin/python)","")
 	PYTHON_PATH := .venv/bin/python
 endif
 
@@ -36,17 +35,38 @@ LEFT_FOLLOWER_PORT ?= /dev/serial/by-path/platform-a80aa10000.usb-usb-0:4.2.1.4:
 RIGHT_FOLLOWER_PORT ?= /dev/serial/by-path/platform-a80aa10000.usb-usb-0:4.2.1.1:1.0
 
 # Recording defaults.
-DATASET_REPO_ID ?= local/pcb_basic
-DATASET_TASK ?= Place PCB into testing device, wait, and place into right box.
-DATASET_NUM_EPISODES ?= 50
-DATASET_EPISODE_TIME_S ?= 1200
-DATASET_RESET_TIME_S ?= 0.0
-FPS ?= 50
+DATASET_REPO_ID ?= dopaul/pcb_placement_v1
+DATASET_TASK ?= Take a PCB from the box and place it in the testbed
+DATASET_NUM_EPISODES ?= 12
+DATASET_EPISODE_TIME_S ?= 25
+DATASET_RESET_TIME_S ?= 7.0
+FPS ?= 30
 DISPLAY_DATA ?= false
 JOINT_VELOCITY_SCALING ?= 1.0
+JETSON_MAX_PERF ?= true
+resume ?= false
+
+# Camera paths (stable by-path symlinks).
+CAM_TOP ?= /dev/v4l/by-path/platform-a80aa10000.usb-usb-0:3.1:1.0-video-index0
+CAM_LEFT ?= /dev/v4l/by-path/platform-a80aa10000.usb-usb-0:4.2.1.2:1.0-video-index0
+CAM_RIGHT ?= /dev/v4l/by-path/platform-a80aa10000.usb-usb-0:4.2.1.3:1.0-video-index0
+CAM_WIDTH ?= 640
+CAM_HEIGHT ?= 480
+CAM_FPS ?= 30
+SNAPSHOT_ARGS ?=
 
 # --- Added by DP END ---
 
+snapshot:
+	python scripts/snapshot.py \
+		--cameras "top=$(CAM_TOP),left_wrist=$(CAM_LEFT),right_wrist=$(CAM_RIGHT)" \
+		--width $(CAM_WIDTH) \
+		--height $(CAM_HEIGHT) \
+		$(SNAPSHOT_ARGS)
+
+cam-tuner:
+	python scripts/cam_tuner.py \
+		--cameras "top=$(CAM_TOP),left_wrist=$(CAM_LEFT),right_wrist=$(CAM_RIGHT)"
 
 build-user:
 	docker build -f docker/Dockerfile.user -t lerobot-user .
@@ -57,7 +77,7 @@ build-internal:
 test-end-to-end:
 	${MAKE} DEVICE=$(DEVICE) test-act-ete-train
 	${MAKE} DEVICE=$(DEVICE) test-act-ete-train-resume
-	${MAKE} DEVICE=$(DEVICE) test-act-ete-eval
+	${MAKE} DEVICE=$(DEVICE) test-act-ete-evaly
 	${MAKE} DEVICE=$(DEVICE) test-diffusion-ete-train
 	${MAKE} DEVICE=$(DEVICE) test-diffusion-ete-eval
 	${MAKE} DEVICE=$(DEVICE) test-tdmpc-ete-train
@@ -222,7 +242,7 @@ record-arms:
 		--teleop.left_arm_config.port=$(LEFT_LEADER_PORT) \
 		--teleop.right_arm_config.port=$(RIGHT_LEADER_PORT) \
 		--robot.joint_velocity_scaling=$(JOINT_VELOCITY_SCALING) \
-		--fps=$(FPS) \
+		--dataset.fps=$(FPS) \
 		--display_data=$(DISPLAY_DATA) \
 		--dataset.repo_id=$(DATASET_REPO_ID) \
 		--dataset.single_task="$(DATASET_TASK)" \
@@ -243,7 +263,11 @@ biteleop:
 		--fps=$(FPS) \
 		--display_data=$(DISPLAY_DATA)
 
-biterecord:
+birecord:
+	@if [ "$(JETSON_MAX_PERF)" = "true" ]; then \
+		sudo -n nvpmodel -m 0 >/dev/null 2>&1 || echo "Skipping nvpmodel: sudo rights required"; \
+		sudo -n jetson_clocks >/dev/null 2>&1 || echo "Skipping jetson_clocks: sudo rights required"; \
+	fi
 	lerobot-record \
 		--robot.type=bi_dk1_follower \
 		--teleop.type=bi_dk1_leader \
@@ -252,11 +276,64 @@ biterecord:
 		--teleop.right_arm_port=$(RIGHT_LEADER_PORT) \
 		--robot.right_arm_port=$(RIGHT_FOLLOWER_PORT) \
 		--robot.joint_velocity_scaling=$(JOINT_VELOCITY_SCALING) \
-		--fps=$(FPS) \
+		--robot.cameras='{top: {type: opencv, index_or_path: "$(CAM_TOP)", width: $(CAM_WIDTH), height: $(CAM_HEIGHT), fps: $(CAM_FPS), backend: 200, fourcc: MJPG}, left_wrist: {type: opencv, index_or_path: "$(CAM_LEFT)", width: $(CAM_WIDTH), height: $(CAM_HEIGHT), fps: $(CAM_FPS), backend: 200, fourcc: MJPG}, right_wrist: {type: opencv, index_or_path: "$(CAM_RIGHT)", width: $(CAM_WIDTH), height: $(CAM_HEIGHT), fps: $(CAM_FPS), backend: 200, fourcc: MJPG}}' \
+		--dataset.fps=$(FPS) \
 		--display_data=$(DISPLAY_DATA) \
 		--dataset.repo_id=$(DATASET_REPO_ID) \
 		--dataset.single_task="$(DATASET_TASK)" \
 		--dataset.num_episodes=$(DATASET_NUM_EPISODES) \
 		--dataset.episode_time_s=$(DATASET_EPISODE_TIME_S) \
 		--dataset.reset_time_s=$(DATASET_RESET_TIME_S) \
-		--dataset.push_to_hub=false
+		--dataset.push_to_hub=true \
+		--dataset.streaming_encoding=true \
+		--dataset.encoder_threads=1 \
+		--dataset.vcodec=auto \
+		--play_sounds=false \
+		--resume=$(resume)
+
+birecord3o:
+	lerobot-record \
+		--robot.type=bi_dk1_follower \
+		--teleop.type=bi_dk1_leader \
+		--teleop.left_arm_port=$(LEFT_LEADER_PORT) \
+		--robot.left_arm_port=$(LEFT_FOLLOWER_PORT) \
+		--teleop.right_arm_port=$(RIGHT_LEADER_PORT) \
+		--robot.right_arm_port=$(RIGHT_FOLLOWER_PORT) \
+		--robot.joint_velocity_scaling=$(JOINT_VELOCITY_SCALING) \
+		--robot.cameras='{top: {type: opencv, index_or_path: "$(CAM_TOP)", width: $(CAM_WIDTH), height: $(CAM_HEIGHT), fps: $(CAM_FPS)}}' \
+		--dataset.fps=$(FPS) \
+		--display_data=$(DISPLAY_DATA) \
+		--dataset.repo_id=$(DATASET_REPO_ID) \
+		--dataset.single_task="$(DATASET_TASK)" \
+		--dataset.num_episodes=$(DATASET_NUM_EPISODES) \
+		--dataset.episode_time_s=$(DATASET_EPISODE_TIME_S) \
+		--dataset.reset_time_s=$(DATASET_RESET_TIME_S) \
+		--dataset.push_to_hub=true \
+		--dataset.streaming_encoding=true \
+		--dataset.encoder_threads=4 \
+		--play_sounds=false
+
+
+
+
+birecord2o:
+	lerobot-record \
+		--robot.type=bi_dk1_follower \
+		--teleop.type=bi_dk1_leader \
+		--teleop.left_arm_port=$(LEFT_LEADER_PORT) \
+		--robot.left_arm_port=$(LEFT_FOLLOWER_PORT) \
+		--teleop.right_arm_port=$(RIGHT_LEADER_PORT) \
+		--robot.right_arm_port=$(RIGHT_FOLLOWER_PORT) \
+		--robot.joint_velocity_scaling=$(JOINT_VELOCITY_SCALING) \
+		--robot.cameras='{right_wrist: {type: opencv, index_or_path: "$(CAM_RIGHT)", width: $(CAM_WIDTH), height: $(CAM_HEIGHT), fps: $(CAM_FPS), backend: 200, fourcc: MJPG}}' \
+		--dataset.fps=$(FPS) \
+		--display_data=$(DISPLAY_DATA) \
+		--dataset.repo_id=$(DATASET_REPO_ID) \
+		--dataset.single_task="$(DATASET_TASK)" \
+		--dataset.num_episodes=$(DATASET_NUM_EPISODES) \
+		--dataset.episode_time_s=$(DATASET_EPISODE_TIME_S) \
+		--dataset.reset_time_s=$(DATASET_RESET_TIME_S) \
+		--dataset.push_to_hub=true \
+		--dataset.streaming_encoding=true \
+		--dataset.encoder_threads=2 \
+		--play_sounds=false

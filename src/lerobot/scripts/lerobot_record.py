@@ -276,16 +276,29 @@ class RecordConfig:
 """
 
 
-def _make_progress_bar(elapsed_s: float, total_s: float, width: int = 30) -> str:
-    """Create a compact ASCII progress bar for timed loops."""
-    if total_s <= 0:
-        return f"[{'?' * width}] {elapsed_s:.1f}s / ??s"
+def _make_progress_bar(elapsed_s: float, total_s: float, phase_label: str = "", hz: int = 0) -> str:
+    """Create an ASCII progress bar that spans the full terminal width."""
+    import shutil
 
-    ratio = min(max(elapsed_s / total_s, 0.0), 1.0)
-    filled = int(width * ratio)
-    empty = width - filled
+    term_width = shutil.get_terminal_size((80, 24)).columns
+
+    if total_s <= 0:
+        suffix = f" {elapsed_s:.1f}s / ??s"
+    else:
+        suffix = f" {elapsed_s:.1f}s / {total_s:.1f}s @ {hz}Hz"
+
+    prefix = f"{phase_label}: ["
+    cap = "] "
+    bar_width = term_width - len(prefix) - len(cap) - len(suffix)
+    if bar_width < 4:
+        bar_width = 4
+
+    ratio = min(max(elapsed_s / total_s, 0.0), 1.0) if total_s > 0 else 0.0
+    filled = int(bar_width * ratio)
+    empty = bar_width - filled
     bar = "#" * filled + "-" * empty
-    return f"[{bar}] {elapsed_s:.1f}s / {total_s:.1f}s"
+    line = f"{prefix}{bar}{cap}{suffix}"
+    return line.ljust(term_width)
 
 
 @safe_stop_image_writer
@@ -443,8 +456,8 @@ def record_loop(
 
         avg_loop_s = sum(frame_times_s) / len(frame_times_s)
         hz = int(1.0 / avg_loop_s) if avg_loop_s > 0 else 0
-        progress = _make_progress_bar(timestamp, float(control_time_s))
-        print(f"\r{phase_label}: {progress} @ {hz}Hz", end="", flush=True)
+        line = _make_progress_bar(timestamp, float(control_time_s), phase_label, hz)
+        print(f"\r{line}", end="", flush=True)
 
     # Keep terminal output readable when loop exits.
     if frame_times_s:

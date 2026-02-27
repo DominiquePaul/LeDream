@@ -14,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import numpy as np
-from concurrent.futures import ThreadPoolExecutor
 
 from lerobot.datasets.utils import load_image_as_numpy
 
@@ -231,26 +230,16 @@ def auto_downsample_height_width(img: np.ndarray, target_size: int = 150, max_si
 def sample_images(image_paths: list[str]) -> np.ndarray:
     sampled_indices = sample_indices(len(image_paths))
 
-    if not sampled_indices:
-        return np.empty((0, 3, 0, 0), dtype=np.uint8)
-
-    def _load_one(idx: int) -> np.ndarray:
+    images = None
+    for i, idx in enumerate(sampled_indices):
         path = image_paths[idx]
-        # Load as uint8 to reduce memory usage, then optionally downsample.
+        # we load as uint8 to reduce memory usage
         img = load_image_as_numpy(path, dtype=np.uint8, channel_first=True)
-        return auto_downsample_height_width(img)
+        img = auto_downsample_height_width(img)
 
-    max_workers = min(8, len(sampled_indices))
-    with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        loaded_images = list(executor.map(_load_one, sampled_indices))
+        if images is None:
+            images = np.empty((len(sampled_indices), *img.shape), dtype=np.uint8)
 
-    first_shape = loaded_images[0].shape
-    images = np.empty((len(loaded_images), *first_shape), dtype=np.uint8)
-    for i, img in enumerate(loaded_images):
-        if img.shape != first_shape:
-            raise ValueError(
-                f"Sampled image shapes must match after downsampling. Got {img.shape} and {first_shape}."
-            )
         images[i] = img
 
     return images

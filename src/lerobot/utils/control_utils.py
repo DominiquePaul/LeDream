@@ -18,7 +18,12 @@
 
 
 import logging
+import select
+import sys
+import termios
+import threading
 import traceback
+import tty
 from contextlib import nullcontext
 from copy import copy
 from functools import cache
@@ -138,10 +143,65 @@ def init_keyboard_listener():
 
     if is_headless():
         logging.warning(
-            "Headless environment detected. On-screen cameras display and keyboard inputs will not be available."
+            "Headless environment detected. On-screen cameras display is unavailable. "
+            "Falling back to single-key stdin controls."
         )
-        listener = None
-        return listener, events
+
+        if not sys.stdin.isatty():
+            logging.warning(
+                "No interactive TTY detected on stdin. Headless control commands are unavailable."
+            )
+            return None, events
+
+        def _stdin_command_loop():
+            help_msg = (
+                "Headless controls: [Enter/n] finish current loop, [r] rerecord episode, "
+                "[q] discard current episode and stop, [h] help."
+            )
+            print(help_msg, flush=True)
+
+            fd = sys.stdin.fileno()
+            old_attrs = None
+
+            try:
+                old_attrs = termios.tcgetattr(fd)
+                # cbreak mode gives immediate single-key reads without waiting for newline.
+                tty.setcbreak(fd)
+                while not events["stop_recording"]:
+                    ready, _, _ = select.select([sys.stdin], [], [], 0.2)
+                    if not ready:
+                        continue
+
+                    key = sys.stdin.read(1)
+                    if not key:
+                        break
+
+                    cmd = key.lower()
+                    if cmd in ("\n", "\r", "n"):
+                        print("\nStdin command: finish current loop.\n", flush=True)
+                        events["exit_early"] = True
+                    elif cmd == "r":
+                        print("\nStdin command: rerecord current episode.\n", flush=True)
+                        events["rerecord_episode"] = True
+                        events["exit_early"] = True
+                    elif cmd == "q":
+                        print(
+                            "\nStdin command: discard current episode and stop recording.\n",
+                            flush=True,
+                        )
+                        events["rerecord_episode"] = True
+                        events["stop_recording"] = True
+                        events["exit_early"] = True
+                    elif cmd in ("h", "?"):
+                        print(f"\n{help_msg}\n", flush=True)
+            except Exception as e:
+                logging.warning(f"Headless stdin control loop stopped: {e}")
+            finally:
+                if old_attrs is not None:
+                    termios.tcsetattr(fd, termios.TCSADRAIN, old_attrs)
+
+        threading.Thread(target=_stdin_command_loop, daemon=True).start()
+        return None, events
 
     # Only import pynput if not in a headless environment
     from pynput import keyboard
