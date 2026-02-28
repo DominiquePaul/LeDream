@@ -48,6 +48,39 @@ for CKPT in 001000 002000 003000 004000 005000; do
 done
 ```
 
+# Train Diffusion Policy (DP)
+
+```
+HF_USER=dopaul
+DATASET=pcb_placement_v1
+JOB_NAME=pcb_placement_v1_diffusion
+POLICY_REPO=${HF_USER}/pcb_placement_v1_diffusion_policy
+
+lerobot-train \
+  --dataset.repo_id=${HF_USER}/${DATASET} \
+  --policy.type=diffusion \
+  --output_dir=outputs/train/${JOB_NAME} \
+  --job_name=${JOB_NAME} \
+  --policy.repo_id=${POLICY_REPO} \
+  --policy.device=cuda \
+  --policy.use_amp=true \
+  --batch_size=64 \
+  --steps=5000 \
+  --log_freq=100 \
+  --save_checkpoint=true \
+  --save_freq=1000 \
+  --wandb.enable=true
+
+# Upload selected checkpoints to separate model repos.
+BASE_REPO=pcb_placement_v1_diffusion
+for CKPT in 001000 002000 003000 004000 005000; do
+  huggingface-cli upload ${HF_USER}/${BASE_REPO}-${CKPT} \
+    outputs/train/${JOB_NAME}/checkpoints/${CKPT}/pretrained_model \
+    . \
+    --repo-type model
+done
+```
+
 # Train pi0.5 (pi05)
 
 ```
