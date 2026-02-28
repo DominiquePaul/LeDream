@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-.PHONY: tests teleop-arms record-arms biteleop biterecord snapshot cam-tuner
+.PHONY: tests teleop-arms record-arms biteleop biterecord birest snapshot cam-tuner
 
 PYTHON_PATH := $(shell which python)
 
@@ -45,6 +45,11 @@ DISPLAY_DATA ?= false
 JOINT_VELOCITY_SCALING ?= 1.0
 JETSON_MAX_PERF ?= true
 resume ?= false
+REST_MOVE_DURATION_S ?= 3.0
+REST_STEPS ?= 90
+# Joint order: joint_1,joint_2,joint_3,joint_4,joint_5,joint_6,gripper
+LEFT_REST_POSE ?= 0,0,0,0,0,0,0
+RIGHT_REST_POSE ?= 0,0,0,0,0,0,0
 
 # Camera paths (stable by-path symlinks).
 CAM_TOP ?= /dev/v4l/by-path/platform-a80aa10000.usb-usb-0:3.1:1.0-video-index0
@@ -262,6 +267,16 @@ biteleop:
 		--robot.joint_velocity_scaling=$(JOINT_VELOCITY_SCALING) \
 		--fps=$(FPS) \
 		--display_data=$(DISPLAY_DATA)
+
+birest:
+	@LEFT_REST_POSE="$(LEFT_REST_POSE)" \
+	RIGHT_REST_POSE="$(RIGHT_REST_POSE)" \
+	REST_MOVE_DURATION_S="$(REST_MOVE_DURATION_S)" \
+	REST_STEPS="$(REST_STEPS)" \
+	LEFT_FOLLOWER_PORT="$(LEFT_FOLLOWER_PORT)" \
+	RIGHT_FOLLOWER_PORT="$(RIGHT_FOLLOWER_PORT)" \
+	JOINT_VELOCITY_SCALING="$(JOINT_VELOCITY_SCALING)" \
+	$(PYTHON_PATH) scripts/birest.py
 
 birecord:
 	@if [ "$(JETSON_MAX_PERF)" = "true" ]; then \

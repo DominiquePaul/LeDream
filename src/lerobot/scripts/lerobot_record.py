@@ -326,6 +326,27 @@ def record_loop(
     display_compressed_images: bool = False,
     phase_label: str = "Control",
 ):
+    def _collect_numeric_values(obj: Any, out: list[float]) -> None:
+        if isinstance(obj, dict):
+            for value in obj.values():
+                _collect_numeric_values(value, out)
+            return
+        if isinstance(obj, (list, tuple)):
+            for value in obj:
+                _collect_numeric_values(value, out)
+            return
+
+        # Handle tensor/array-like values without importing backend-specific libs.
+        for attr in ("detach", "cpu", "numpy", "tolist"):
+            if hasattr(obj, attr):
+                try:
+                    obj = getattr(obj, attr)()
+                except Exception:
+                    pass
+
+        if isinstance(obj, (int, float)):
+            out.append(float(obj))
+
     if dataset is not None and dataset.fps != fps:
         raise ValueError(f"The dataset fps should be equal to requested fps ({dataset.fps} != {fps}).")
 
@@ -363,6 +384,11 @@ def record_loop(
     timestamp = 0.0
     frame_times_s = deque(maxlen=10)
     start_episode_t = time.perf_counter()
+    no_action_source_logged = False
+    # DP debug actions
+    last_policy_debug_t = -1.0
+    should_log_action_debug = False
+    # DP debug actions
     while timestamp < control_time_s:
         start_loop_t = time.perf_counter()
 
@@ -393,6 +419,30 @@ def record_loop(
             )
 
             act_processed_policy: RobotAction = make_robot_action(action_values, dataset.features)
+            # DP: added to log action per prediction
+            should_log_action_debug = False
+            if phase_label == "Recording":
+                now_t = time.perf_counter()
+                if last_policy_debug_t < 0 or (now_t - last_policy_debug_t) >= 1.0:
+                    flat_values: list[float] = []
+                    _collect_numeric_values(act_processed_policy, flat_values)
+                    if flat_values:
+                        abs_values = [abs(v) for v in flat_values]
+                        preview = ", ".join(f"{v:.4f}" for v in flat_values[:6])
+                        logging.info(
+                            "Policy action debug: count=%d mean_abs=%.6f max_abs=%.6f preview=[%s]",
+                            len(flat_values),
+                            sum(abs_values) / len(abs_values),
+                            max(abs_values),
+                            preview,
+                        )
+                    else:
+                        logging.info(
+                            "Policy action debug: no numeric outputs found in action type=%s",
+                            type(act_processed_policy).__name__,
+                        )
+                    should_log_action_debug = True
+                    last_policy_debug_t = now_t
 
         elif policy is None and isinstance(teleop, Teleoperator):
             act = teleop.get_action()
@@ -408,11 +458,16 @@ def record_loop(
             act = {**arm_action, **base_action} if len(base_action) > 0 else arm_action
             act_processed_teleop = teleop_action_processor((act, obs))
         else:
-            logging.info(
-                "No policy or teleoperator provided, skipping action generation."
-                "This is likely to happen when resetting the environment without a teleop device."
-                "The robot won't be at its rest position at the start of the next episode."
-            )
+            if not no_action_source_logged:
+                logging.info(
+                    "No policy or teleoperator provided, skipping action generation."
+                    "This is likely to happen when resetting the environment without a teleop device."
+                    "The robot won't be at its rest position at the start of the next episode."
+                )
+                no_action_source_logged = True
+            # Keep loop timing progressing so reset/control windows can end.
+            precise_sleep(max(1 / fps, 0.0))
+            timestamp = time.perf_counter() - start_episode_t
             continue
 
         # Applies a pipeline to the action, default is IdentityProcessor
@@ -428,6 +483,44 @@ def record_loop(
         # so action actually sent is saved in the dataset. action = postprocessor.process(action)
         # TODO(steven, pepijn, adil): we should use a pipeline step to clip the action, so the sent action is the action that we input to the robot.
         _sent_action = robot.send_action(robot_action_to_send)
+        # DP: added to debug actions
+        if should_log_action_debug:
+            to_send_values: list[float] = []
+            sent_values: list[float] = []
+            _collect_numeric_values(robot_action_to_send, to_send_values)
+            _collect_numeric_values(_sent_action, sent_values)
+
+            if to_send_values:
+                abs_values = [abs(v) for v in to_send_values]
+                preview = ", ".join(f"{v:.4f}" for v in to_send_values[:6])
+                logging.info(
+                    "Action-to-send debug: count=%d mean_abs=%.6f max_abs=%.6f preview=[%s]",
+                    len(to_send_values),
+                    sum(abs_values) / len(abs_values),
+                    max(abs_values),
+                    preview,
+                )
+            else:
+                logging.info(
+                    "Action-to-send debug: no numeric outputs found in action type=%s",
+                    type(robot_action_to_send).__name__,
+                )
+
+            if sent_values:
+                abs_values = [abs(v) for v in sent_values]
+                preview = ", ".join(f"{v:.4f}" for v in sent_values[:6])
+                logging.info(
+                    "Sent-action debug: count=%d mean_abs=%.6f max_abs=%.6f preview=[%s]",
+                    len(sent_values),
+                    sum(abs_values) / len(abs_values),
+                    max(abs_values),
+                    preview,
+                )
+            else:
+                logging.info(
+                    "Sent-action debug: no numeric outputs found in action type=%s",
+                    type(_sent_action).__name__,
+                )
 
         # Write to dataset
         if dataset is not None:
