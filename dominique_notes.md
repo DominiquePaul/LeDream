@@ -4,12 +4,17 @@ Upload a dataset
 Download a datset
 `hf download dopaul/DATASET_NAME --repo-type dataset --local-dir /home/dominique/.cache/huggingface/lerobot/dopaul/DATASET_NAME`
 
+Upload a model
+`hf upload dopaul/pcb_placement_v1_act_003000 /teamspace/jobs/act-50-pcb-placing-samples/artifacts/ledream/outputs/train/pcb_placement_v1_act_baseline/checkpoints/003000/pretrained_model`
+
 Maybe do this first 
 `hf auth login`
 
 # Training Models
 
-Train ACT (baseline)
+## ACT
+
+Train (baseline)
 
 ```
 HF_USER=dopaul
@@ -48,7 +53,25 @@ for CKPT in 001000 002000 003000 004000 005000; do
 done
 ```
 
+### Run ACT inference/eval (real robot)
+
+```
+HF_USER=dopaul
+POLICY_REPO=${HF_USER}/pcb_placement_v1_act_003000
+
+lerobot-record \
+  --robot.type=your_robot_type \
+  --robot.port=/dev/ttyACM1 \
+  --robot.id=my_robot_id \
+  --policy.path=${POLICY_REPO} \
+  --dataset.repo_id=${HF_USER}/pcb_placement_v1_act_eval_003000 \
+  --dataset.single_task="pcb placement" \
+  --dataset.num_episodes=10
+```
+
 # Train pi0.5 (pi05)
+
+The guidelines provided by PI is between 1 to 20 hours of finetuning data for task adaptation.
 
 ```
 # One-time setup (if needed)
