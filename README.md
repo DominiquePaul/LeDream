@@ -205,6 +205,42 @@ for CKPT in 001000 002000 003000 004000 005000; do
 done
 ```
 
+### Diffusion Policy Inference / Eval (real robot)
+
+```bash
+POLICY=pcb_placement_100x_1st_item_diffusion-002000
+DATASET_NAME="eval_${POLICY}"
+HF_USER=dopaul
+CAM_WIDTH=640
+CAM_HEIGHT=480
+CAM_FPS=30
+CAM_TOP=/dev/v4l/by-path/platform-a80aa10000.usb-usb-0:3.1:1.0-video-index0
+CAM_LEFT=/dev/v4l/by-path/platform-a80aa10000.usb-usb-0:4.2.1.2:1.0-video-index0
+CAM_RIGHT=/dev/v4l/by-path/platform-a80aa10000.usb-usb-0:4.2.1.3:1.0-video-index0
+LEFT_FOLLOWER_PORT=/dev/serial/by-path/platform-a80aa10000.usb-usb-0:4.2.1.4:1.0
+RIGHT_FOLLOWER_PORT=/dev/serial/by-path/platform-a80aa10000.usb-usb-0:4.2.1.1:1.0
+
+uv run lerobot-record \
+  --robot.type=bi_dk1_follower \
+  --robot.left_arm_port="${LEFT_FOLLOWER_PORT}" \
+  --robot.right_arm_port="${RIGHT_FOLLOWER_PORT}" \
+  --robot.id=my_robot_id \
+  --policy.path="${HF_USER}/${POLICY}" \
+  --dataset.repo_id="${HF_USER}/${DATASET_NAME}" \
+  --dataset.single_task="Take a PCB from the box and place it in the testbed" \
+  --dataset.num_episodes=10 \
+  --robot.cameras='{top: {type: opencv, index_or_path: "'$CAM_TOP'", width: '$CAM_WIDTH', height: '$CAM_HEIGHT', fps: '$CAM_FPS', backend: 200, fourcc: MJPG}, left_wrist: {type: opencv, index_or_path: "'$CAM_LEFT'", width: '$CAM_WIDTH', height: '$CAM_HEIGHT', fps: '$CAM_FPS', backend: 200, fourcc: MJPG}, right_wrist: {type: opencv, index_or_path: "'$CAM_RIGHT'", width: '$CAM_WIDTH', height: '$CAM_HEIGHT', fps: '$CAM_FPS', backend: 200, fourcc: MJPG}}' \
+  --dataset.episode_time_s=25 \
+  --dataset.reset_time_s=0 \
+  --dataset.streaming_encoding=true \
+  --dataset.encoder_threads=1 \
+  --dataset.push_to_hub=false \
+  --dataset.vcodec=auto \
+  --play_sounds=false \
+  --display_data=false \
+  --robot.joint_velocity_scaling=0.5
+```
+
 ### pi0.5 (pi05)
 
 The guidelines provided by PI is between 1 to 20 hours of finetuning data for task adaptation.

@@ -409,4 +409,4 @@ upload-latest:
 	echo "  Model path:  $$model_path"; \
 	echo "  HF repo:    $(HF_USER)/$$repo_name"; \
 	echo ""; \
-	huggingface-cli upload $(HF_USER)/$$repo_name "$$model_path" . --repo-type model
+	hf upload $(HF_USER)/$$repo_name "$$model_path" . --repo-type model
