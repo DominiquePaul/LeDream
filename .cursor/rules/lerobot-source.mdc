@@ -4,14 +4,9 @@ globs: src/lerobot/**/*.py
 alwaysApply: false
 ---
 
-# Modifying LeRobot Source
+# Upstream-Aware Source Editing
 
-This repo is a fork of huggingface/lerobot. Files under `src/lerobot/` come from upstream and are periodically synced via `git merge upstream/main`.
-
-## Before editing
-
-- Check if the change can be done in a custom file (under `scripts/`, `configs/`, or `Makefile`) instead of modifying upstream source. Additive files never cause merge conflicts.
-- If you must modify upstream source, keep changes minimal and well-isolated.
+This repo is a fork of huggingface/lerobot. Files under `src/lerobot/` come from upstream and are periodically synced via `git merge upstream/main`. Edit them freely when it's the right approach -- just be aware that changes here may need conflict resolution during upstream merges.
 
 ## Currently modified upstream files
 
@@ -20,9 +15,8 @@ This repo is a fork of huggingface/lerobot. Files under `src/lerobot/` come from
 
 See `ledream_changelog.md` section "Modified Upstream Files" for details.
 
-## When modifying upstream files
+## Guidelines
 
 - Mark custom code blocks with `# DP:` comments so they're easy to find during merge conflict resolution
-- Add a brief entry to `ledream_changelog.md` under the file's section
-- Prefer appending new functions over modifying existing upstream functions
-- If modifying an existing upstream function, keep the diff as small as possible
+- Update `ledream_changelog.md` when modifying upstream files
+- When adding substantial new functionality, consider whether a separate file (under `scripts/`, `configs/`, etc.) would work -- additive files never cause merge conflicts

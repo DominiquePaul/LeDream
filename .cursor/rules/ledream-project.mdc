@@ -35,7 +35,7 @@ Config filenames match the base name (without checkpoint), e.g. `configs/pcb100x
 
 ## When making changes
 
-- Update `ledream_changelog.md` when adding new custom files or modifying upstream source
+- Update `ledream_changelog.md` when adding, removing, or modifying files (especially upstream source)
 - New training experiments should get a config file in `configs/`
 - Use `hf` (not `huggingface-cli`) for HF CLI commands
 - HF user is `dopaul`
