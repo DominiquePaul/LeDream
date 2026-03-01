@@ -1,5 +1,5 @@
 Upload a dataset
-`huggingface-cli upload dopaul/DATASET_NAME /home/dominique/.cache/huggingface/lerobot/dopaul/DATASET_NAME . --repo-type dataset`
+`hf upload dopaul/pcb_placement_100x_1st_item /home/dominique/.cache/huggingface/lerobot/dopaul/pcb_placement_100x_1st_item . --repo-type dataset`
 
 Download a datset
 `hf download dopaul/DATASET_NAME --repo-type dataset --local-dir /home/dominique/.cache/huggingface/lerobot/dopaul/DATASET_NAME`
@@ -18,8 +18,9 @@ Train (baseline)
 
 ```
 HF_USER=dopaul
-DATASET=pcb_placement_v1
-JOB_NAME=pcb_placement_v1_act_baseline
+DATASET=pcb_placement_100x_1st_item
+JOB_NAME=pcb_placement_1st_item_act_48acl
+BASE_REPO=pcb_placement_1st_item_act_48acl
 
 lerobot-train \
   --dataset.repo_id=${HF_USER}/${DATASET} \
@@ -28,25 +29,24 @@ lerobot-train \
   --job_name=${JOB_NAME} \
   --policy.device=cuda \
   --policy.use_amp=true \
-  --policy.chunk_size=30 \
+  --policy.chunk_size=48 \
   --policy.n_action_steps=30 \
   --policy.use_vae=true \
   --policy.kl_weight=10 \
-  --batch_size=96 \
-  --policy.optimizer_lr=2.4e-4 \
-  --policy.optimizer_lr_backbone=2.4e-4 \
-  --steps=5000 \
+  --batch_size=16 \
+  --policy.optimizer_lr=3e-5 \
+  --policy.optimizer_lr_backbone=3e-5 \
+  --steps=10000 \
   --log_freq=100 \
   --save_checkpoint=true \
-  --save_freq=1000 \
+  --save_freq=2000 \
   --wandb.enable=true \
   --policy.push_to_hub=true \
   --policy.repo_id=${HF_USER}/act_policy
 
 # Upload selected checkpoints to separate model repos.
-BASE_REPO=pcb_placement_v1_act_baseline
-for CKPT in 001000 002000 003000 004000 005000; do
-  huggingface-cli upload ${HF_USER}/${BASE_REPO}-${CKPT} \
+for CKPT in 002000 004000 006000 008000 010000; do
+  hf upload ${HF_USER}/${BASE_REPO}-${CKPT} \
     outputs/train/${JOB_NAME}/checkpoints/${CKPT}/pretrained_model \
     . \
     --repo-type model
@@ -86,26 +86,28 @@ uv run lerobot-record \
   --dataset.vcodec=auto \
   --play_sounds=false \
   --display_data=false \
-  --robot.joint_velocity_scaling=1.0
+  --robot.joint_velocity_scaling=0.5
 ```
 
 # Train Diffusion Policy (DP)
 
 ```
 HF_USER=dopaul
-DATASET=pcb_placement_v1
-JOB_NAME=pcb_placement_v1_diffusion
+DATASET=pcb_placement_100x_1st_item
 POLICY_REPO=${HF_USER}/pcb_placement_v1_diffusion_policy
+JOB_NAME=pcb_placement_100x_1st_item_diffusion
+BASE_REPO=pcb_placement_100x_1st_item_diffusion
 
 lerobot-train \
-  --dataset.repo_id=${HF_USER}/${DATASET} \
+  --dataset.repo_id=dopaul/pcb_placement_100x_1st_item \
   --policy.type=diffusion \
-  --output_dir=outputs/train/${JOB_NAME} \
-  --job_name=${JOB_NAME} \
-  --policy.repo_id=${POLICY_REPO} \
+  --output_dir=outputs/train/pcb_placement_100x_1st_item_diffusion \
+  --job_name=pcb_placement_100x_1st_item_diffusion \
+  --policy.repo_id=dopaul/pcb_placement_v1_diffusion_policy \
   --policy.device=cuda \
   --policy.use_amp=true \
   --batch_size=64 \
+  --num_workers=0 \
   --steps=5000 \
   --log_freq=100 \
   --save_checkpoint=true \
@@ -113,9 +115,8 @@ lerobot-train \
   --wandb.enable=true
 
 # Upload selected checkpoints to separate model repos.
-BASE_REPO=pcb_placement_v1_diffusion
 for CKPT in 001000 002000 003000 004000 005000; do
-  huggingface-cli upload ${HF_USER}/${BASE_REPO}-${CKPT} \
+  hf upload ${HF_USER}/${BASE_REPO}-${CKPT} \
     outputs/train/${JOB_NAME}/checkpoints/${CKPT}/pretrained_model \
     . \
     --repo-type model

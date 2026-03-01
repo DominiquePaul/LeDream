@@ -35,10 +35,10 @@ LEFT_FOLLOWER_PORT ?= /dev/serial/by-path/platform-a80aa10000.usb-usb-0:4.2.1.4:
 RIGHT_FOLLOWER_PORT ?= /dev/serial/by-path/platform-a80aa10000.usb-usb-0:4.2.1.1:1.0
 
 # Recording defaults.
-DATASET_REPO_ID ?= dopaul/pcb_placement_v1
+DATASET_REPO_ID ?= dopaul/pcb_placement_100x_1st_item
 DATASET_TASK ?= Take a PCB from the box and place it in the testbed
-DATASET_NUM_EPISODES ?= 12
-DATASET_EPISODE_TIME_S ?= 25
+DATASET_NUM_EPISODES ?= 1
+DATASET_EPISODE_TIME_S ?= 35
 DATASET_RESET_TIME_S ?= 7.0
 FPS ?= 30
 DISPLAY_DATA ?= false
@@ -299,7 +299,7 @@ birecord:
 		--dataset.num_episodes=$(DATASET_NUM_EPISODES) \
 		--dataset.episode_time_s=$(DATASET_EPISODE_TIME_S) \
 		--dataset.reset_time_s=$(DATASET_RESET_TIME_S) \
-		--dataset.push_to_hub=true \
+		--dataset.push_to_hub=false \
 		--dataset.streaming_encoding=true \
 		--dataset.encoder_threads=1 \
 		--dataset.vcodec=auto \
