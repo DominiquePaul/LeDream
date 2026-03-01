@@ -18,6 +18,7 @@ By default it runs in dry-run mode and prints what would change.
 
 Usage:
     python scripts/repair_dataset_episodes_metadata.py username/dataset
+    python scripts/repair_dataset_episodes_metadata.py dopaul/pcb_placement_100x_1st_item
     python scripts/repair_dataset_episodes_metadata.py username/dataset --apply
 """
 
