@@ -16,11 +16,13 @@ Maybe do this first
 
 Train (baseline)
 
+
 ```
+#--policy.kl_weight=10 \
+
 HF_USER=dopaul
 DATASET=pcb_placement_100x_1st_item
-JOB_NAME=pcb_placement_1st_item_act_48acl
-BASE_REPO=pcb_placement_1st_item_act_48acl
+JOB_NAME=pcb_placement_1st_item_act_48acl_long_no_vae
 
 lerobot-train \
   --dataset.repo_id=${HF_USER}/${DATASET} \
@@ -32,21 +34,21 @@ lerobot-train \
   --policy.chunk_size=48 \
   --policy.n_action_steps=30 \
   --policy.use_vae=true \
-  --policy.kl_weight=10 \
+  --policy.use_vae=false \
   --batch_size=16 \
   --policy.optimizer_lr=3e-5 \
   --policy.optimizer_lr_backbone=3e-5 \
-  --steps=10000 \
+  --steps=50000 \
   --log_freq=100 \
   --save_checkpoint=true \
-  --save_freq=2000 \
+  --save_freq=10000 \
   --wandb.enable=true \
-  --policy.push_to_hub=true \
+  --policy.push_to_hub=false \
   --policy.repo_id=${HF_USER}/act_policy
 
 # Upload selected checkpoints to separate model repos.
-for CKPT in 002000 004000 006000 008000 010000; do
-  hf upload ${HF_USER}/${BASE_REPO}-${CKPT} \
+for CKPT in 010000 020000 030000 040000 050000; do
+  hf upload ${HF_USER}/${JOB_NAME}-${CKPT} \
     outputs/train/${JOB_NAME}/checkpoints/${CKPT}/pretrained_model \
     . \
     --repo-type model
