@@ -1045,6 +1045,39 @@ class LeRobotDataset(torch.utils.data.Dataset):
                 result[key] = torch.stack(self.hf_dataset[relative_indices][key])
         return result
 
+    # DP: load from pre-decoded JPEG cache (created by scripts/predecode_videos.py)
+    def _query_image_cache(
+        self, abs_idx: int, query_indices: dict[str, list[int]] | None
+    ) -> dict[str, torch.Tensor] | None:
+        cache_dir = self.root / "image_cache"
+        if not cache_dir.is_dir():
+            return None
+
+        from PIL import Image as _PILImage
+
+        item = {}
+        for vid_key in self.meta.video_keys:
+            if query_indices is not None and vid_key in query_indices:
+                indices = query_indices[vid_key]
+            else:
+                indices = [abs_idx]
+
+            frames = []
+            for idx in indices:
+                fpath = cache_dir / vid_key / f"frame_{idx:06d}.jpg"
+                if not fpath.exists():
+                    return None
+                img = _PILImage.open(fpath)
+                import numpy as _np
+                frame = torch.from_numpy(
+                    _np.array(img, copy=True)
+                ).permute(2, 0, 1).float() / 255.0
+                frames.append(frame)
+
+            item[vid_key] = torch.stack(frames).squeeze(0) if len(frames) > 1 else frames[0]
+
+        return item
+
     def _query_videos(self, query_timestamps: dict[str, list[float]], ep_idx: int) -> dict[str, torch.Tensor]:
         """Note: When using data workers (e.g. DataLoader with num_workers>0), do not call this function
         in the main process (e.g. by using a second Dataloader with num_workers=0). It will result in a
@@ -1096,9 +1129,12 @@ class LeRobotDataset(torch.utils.data.Dataset):
                 item[key] = val
 
         if len(self.meta.video_keys) > 0:
-            current_ts = item["timestamp"].item()
-            query_timestamps = self._get_query_timestamps(current_ts, query_indices)
-            video_frames = self._query_videos(query_timestamps, ep_idx)
+            # DP: try pre-decoded image cache first (see scripts/predecode_videos.py)
+            video_frames = self._query_image_cache(abs_idx, query_indices)
+            if video_frames is None:
+                current_ts = item["timestamp"].item()
+                query_timestamps = self._get_query_timestamps(current_ts, query_indices)
+                video_frames = self._query_videos(query_timestamps, ep_idx)
             item = {**video_frames, **item}
 
         if self.image_transforms is not None:

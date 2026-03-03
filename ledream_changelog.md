@@ -28,6 +28,7 @@ These files are entirely ours and will never conflict with upstream merges:
 | `scripts/snapshot.py` | Capture camera snapshots |
 | `scripts/check_dataset_indices.py` | Validate dataset episode indices |
 | `scripts/check_recording_gaps.py` | Detect timing gaps in recordings |
+| `scripts/predecode_videos.py` | Pre-decode video frames to JPEG image cache for fast training |
 | `scripts/repair_dataset_episodes_metadata.py` | Fix broken episode metadata |
 | `ledream_changelog.md` | This file |
 | `lerobot_readme.md` | Original LeRobot README (moved from README.md) |
@@ -65,6 +66,17 @@ upstream merges** -- conflicts are likely here.
   newline, with proper terminal attribute restoration on exit
 - Runs in a daemon thread so it doesn't block recording
 
+### `src/lerobot/scripts/lerobot_train.py`
+
+- Added `persistent_workers=True` to DataLoader constructor (reduces worker
+  restart overhead between epochs)
+
+### `src/lerobot/datasets/lerobot_dataset.py`
+
+- Added `_query_image_cache()` method: loads pre-decoded JPEG frames from
+  `{dataset_root}/image_cache/` when available, bypassing video decode.
+  Falls back to `_query_videos()` transparently if cache is absent
+
 ### `Makefile`
 
 Heavily extended from upstream's minimal test-only Makefile:
@@ -84,6 +96,20 @@ Replaced with project-specific documentation. Original moved to `lerobot_readme.
 Minor additions for project-specific files.
 
 ## Change Log
+
+### 2026-03-02
+
+- Optimized training data loading for **2.1x faster training** (5:07 → 2:28 per
+  200 steps on L4 GPU):
+  - Added `scripts/predecode_videos.py`: one-time pre-decode of all video frames
+    to JPEG image cache (~16GB for pcb_placement_100x). Eliminates expensive
+    random-seek H.264 video decode during training (was 94% of `__getitem__` time)
+  - Added `_query_image_cache()` in `lerobot_dataset.py`: transparently loads from
+    image cache when present, falls back to video decode
+  - Added `persistent_workers=True` to DataLoader in `lerobot_train.py`
+  - Updated `configs/pcb100x_act.json` and `configs/pcb100x_dp.json` to use
+    `num_workers: 8` (was 4/0)
+  - Result: `data_s` dropped from 0.79s → 0.016s, step time from 1.49s → 0.71s
 
 ### 2026-03-01
 
