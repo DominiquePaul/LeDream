@@ -12,7 +12,8 @@ const PRESET_COLORS = [
 ];
 
 export default function TagsPage() {
-  const { data, refresh } = useData();
+  const ctx = useData();
+  const { data } = ctx;
   const [newName, setNewName] = useState("");
   const [newColor, setNewColor] = useState("#3B82F6");
   const [newCategory, setNewCategory] = useState<(typeof CATEGORIES)[number]>("custom");
@@ -21,25 +22,15 @@ export default function TagsPage() {
   const [editColor, setEditColor] = useState("");
   const [editCategory, setEditCategory] = useState<(typeof CATEGORIES)[number]>("custom");
 
-  const createTag = async () => {
+  const handleCreateTag = () => {
     if (!newName.trim()) return;
-    await fetch("/api/tags", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: newName, color: newColor, category: newCategory }),
-    });
+    ctx.addTag({ name: newName, color: newColor, category: newCategory });
     setNewName("");
-    await refresh();
   };
 
-  const deleteTag = async (id: string) => {
+  const handleDeleteTag = (id: string) => {
     if (!confirm("Delete this tag? It will be removed from all entities.")) return;
-    await fetch("/api/tags", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }),
-    });
-    await refresh();
+    ctx.deleteTag(id);
   };
 
   const startEdit = (tag: (typeof data.tags)[0]) => {
@@ -49,15 +40,10 @@ export default function TagsPage() {
     setEditCategory(tag.category);
   };
 
-  const saveEdit = async () => {
+  const saveEdit = () => {
     if (!editingId) return;
-    await fetch("/api/tags", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: editingId, name: editName, color: editColor, category: editCategory }),
-    });
+    ctx.updateTag(editingId, { name: editName, color: editColor, category: editCategory });
     setEditingId(null);
-    await refresh();
   };
 
   // Count usage
@@ -91,7 +77,7 @@ export default function TagsPage() {
               onChange={(e) => setNewName(e.target.value)}
               placeholder="Tag name..."
               className="block w-full bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-white mt-0.5"
-              onKeyDown={(e) => e.key === "Enter" && createTag()}
+              onKeyDown={(e) => e.key === "Enter" && handleCreateTag()}
             />
           </div>
           <div>
@@ -102,9 +88,7 @@ export default function TagsPage() {
               className="block bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-white mt-0.5"
             >
               {CATEGORIES.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
+                <option key={c} value={c}>{c}</option>
               ))}
             </select>
           </div>
@@ -124,7 +108,7 @@ export default function TagsPage() {
             </div>
           </div>
           <button
-            onClick={createTag}
+            onClick={handleCreateTag}
             className="flex items-center gap-1.5 px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded transition-colors"
           >
             <Plus size={14} />
@@ -199,7 +183,7 @@ export default function TagsPage() {
                         <Pencil size={14} />
                       </button>
                       <button
-                        onClick={() => deleteTag(tag.id)}
+                        onClick={() => handleDeleteTag(tag.id)}
                         className="p-1 text-gray-500 hover:text-red-400"
                       >
                         <Trash2 size={14} />

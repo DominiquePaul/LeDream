@@ -25,7 +25,8 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export default function ExperimentsPage() {
-  const { data, refresh } = useData();
+  const ctx = useData();
+  const { data } = ctx;
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [editingHyp, setEditingHyp] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
@@ -41,27 +42,17 @@ export default function ExperimentsPage() {
     });
   };
 
-  const addHypothesis = async () => {
-    await fetch("/api/hypotheses", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title: "New Hypothesis",
-        description: "Describe your hypothesis here...",
-        status: "exploring",
-      }),
+  const handleAddHypothesis = () => {
+    ctx.addHypothesis({
+      title: "New Hypothesis",
+      description: "Describe your hypothesis here...",
+      status: "exploring",
     });
-    await refresh();
   };
 
-  const deleteHypothesis = async (id: string) => {
+  const handleDeleteHypothesis = (id: string) => {
     if (!confirm("Delete this hypothesis and all its experiments?")) return;
-    await fetch("/api/hypotheses", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }),
-    });
-    await refresh();
+    ctx.deleteHypothesis(id);
   };
 
   const startEditHypothesis = (h: (typeof data.hypotheses)[0]) => {
@@ -71,43 +62,23 @@ export default function ExperimentsPage() {
     setEditStatus(h.status);
   };
 
-  const saveEditHypothesis = async () => {
+  const saveEditHypothesis = () => {
     if (!editingHyp) return;
-    await fetch("/api/hypotheses", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        id: editingHyp,
-        title: editTitle,
-        description: editDesc,
-        status: editStatus,
-      }),
+    ctx.updateHypothesis(editingHyp, {
+      title: editTitle,
+      description: editDesc,
+      status: editStatus as "active" | "confirmed" | "rejected" | "exploring",
     });
     setEditingHyp(null);
-    await refresh();
   };
 
-  const addExperiment = async (hypothesisId: string) => {
-    await fetch("/api/experiments", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: "New Experiment",
-        hypothesisId,
-        status: "planned",
-      }),
-    });
-    await refresh();
+  const handleAddExperiment = (hypothesisId: string) => {
+    ctx.addExperiment({ name: "New Experiment", hypothesisId, status: "planned" });
   };
 
-  const deleteExperiment = async (id: string) => {
+  const handleDeleteExperiment = (id: string) => {
     if (!confirm("Delete this experiment?")) return;
-    await fetch("/api/experiments", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }),
-    });
-    await refresh();
+    ctx.deleteExperiment(id);
   };
 
   const datasetMap = new Map(data.datasets.map((d) => [d.id, d]));
@@ -123,7 +94,7 @@ export default function ExperimentsPage() {
           </p>
         </div>
         <button
-          onClick={addHypothesis}
+          onClick={handleAddHypothesis}
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors"
         >
           <Plus size={16} />
@@ -149,18 +120,13 @@ export default function ExperimentsPage() {
                 key={h.id}
                 className="bg-gray-900 rounded-lg border border-gray-800 overflow-hidden"
               >
-                {/* Hypothesis header */}
                 <div className="p-4">
                   <div className="flex items-start gap-3">
                     <button
                       onClick={() => toggle(h.id)}
                       className="mt-1 text-gray-500 hover:text-gray-300"
                     >
-                      {isExpanded ? (
-                        <ChevronDown size={16} />
-                      ) : (
-                        <ChevronRight size={16} />
-                      )}
+                      {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                     </button>
 
                     <div className="flex-1 min-w-0">
@@ -188,16 +154,10 @@ export default function ExperimentsPage() {
                             <option value="rejected">Rejected</option>
                           </select>
                           <div className="flex gap-2">
-                            <button
-                              onClick={saveEditHypothesis}
-                              className="text-green-400 hover:text-green-300"
-                            >
+                            <button onClick={saveEditHypothesis} className="text-green-400 hover:text-green-300">
                               <Check size={16} />
                             </button>
-                            <button
-                              onClick={() => setEditingHyp(null)}
-                              className="text-gray-400 hover:text-gray-300"
-                            >
+                            <button onClick={() => setEditingHyp(null)} className="text-gray-400 hover:text-gray-300">
                               <X size={16} />
                             </button>
                           </div>
@@ -205,41 +165,23 @@ export default function ExperimentsPage() {
                       ) : (
                         <>
                           <div className="flex items-center gap-2">
-                            <h3 className="text-white font-medium text-sm">
-                              {h.title}
-                            </h3>
-                            <span
-                              className={`text-[10px] px-2 py-0.5 rounded-full ${
-                                STATUS_COLORS[h.status] || STATUS_COLORS.planned
-                              }`}
-                            >
+                            <h3 className="text-white font-medium text-sm">{h.title}</h3>
+                            <span className={`text-[10px] px-2 py-0.5 rounded-full ${STATUS_COLORS[h.status] || STATUS_COLORS.planned}`}>
                               {h.status}
                             </span>
                           </div>
-                          {h.description && (
-                            <p className="text-xs text-gray-400 mt-1">
-                              {h.description}
-                            </p>
-                          )}
-                          <p className="text-[10px] text-gray-600 mt-1">
-                            {experiments.length} experiments
-                          </p>
+                          {h.description && <p className="text-xs text-gray-400 mt-1">{h.description}</p>}
+                          <p className="text-[10px] text-gray-600 mt-1">{experiments.length} experiments</p>
                         </>
                       )}
                     </div>
 
                     {!isEditing && (
                       <div className="flex gap-1">
-                        <button
-                          onClick={() => startEditHypothesis(h)}
-                          className="p-1 text-gray-500 hover:text-gray-300"
-                        >
+                        <button onClick={() => startEditHypothesis(h)} className="p-1 text-gray-500 hover:text-gray-300">
                           <Pencil size={14} />
                         </button>
-                        <button
-                          onClick={() => deleteHypothesis(h.id)}
-                          className="p-1 text-gray-500 hover:text-red-400"
-                        >
+                        <button onClick={() => handleDeleteHypothesis(h.id)} className="p-1 text-gray-500 hover:text-red-400">
                           <Trash2 size={14} />
                         </button>
                       </div>
@@ -247,13 +189,10 @@ export default function ExperimentsPage() {
                   </div>
                 </div>
 
-                {/* Experiments list */}
                 {isExpanded && (
                   <div className="border-t border-gray-800">
                     {experiments.length === 0 ? (
-                      <p className="p-4 text-xs text-gray-500">
-                        No experiments yet.
-                      </p>
+                      <p className="p-4 text-xs text-gray-500">No experiments yet.</p>
                     ) : (
                       <div className="divide-y divide-gray-800/50">
                         {experiments.map((exp) => (
@@ -261,78 +200,43 @@ export default function ExperimentsPage() {
                             <div className="flex items-start justify-between">
                               <div className="flex-1">
                                 <div className="flex items-center gap-2">
-                                  <span className="text-sm text-white font-medium">
-                                    {exp.name}
-                                  </span>
-                                  <span
-                                    className={`text-[10px] px-2 py-0.5 rounded-full ${
-                                      STATUS_COLORS[exp.status] ||
-                                      STATUS_COLORS.planned
-                                    }`}
-                                  >
+                                  <span className="text-sm text-white font-medium">{exp.name}</span>
+                                  <span className={`text-[10px] px-2 py-0.5 rounded-full ${STATUS_COLORS[exp.status] || STATUS_COLORS.planned}`}>
                                     {exp.status}
                                   </span>
                                 </div>
-                                {exp.notes && (
-                                  <p className="text-xs text-gray-400 mt-1">
-                                    {exp.notes}
-                                  </p>
-                                )}
-                                {exp.results && (
-                                  <p className="text-xs text-emerald-400/70 mt-1">
-                                    Result: {exp.results}
-                                  </p>
-                                )}
-
-                                {/* Linked datasets */}
+                                {exp.notes && <p className="text-xs text-gray-400 mt-1">{exp.notes}</p>}
+                                {exp.results && <p className="text-xs text-emerald-400/70 mt-1">Result: {exp.results}</p>}
                                 {exp.datasetIds.length > 0 && (
                                   <div className="flex flex-wrap gap-1.5 mt-2">
                                     {exp.datasetIds.map((did) => {
                                       const ds = datasetMap.get(did);
                                       if (!ds) return null;
                                       return (
-                                        <a
-                                          key={did}
-                                          href={ds.hfUrl}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 bg-blue-900/30 text-blue-400 rounded-full hover:bg-blue-900/50"
-                                        >
-                                          <ExternalLink size={10} />
-                                          {ds.name}
+                                        <a key={did} href={ds.hfUrl} target="_blank" rel="noopener noreferrer"
+                                          className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 bg-blue-900/30 text-blue-400 rounded-full hover:bg-blue-900/50">
+                                          <ExternalLink size={10} />{ds.name}
                                         </a>
                                       );
                                     })}
                                   </div>
                                 )}
-
-                                {/* Linked models */}
                                 {exp.modelIds.length > 0 && (
                                   <div className="flex flex-wrap gap-1.5 mt-1">
                                     {exp.modelIds.map((mid) => {
                                       const m = modelMap.get(mid);
                                       if (!m) return null;
                                       return (
-                                        <a
-                                          key={mid}
-                                          href={m.hfUrl}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 bg-emerald-900/30 text-emerald-400 rounded-full hover:bg-emerald-900/50"
-                                        >
-                                          <ExternalLink size={10} />
-                                          {m.name}
+                                        <a key={mid} href={m.hfUrl} target="_blank" rel="noopener noreferrer"
+                                          className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 bg-emerald-900/30 text-emerald-400 rounded-full hover:bg-emerald-900/50">
+                                          <ExternalLink size={10} />{m.name}
                                         </a>
                                       );
                                     })}
                                   </div>
                                 )}
                               </div>
-
-                              <button
-                                onClick={() => deleteExperiment(exp.id)}
-                                className="p-1 text-gray-500 hover:text-red-400"
-                              >
+                              <button onClick={() => handleDeleteExperiment(exp.id)} className="p-1 text-gray-500 hover:text-red-400">
                                 <Trash2 size={14} />
                               </button>
                             </div>
@@ -341,12 +245,9 @@ export default function ExperimentsPage() {
                       </div>
                     )}
                     <div className="p-3 pl-12">
-                      <button
-                        onClick={() => addExperiment(h.id)}
-                        className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-300"
-                      >
-                        <Plus size={14} />
-                        Add Experiment
+                      <button onClick={() => handleAddExperiment(h.id)}
+                        className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-300">
+                        <Plus size={14} />Add Experiment
                       </button>
                     </div>
                   </div>

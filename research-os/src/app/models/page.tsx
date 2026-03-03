@@ -11,7 +11,8 @@ import {
 } from "lucide-react";
 
 export default function ModelsPage() {
-  const { data, refresh } = useData();
+  const ctx = useData();
+  const { data } = ctx;
   const [search, setSearch] = useState("");
   const [filterTag, setFilterTag] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -25,14 +26,9 @@ export default function ModelsPage() {
     return true;
   });
 
-  const deleteModel = async (id: string) => {
+  const handleDeleteModel = (id: string) => {
     if (!confirm("Remove this model from Research OS? (Does not delete from HuggingFace)")) return;
-    await fetch("/api/models", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }),
-    });
-    await refresh();
+    ctx.deleteModel(id);
   };
 
   return (
@@ -133,7 +129,7 @@ export default function ModelsPage() {
                     <ExternalLink size={14} />
                   </a>
                   <button
-                    onClick={() => deleteModel(m.id)}
+                    onClick={() => handleDeleteModel(m.id)}
                     className="p-1.5 text-gray-500 hover:text-red-400"
                   >
                     <Trash2 size={14} />

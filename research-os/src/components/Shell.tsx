@@ -2,37 +2,69 @@
 
 import { useResearchData } from "@/lib/hooks";
 import Sidebar from "./Sidebar";
-import type { ResearchData } from "@/lib/types";
+import type { ResearchData, Hypothesis, Experiment, Tag } from "@/lib/types";
 import { createContext, useContext } from "react";
 
 interface DataCtx {
   data: ResearchData;
   loading: boolean;
   syncing: boolean;
-  refresh: () => Promise<void>;
+  sync: () => Promise<void>;
+  addHypothesis: (p: Partial<Hypothesis>) => Hypothesis;
+  updateHypothesis: (id: string, u: Partial<Hypothesis>) => void;
+  deleteHypothesis: (id: string) => void;
+  addExperiment: (p: Partial<Experiment> & { hypothesisId: string }) => Experiment;
+  updateExperiment: (id: string, u: Partial<Experiment>) => void;
+  deleteExperiment: (id: string) => void;
+  updateDataset: (id: string, u: Record<string, unknown>) => void;
+  deleteDataset: (id: string) => void;
+  updateModel: (id: string, u: Record<string, unknown>) => void;
+  deleteModel: (id: string) => void;
+  addTag: (p: Partial<Tag>) => Tag;
+  updateTag: (id: string, u: Partial<Tag>) => void;
+  deleteTag: (id: string) => void;
+  resetAll: () => void;
 }
+
+const noop = () => {};
+const noopAsync = async () => {};
+const noopReturn = (() => ({} as never));
 
 const DataContext = createContext<DataCtx>({
   data: { hypotheses: [], experiments: [], datasets: [], models: [], tags: [], lastSynced: "" },
   loading: true,
   syncing: false,
-  refresh: async () => {},
+  sync: noopAsync,
+  addHypothesis: noopReturn,
+  updateHypothesis: noop,
+  deleteHypothesis: noop,
+  addExperiment: noopReturn,
+  updateExperiment: noop,
+  deleteExperiment: noop,
+  updateDataset: noop,
+  deleteDataset: noop,
+  updateModel: noop,
+  deleteModel: noop,
+  addTag: noopReturn,
+  updateTag: noop,
+  deleteTag: noop,
+  resetAll: noop,
 });
 
 export const useData = () => useContext(DataContext);
 
 export default function Shell({ children }: { children: React.ReactNode }) {
-  const { data, loading, syncing, sync, refresh } = useResearchData();
+  const ctx = useResearchData();
 
   return (
-    <DataContext.Provider value={{ data, loading, syncing, refresh }}>
+    <DataContext.Provider value={ctx}>
       <div className="flex h-screen bg-gray-950 text-gray-100">
-        <Sidebar syncing={syncing} lastSynced={data.lastSynced} onSync={sync} />
+        <Sidebar syncing={ctx.syncing} lastSynced={ctx.data.lastSynced} onSync={ctx.sync} />
         <main className="flex-1 overflow-auto">
-          {loading && data.lastSynced === "" ? (
+          {ctx.loading && ctx.data.lastSynced === "" ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
-                <RefreshSpinner />
+                <div className="w-8 h-8 border-2 border-gray-700 border-t-blue-500 rounded-full animate-spin mx-auto" />
                 <p className="text-gray-400 mt-4">Loading &amp; syncing with HuggingFace...</p>
               </div>
             </div>
@@ -42,11 +74,5 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         </main>
       </div>
     </DataContext.Provider>
-  );
-}
-
-function RefreshSpinner() {
-  return (
-    <div className="w-8 h-8 border-2 border-gray-700 border-t-blue-500 rounded-full animate-spin mx-auto" />
   );
 }

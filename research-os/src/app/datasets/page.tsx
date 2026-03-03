@@ -15,7 +15,8 @@ import {
 } from "lucide-react";
 
 export default function DatasetsPage() {
-  const { data, refresh } = useData();
+  const ctx = useData();
+  const { data } = ctx;
   const [search, setSearch] = useState("");
   const [filterTag, setFilterTag] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -50,32 +51,19 @@ export default function DatasetsPage() {
     });
   };
 
-  const saveEdit = async (id: string) => {
-    await fetch("/api/datasets", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        id,
-        metadata: {
-          ...editMeta,
-          knownIssues: editMeta.knownIssues
-            .split("\n")
-            .filter((s) => s.trim()),
-        },
-      }),
+  const saveEdit = (id: string) => {
+    ctx.updateDataset(id, {
+      metadata: {
+        ...editMeta,
+        knownIssues: editMeta.knownIssues.split("\n").filter((s) => s.trim()),
+      },
     });
     setEditing(null);
-    await refresh();
   };
 
-  const deleteDataset = async (id: string) => {
+  const handleDeleteDataset = (id: string) => {
     if (!confirm("Remove this dataset from Research OS? (Does not delete from HuggingFace)")) return;
-    await fetch("/api/datasets", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }),
-    });
-    await refresh();
+    ctx.deleteDataset(id);
   };
 
   return (
@@ -186,7 +174,7 @@ export default function DatasetsPage() {
                     <ExternalLink size={14} />
                   </a>
                   <button
-                    onClick={() => deleteDataset(d.id)}
+                    onClick={() => handleDeleteDataset(d.id)}
                     className="p-1.5 text-gray-500 hover:text-red-400"
                   >
                     <Trash2 size={14} />
