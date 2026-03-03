@@ -68,6 +68,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
           datasetCount={ctx.data.datasets.length}
           modelCount={ctx.data.models.length}
           onSync={ctx.sync}
+          onReset={ctx.resetAll}
         />
         <main className="flex-1 overflow-auto">
           {ctx.loading && ctx.data.lastSynced === "" ? (

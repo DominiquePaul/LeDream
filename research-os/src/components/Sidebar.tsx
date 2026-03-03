@@ -11,7 +11,12 @@ import {
   Tags,
   RefreshCw,
   AlertCircle,
+  Download,
+  Upload,
+  Trash2,
 } from "lucide-react";
+import { readData, writeData, clearData } from "@/lib/storage";
+import type { ResearchData } from "@/lib/types";
 
 const nav = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -29,6 +34,7 @@ export default function Sidebar({
   datasetCount,
   modelCount,
   onSync,
+  onReset,
 }: {
   syncing: boolean;
   syncError: string | null;
@@ -36,8 +42,51 @@ export default function Sidebar({
   datasetCount: number;
   modelCount: number;
   onSync: () => void;
+  onReset: () => void;
 }) {
   const pathname = usePathname();
+
+  const handleExport = () => {
+    const data = readData();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `research-os-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImport = () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".json";
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          const imported = JSON.parse(ev.target?.result as string) as ResearchData;
+          if (!imported.datasets || !imported.models || !imported.tags) {
+            alert("Invalid Research OS data file.");
+            return;
+          }
+          writeData(imported);
+          window.location.reload();
+        } catch {
+          alert("Failed to parse JSON file.");
+        }
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  };
+
+  const handleReset = () => {
+    if (!confirm("Reset ALL data? This will clear everything and re-sync from HuggingFace. This cannot be undone.")) return;
+    onReset();
+  };
 
   return (
     <aside className="w-56 bg-gray-950 text-gray-300 flex flex-col border-r border-gray-800 shrink-0">
@@ -89,6 +138,27 @@ export default function Sidebar({
             <p>{datasetCount} datasets, {modelCount} models</p>
           </div>
         )}
+
+        <div className="pt-2 border-t border-gray-800/50 space-y-1">
+          <button
+            onClick={handleExport}
+            className="flex items-center gap-2 text-[11px] text-gray-500 hover:text-white transition-colors w-full"
+          >
+            <Download size={12} /> Export Data
+          </button>
+          <button
+            onClick={handleImport}
+            className="flex items-center gap-2 text-[11px] text-gray-500 hover:text-white transition-colors w-full"
+          >
+            <Upload size={12} /> Import Data
+          </button>
+          <button
+            onClick={handleReset}
+            className="flex items-center gap-2 text-[11px] text-gray-500 hover:text-red-400 transition-colors w-full"
+          >
+            <Trash2 size={12} /> Reset All Data
+          </button>
+        </div>
       </div>
     </aside>
   );

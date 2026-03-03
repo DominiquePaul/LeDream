@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useData } from "@/components/Shell";
 import {
   Database,
@@ -8,6 +9,7 @@ import {
   Lightbulb,
   Clock,
   ExternalLink,
+  ArrowRight,
 } from "lucide-react";
 
 export default function Dashboard() {
@@ -22,9 +24,10 @@ export default function Dashboard() {
     0
   );
 
-  // Hours by tag
+  // Hours and episodes by tag
   const tagMap = new Map(data.tags.map((t) => [t.id, t]));
   const hoursByTag = new Map<string, number>();
+  const episodesByTag = new Map<string, number>();
   for (const ds of data.datasets) {
     for (const tid of ds.tags) {
       const tag = tagMap.get(tid);
@@ -33,9 +36,19 @@ export default function Dashboard() {
           tag.name,
           (hoursByTag.get(tag.name) || 0) + ds.metadata.estimatedHours
         );
+        episodesByTag.set(
+          tag.name,
+          (episodesByTag.get(tag.name) || 0) + ds.metadata.episodeCount
+        );
       }
     }
   }
+
+  // Checkpoints count
+  const totalCheckpoints = data.models.reduce(
+    (sum, m) => sum + m.iterations.length,
+    0
+  );
 
   const statCards = [
     {
@@ -43,36 +56,42 @@ export default function Dashboard() {
       value: data.datasets.length,
       icon: Database,
       color: "text-blue-400",
+      href: "/datasets",
     },
     {
       label: "Models",
       value: data.models.length,
       icon: Box,
       color: "text-emerald-400",
+      href: "/models",
+    },
+    {
+      label: "Checkpoints",
+      value: totalCheckpoints,
+      icon: Box,
+      color: "text-teal-400",
+      href: "/models",
     },
     {
       label: "Experiments",
       value: data.experiments.length,
       icon: FlaskConical,
       color: "text-amber-400",
-    },
-    {
-      label: "Hypotheses",
-      value: data.hypotheses.length,
-      icon: Lightbulb,
-      color: "text-purple-400",
+      href: "/experiments",
     },
     {
       label: "Total Hours",
       value: totalHours.toFixed(1),
       icon: Clock,
       color: "text-rose-400",
+      href: "/datasets",
     },
     {
       label: "Total Episodes",
       value: totalEpisodes.toLocaleString(),
       icon: Database,
       color: "text-cyan-400",
+      href: "/datasets",
     },
   ];
 
@@ -86,6 +105,12 @@ export default function Dashboard() {
     (h) => h.status === "active" || h.status === "exploring"
   );
 
+  // Experiment status breakdown
+  const expByStatus = new Map<string, number>();
+  for (const e of data.experiments) {
+    expByStatus.set(e.status, (expByStatus.get(e.status) || 0) + 1);
+  }
+
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-8">
       <div>
@@ -98,75 +123,125 @@ export default function Dashboard() {
       {/* Stat cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         {statCards.map((s) => (
-          <div
+          <Link
             key={s.label}
-            className="bg-gray-900 rounded-lg p-4 border border-gray-800"
+            href={s.href}
+            className="bg-gray-900 rounded-lg p-4 border border-gray-800 hover:border-gray-700 transition-colors group"
           >
             <div className="flex items-center gap-2 mb-2">
               <s.icon size={16} className={s.color} />
               <span className="text-xs text-gray-400">{s.label}</span>
             </div>
             <p className="text-2xl font-bold text-white">{s.value}</p>
-          </div>
+          </Link>
         ))}
       </div>
 
-      {/* Hours by Tag */}
-      <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
-        <h2 className="text-sm font-semibold text-gray-300 mb-4">
-          Data Hours by Tag
-        </h2>
-        {hoursByTag.size === 0 ? (
-          <p className="text-sm text-gray-500">No data yet</p>
-        ) : (
-          <div className="space-y-3">
-            {Array.from(hoursByTag.entries())
-              .sort((a, b) => b[1] - a[1])
-              .map(([name, hours]) => {
-                const tag = data.tags.find((t) => t.name === name);
-                const pct = totalHours > 0 ? (hours / totalHours) * 100 : 0;
-                return (
-                  <div key={name} className="flex items-center gap-3">
-                    <span
-                      className="inline-block w-3 h-3 rounded-full shrink-0"
-                      style={{ backgroundColor: tag?.color || "#6B7280" }}
-                    />
-                    <span className="text-sm text-gray-300 w-32 truncate">
-                      {name}
-                    </span>
-                    <div className="flex-1 bg-gray-800 rounded-full h-2">
-                      <div
-                        className="h-2 rounded-full transition-all"
-                        style={{
-                          width: `${pct}%`,
-                          backgroundColor: tag?.color || "#6B7280",
-                        }}
+      {/* Hours and Episodes by Tag */}
+      <div className="grid md:grid-cols-2 gap-6">
+        <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
+          <h2 className="text-sm font-semibold text-gray-300 mb-4">
+            Data Hours by Tag
+          </h2>
+          {hoursByTag.size === 0 ? (
+            <p className="text-sm text-gray-500">No data yet</p>
+          ) : (
+            <div className="space-y-3">
+              {Array.from(hoursByTag.entries())
+                .sort((a, b) => b[1] - a[1])
+                .map(([name, hours]) => {
+                  const tag = data.tags.find((t) => t.name === name);
+                  const pct = totalHours > 0 ? (hours / totalHours) * 100 : 0;
+                  return (
+                    <div key={name} className="flex items-center gap-3">
+                      <span
+                        className="inline-block w-3 h-3 rounded-full shrink-0"
+                        style={{ backgroundColor: tag?.color || "#6B7280" }}
                       />
+                      <span className="text-sm text-gray-300 w-32 truncate">
+                        {name}
+                      </span>
+                      <div className="flex-1 bg-gray-800 rounded-full h-2">
+                        <div
+                          className="h-2 rounded-full transition-all"
+                          style={{
+                            width: `${pct}%`,
+                            backgroundColor: tag?.color || "#6B7280",
+                          }}
+                        />
+                      </div>
+                      <span className="text-xs text-gray-400 w-16 text-right">
+                        {hours.toFixed(1)}h
+                      </span>
                     </div>
-                    <span className="text-xs text-gray-400 w-16 text-right">
-                      {hours.toFixed(1)}h
-                    </span>
-                  </div>
-                );
-              })}
-          </div>
-        )}
+                  );
+                })}
+            </div>
+          )}
+        </div>
+
+        <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
+          <h2 className="text-sm font-semibold text-gray-300 mb-4">
+            Episodes by Tag
+          </h2>
+          {episodesByTag.size === 0 ? (
+            <p className="text-sm text-gray-500">No data yet</p>
+          ) : (
+            <div className="space-y-3">
+              {Array.from(episodesByTag.entries())
+                .sort((a, b) => b[1] - a[1])
+                .map(([name, episodes]) => {
+                  const tag = data.tags.find((t) => t.name === name);
+                  const pct = totalEpisodes > 0 ? (episodes / totalEpisodes) * 100 : 0;
+                  return (
+                    <div key={name} className="flex items-center gap-3">
+                      <span
+                        className="inline-block w-3 h-3 rounded-full shrink-0"
+                        style={{ backgroundColor: tag?.color || "#6B7280" }}
+                      />
+                      <span className="text-sm text-gray-300 w-32 truncate">
+                        {name}
+                      </span>
+                      <div className="flex-1 bg-gray-800 rounded-full h-2">
+                        <div
+                          className="h-2 rounded-full transition-all"
+                          style={{
+                            width: `${pct}%`,
+                            backgroundColor: tag?.color || "#6B7280",
+                          }}
+                        />
+                      </div>
+                      <span className="text-xs text-gray-400 w-20 text-right">
+                        {episodes.toLocaleString()}
+                      </span>
+                    </div>
+                  );
+                })}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
         {/* Active Hypotheses */}
         <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
-          <h2 className="text-sm font-semibold text-gray-300 mb-4">
-            Active Hypotheses
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-semibold text-gray-300">
+              Active Hypotheses
+            </h2>
+            <Link href="/experiments" className="text-xs text-gray-500 hover:text-white flex items-center gap-1">
+              View all <ArrowRight size={12} />
+            </Link>
+          </div>
           {activeHypotheses.length === 0 ? (
             <p className="text-gray-500 text-sm">No active hypotheses</p>
           ) : (
             <div className="space-y-3">
               {activeHypotheses.map((h) => (
-                <div
+                <Link
                   key={h.id}
-                  className="p-3 bg-gray-800/50 rounded-lg border border-gray-700/50"
+                  href="/experiments"
+                  className="block p-3 bg-gray-800/50 rounded-lg border border-gray-700/50 hover:border-gray-600 transition-colors"
                 >
                   <p className="text-sm text-white font-medium">{h.title}</p>
                   <div className="flex items-center gap-2 mt-2">
@@ -183,7 +258,7 @@ export default function Dashboard() {
                       {h.experimentIds.length} experiments
                     </span>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           )}
@@ -191,9 +266,14 @@ export default function Dashboard() {
 
         {/* Recent Datasets */}
         <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
-          <h2 className="text-sm font-semibold text-gray-300 mb-4">
-            Recently Updated Datasets
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-semibold text-gray-300">
+              Recently Updated Datasets
+            </h2>
+            <Link href="/datasets" className="text-xs text-gray-500 hover:text-white flex items-center gap-1">
+              View all <ArrowRight size={12} />
+            </Link>
+          </div>
           <div className="space-y-2">
             {recentDatasets.map((d) => (
               <div
@@ -220,6 +300,33 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* Experiment Status Breakdown */}
+      {data.experiments.length > 0 && (
+        <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
+          <h2 className="text-sm font-semibold text-gray-300 mb-4">
+            Experiment Status
+          </h2>
+          <div className="flex gap-4 flex-wrap">
+            {[
+              { status: "planned", color: "bg-gray-600" },
+              { status: "in-progress", color: "bg-amber-500" },
+              { status: "completed", color: "bg-emerald-500" },
+              { status: "failed", color: "bg-red-500" },
+            ].map(({ status, color }) => {
+              const count = expByStatus.get(status) || 0;
+              if (count === 0) return null;
+              return (
+                <div key={status} className="flex items-center gap-2">
+                  <span className={`w-2.5 h-2.5 rounded-full ${color}`} />
+                  <span className="text-sm text-gray-300">{status}</span>
+                  <span className="text-sm text-white font-semibold">{count}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
