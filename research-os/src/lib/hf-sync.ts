@@ -14,7 +14,8 @@ interface HFDataset {
 
 interface HFModel {
   id: string;
-  lastModified: string;
+  lastModified?: string;
+  createdAt?: string;
   downloads: number;
   tags?: string[];
   pipeline_tag?: string;
@@ -69,6 +70,10 @@ function inferPolicyType(hfId: string, tags: string[]): string {
   return "unknown";
 }
 
+function getModelDate(m: HFModel): string {
+  return m.lastModified || m.createdAt || new Date().toISOString();
+}
+
 function groupModelIterations(models: HFModel[]): Map<string, HFModel[]> {
   const groups = new Map<string, HFModel[]>();
   for (const model of models) {
@@ -81,18 +86,24 @@ function groupModelIterations(models: HFModel[]): Map<string, HFModel[]> {
 }
 
 export async function syncFromHuggingFace(existing: ResearchData): Promise<ResearchData> {
+  console.log("[HF Sync] Fetching from", `${HF_API}/datasets?author=${HF_USER}&limit=200`);
+
   const [datasetsRes, modelsRes] = await Promise.all([
     fetch(`${HF_API}/datasets?author=${HF_USER}&limit=200`),
     fetch(`${HF_API}/models?author=${HF_USER}&limit=200`),
   ]);
 
   if (!datasetsRes.ok || !modelsRes.ok) {
-    console.error("HF API error:", datasetsRes.status, modelsRes.status);
-    return existing;
+    const dsText = !datasetsRes.ok ? await datasetsRes.text().catch(() => "") : "";
+    const mdText = !modelsRes.ok ? await modelsRes.text().catch(() => "") : "";
+    throw new Error(
+      `HF API error: datasets=${datasetsRes.status} ${dsText}, models=${modelsRes.status} ${mdText}`
+    );
   }
 
   const hfDatasets: HFDataset[] = await datasetsRes.json();
   const hfModels: HFModel[] = await modelsRes.json();
+  console.log("[HF Sync] Got", hfDatasets.length, "datasets,", hfModels.length, "models");
 
   const data: ResearchData = {
     ...existing,
@@ -148,9 +159,10 @@ export async function syncFromHuggingFace(existing: ResearchData): Promise<Resea
     }
 
     if (existingDs) {
-      existingDs.downloads = hfDs.downloads;
-      existingDs.lastModified = hfDs.lastModified;
+      existingDs.downloads = hfDs.downloads || 0;
+      existingDs.lastModified = hfDs.lastModified || existingDs.lastModified;
     } else {
+      const modified = hfDs.lastModified || new Date().toISOString();
       data.datasets.push({
         id: uuid(),
         hfId: hfDs.id,
@@ -166,9 +178,9 @@ export async function syncFromHuggingFace(existing: ResearchData): Promise<Resea
           episodeCount: inferred.episodeCount,
         },
         hfUrl: `https://huggingface.co/datasets/${hfDs.id}`,
-        downloads: hfDs.downloads,
-        lastModified: hfDs.lastModified,
-        createdAt: hfDs.lastModified,
+        downloads: hfDs.downloads || 0,
+        lastModified: modified,
+        createdAt: modified,
       });
     }
   }
@@ -207,10 +219,10 @@ export async function syncFromHuggingFace(existing: ResearchData): Promise<Resea
       trainedOn: [],
       hfId: m.id,
       hfUrl: `https://huggingface.co/${m.id}`,
-      createdAt: m.lastModified,
+      createdAt: getModelDate(m),
     }));
 
-    const totalDownloads = groupModels.reduce((sum, m) => sum + m.downloads, 0);
+    const totalDownloads = groupModels.reduce((sum, m) => sum + (m.downloads || 0), 0);
 
     if (existingModel) {
       existingModel.downloads = totalDownloads;
@@ -220,6 +232,7 @@ export async function syncFromHuggingFace(existing: ResearchData): Promise<Resea
         }
       }
     } else {
+      const dates = groupModels.map(m => getModelDate(m)).sort();
       data.models.push({
         id: uuid(),
         hfId: groupModels[0].id,
@@ -230,10 +243,8 @@ export async function syncFromHuggingFace(existing: ResearchData): Promise<Resea
         iterations: iterations.sort((a, b) => a.createdAt.localeCompare(b.createdAt)),
         hfUrl: `https://huggingface.co/${groupModels[0].id}`,
         downloads: totalDownloads,
-        lastModified: groupModels.reduce((latest, m) =>
-          m.lastModified > latest ? m.lastModified : latest, groupModels[0].lastModified),
-        createdAt: groupModels.reduce((earliest, m) =>
-          m.lastModified < earliest ? m.lastModified : earliest, groupModels[0].lastModified),
+        lastModified: dates[dates.length - 1],
+        createdAt: dates[0],
       });
     }
   }

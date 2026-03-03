@@ -20,6 +20,7 @@ export function useResearchData() {
   const [data, setData] = useState<ResearchData>(EMPTY);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [syncError, setSyncError] = useState<string | null>(null);
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -36,13 +37,19 @@ export function useResearchData() {
 
   const sync = useCallback(async () => {
     setSyncing(true);
+    setSyncError(null);
     try {
       const current = readData();
-      let synced = await syncFromHuggingFace(current);
-      synced = seedData(synced);
-      save(synced);
+      console.log("[ResearchOS] Starting HF sync, current datasets:", current.datasets.length);
+      const synced = await syncFromHuggingFace(current);
+      console.log("[ResearchOS] HF sync done, datasets:", synced.datasets.length, "models:", synced.models.length);
+      const seeded = seedData(synced);
+      console.log("[ResearchOS] Seed done, hypotheses:", seeded.hypotheses.length);
+      save(seeded);
     } catch (err) {
-      console.error("Sync failed:", err);
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error("Sync failed:", msg, err);
+      setSyncError(msg);
     } finally {
       setSyncing(false);
     }
@@ -200,6 +207,7 @@ export function useResearchData() {
     data,
     loading,
     syncing,
+    syncError,
     sync,
     addHypothesis,
     updateHypothesis,

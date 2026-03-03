@@ -10,6 +10,7 @@ import {
   Box,
   Tags,
   RefreshCw,
+  AlertCircle,
 } from "lucide-react";
 
 const nav = [
@@ -23,11 +24,17 @@ const nav = [
 
 export default function Sidebar({
   syncing,
+  syncError,
   lastSynced,
+  datasetCount,
+  modelCount,
   onSync,
 }: {
   syncing: boolean;
+  syncError: string | null;
   lastSynced: string;
+  datasetCount: number;
+  modelCount: number;
   onSync: () => void;
 }) {
   const pathname = usePathname();
@@ -61,7 +68,7 @@ export default function Sidebar({
         })}
       </nav>
 
-      <div className="p-4 border-t border-gray-800">
+      <div className="p-4 border-t border-gray-800 space-y-2">
         <button
           onClick={onSync}
           disabled={syncing}
@@ -70,10 +77,17 @@ export default function Sidebar({
           <RefreshCw size={14} className={syncing ? "animate-spin" : ""} />
           {syncing ? "Syncing HF..." : "Sync with HuggingFace"}
         </button>
+        {syncError && (
+          <div className="flex items-start gap-1.5 text-[10px] text-red-400">
+            <AlertCircle size={12} className="mt-0.5 shrink-0" />
+            <span>Sync failed: {syncError}</span>
+          </div>
+        )}
         {lastSynced && (
-          <p className="text-[10px] text-gray-600 mt-1">
-            Last: {new Date(lastSynced).toLocaleString()}
-          </p>
+          <div className="text-[10px] text-gray-600">
+            <p>Last: {new Date(lastSynced).toLocaleString()}</p>
+            <p>{datasetCount} datasets, {modelCount} models</p>
+          </div>
         )}
       </div>
     </aside>

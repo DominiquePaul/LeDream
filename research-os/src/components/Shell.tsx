@@ -9,6 +9,7 @@ interface DataCtx {
   data: ResearchData;
   loading: boolean;
   syncing: boolean;
+  syncError: string | null;
   sync: () => Promise<void>;
   addHypothesis: (p: Partial<Hypothesis>) => Hypothesis;
   updateHypothesis: (id: string, u: Partial<Hypothesis>) => void;
@@ -34,6 +35,7 @@ const DataContext = createContext<DataCtx>({
   data: { hypotheses: [], experiments: [], datasets: [], models: [], tags: [], lastSynced: "" },
   loading: true,
   syncing: false,
+  syncError: null,
   sync: noopAsync,
   addHypothesis: noopReturn,
   updateHypothesis: noop,
@@ -59,7 +61,14 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   return (
     <DataContext.Provider value={ctx}>
       <div className="flex h-screen bg-gray-950 text-gray-100">
-        <Sidebar syncing={ctx.syncing} lastSynced={ctx.data.lastSynced} onSync={ctx.sync} />
+        <Sidebar
+          syncing={ctx.syncing}
+          syncError={ctx.syncError}
+          lastSynced={ctx.data.lastSynced}
+          datasetCount={ctx.data.datasets.length}
+          modelCount={ctx.data.models.length}
+          onSync={ctx.sync}
+        />
         <main className="flex-1 overflow-auto">
           {ctx.loading && ctx.data.lastSynced === "" ? (
             <div className="flex items-center justify-center h-full">
