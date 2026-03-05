@@ -1,5 +1,7 @@
 # Dream Machines - AI-Powered Robotics Website
 
+<!-- Part of the dreammachines monorepo -->
+
 Professional website for Dream Machines, a stealth robotics startup founded by ML researchers from ETH Zurich, targeting German small and medium-sized manufacturers (Mittelstand) and early-stage investors.
 
 ## 🚀 Overview
