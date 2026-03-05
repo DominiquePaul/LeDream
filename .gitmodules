@@ -1,3 +1,3 @@
-[submodule "lerobot/trlc-dk1"]
-	path = lerobot/trlc-dk1
+[submodule "ledream/trlc-dk1"]
+	path = ledream/trlc-dk1
 	url = https://github.com/robot-learning-co/trlc-dk1.git
