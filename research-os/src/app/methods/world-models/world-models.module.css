@@ -1,0 +1,523 @@
+/* ===== World Models Page Styles ===== */
+
+.subtitle {
+  text-align: center;
+  color: #888;
+  margin-bottom: 30px;
+  font-size: 1rem;
+}
+
+.paperLink {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.paperLink a {
+  color: #888;
+  text-decoration: none;
+  font-size: 0.85rem;
+  transition: color 0.2s;
+}
+
+.paperLink a:hover {
+  color: var(--accent-primary);
+}
+
+.paperLinkIcon {
+  margin-right: 5px;
+}
+
+/* ===== Grid Layouts ===== */
+.mainGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+/* ===== Card ===== */
+.card {
+  background: var(--card-bg);
+  border-radius: var(--card-radius);
+  padding: 20px;
+  border: 1px solid var(--card-border);
+}
+
+.cardMb {
+  composes: card;
+  margin-bottom: 20px;
+}
+
+.cardTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+/* ===== Core Ideas ===== */
+.keyIdeas {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+}
+
+.idea {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.idea:hover {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.ideaActive {
+  composes: idea;
+  border-color: var(--accent-primary);
+  background: var(--accent-muted);
+}
+
+.ideaIcon {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  margin-bottom: 12px;
+}
+
+.idea h4,
+.ideaActive h4 {
+  font-size: 1rem;
+  margin-bottom: 8px;
+}
+
+.idea p,
+.ideaActive p {
+  font-size: 0.8rem;
+  color: #888;
+  line-height: 1.4;
+}
+
+/* ===== Info Panel ===== */
+.infoPanel {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  padding: 15px;
+  margin-top: 15px;
+  min-height: 100px;
+}
+
+.infoPanel h4 {
+  color: var(--accent-primary);
+  margin-bottom: 8px;
+}
+
+.infoPanel p {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: #aaa;
+}
+
+/* ===== Formula ===== */
+.formula {
+  background: var(--info-bg);
+  border: 1px solid var(--info-border);
+  border-radius: 8px;
+  padding: 12px;
+  margin: 10px 0;
+  font-size: 1rem;
+  text-align: center;
+  color: #e0e0e0;
+}
+
+/* ===== Pipeline SVG ===== */
+.pipelineSvg {
+  width: 100%;
+  height: 380px;
+}
+
+.pipelineStage {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.pipelineStage:hover {
+  filter: brightness(1.2);
+}
+
+.pipelineStageActive {
+  composes: pipelineStage;
+  filter: drop-shadow(0 0 15px currentColor);
+}
+
+.flowArrow {
+  stroke-dasharray: 8 4;
+  animation: flowDash 1s linear infinite;
+}
+
+@keyframes flowDash {
+  to {
+    stroke-dashoffset: -12;
+  }
+}
+
+/* ===== Model Components ===== */
+.modelEquations {
+  display: grid;
+  gap: 15px;
+}
+
+.modelItem {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  padding: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.modelItem:hover {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.modelItemActive {
+  composes: modelItem;
+  border-color: var(--accent-secondary);
+}
+
+.modelItemHeader {
+  font-size: 0.95rem;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modelDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.modelItemDesc {
+  font-size: 0.8rem;
+  color: #888;
+  margin-top: 8px;
+}
+
+/* ===== Imagination / Dream Canvas ===== */
+.imaginationCanvas {
+  width: 100%;
+  height: 280px;
+}
+
+.canvasContainer {
+  position: relative;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+  padding: 10px;
+}
+
+/* ===== Slider ===== */
+.sliderContainer {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin: 15px 0;
+}
+
+.sliderContainer label {
+  font-size: 0.9rem;
+  min-width: 120px;
+}
+
+.slider {
+  flex: 1;
+  -webkit-appearance: none;
+  height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+  outline: none;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.sliderValue {
+  font-family: var(--font-mono, monospace);
+  font-size: 1rem;
+  color: var(--accent-primary);
+  min-width: 50px;
+}
+
+/* ===== Comparison Bars ===== */
+.comparisonContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.comparisonRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.comparisonLabel {
+  font-size: 0.85rem;
+  min-width: 100px;
+}
+
+.comparisonBarTrack {
+  flex: 1;
+  height: 24px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.comparisonBarFill {
+  height: 100%;
+  border-radius: 12px;
+  transition: width 0.5s ease;
+}
+
+.comparisonValue {
+  font-family: monospace;
+  font-size: 0.85rem;
+  min-width: 60px;
+  text-align: right;
+}
+
+/* ===== Key Features ===== */
+.keyFeatures {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.feature {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  padding: 15px;
+  text-align: center;
+}
+
+.featureIcon {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  margin: 0 auto 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.feature h4 {
+  font-size: 0.95rem;
+  margin-bottom: 5px;
+}
+
+.feature p {
+  font-size: 0.8rem;
+  color: #888;
+}
+
+/* ===== Toggle Buttons ===== */
+.toggleBtns {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.toggleBtn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: rgba(0, 0, 0, 0.3);
+  color: #aaa;
+}
+
+.toggleBtnActive {
+  composes: toggleBtn;
+  border-color: var(--accent-primary);
+  background: var(--accent-muted);
+  color: var(--accent-primary);
+}
+
+.toggleBtn:hover,
+.toggleBtnActive:hover {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+/* ===== Metrics Row ===== */
+.metricsRow {
+  display: flex;
+  justify-content: space-around;
+  padding: 15px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+  margin-top: 10px;
+}
+
+.metric {
+  text-align: center;
+}
+
+.metricValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-family: monospace;
+}
+
+.metricLabel {
+  font-size: 0.75rem;
+  color: #888;
+  margin-top: 4px;
+}
+
+/* ===== Task Select ===== */
+.taskSelect {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #e8e8e8;
+  padding: 8px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+/* ===== Benchmark Note ===== */
+.benchmarkNote {
+  font-size: 0.8rem;
+  color: #888;
+  margin-top: 10px;
+  text-align: center;
+}
+
+/* ===== Dream canvas caption ===== */
+.dreamCaption {
+  font-size: 0.85rem;
+  color: #888;
+  text-align: center;
+  margin-top: 10px;
+}
+
+/* ===== Paper Lineage ===== */
+.lineageGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.lineageColumnTitle {
+  font-size: 0.9rem;
+  margin-bottom: 12px;
+}
+
+.lineageItems {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lineageItem {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 10px;
+  border-left: 3px solid;
+}
+
+.lineageItemTitle {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.lineageItemDesc {
+  font-size: 0.75rem;
+  color: #888;
+}
+
+/* ===== Numbered Indicators ===== */
+.ideaNum {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: var(--font-mono, monospace);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  margin-bottom: 12px;
+}
+
+.featureNum {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: var(--font-mono, monospace);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  margin: 0 auto 10px;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 1000px) {
+  .mainGrid {
+    grid-template-columns: 1fr;
+  }
+  .keyIdeas {
+    grid-template-columns: 1fr;
+  }
+  .keyFeatures {
+    grid-template-columns: 1fr;
+  }
+  .lineageGrid {
+    grid-template-columns: 1fr;
+  }
+}

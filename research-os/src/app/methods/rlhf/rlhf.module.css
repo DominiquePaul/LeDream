@@ -1,0 +1,447 @@
+/* ===== Pipeline SVG ===== */
+.pipelineSvg {
+  width: 100%;
+  height: 320px;
+}
+
+.pipelineStage {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.pipelineStage:hover {
+  filter: brightness(1.2);
+}
+
+.pipelineStageActive {
+  filter: drop-shadow(0 0 15px currentColor);
+}
+
+.flowArrow {
+  stroke-dasharray: 8 4;
+  animation: flowDash 1s linear infinite;
+}
+
+@keyframes flowDash {
+  to {
+    stroke-dashoffset: -12;
+  }
+}
+
+/* ===== Loss Functions ===== */
+.lossEquations {
+  display: grid;
+  gap: 15px;
+}
+
+.lossItem {
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  padding: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.lossItem:hover {
+  border-color: var(--border-emphasis);
+  background: var(--bg-hover);
+}
+
+.lossItemActive {
+  border-color: var(--accent-secondary);
+}
+
+.lossItemTitle {
+  font-size: 0.95rem;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lossDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.lossDesc {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-top: 8px;
+}
+
+/* ===== Notation Guide ===== */
+.notationPanel {
+  background: var(--bg-hover);
+  border-radius: 12px;
+  padding: 15px;
+  margin-top: 15px;
+  min-height: 100px;
+}
+
+.notationPanel h4 {
+  color: var(--accent-primary);
+  margin-bottom: 8px;
+}
+
+.notationLine {
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.notationSmall {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+/* ===== Preference Demo ===== */
+.preferenceDemo {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.responsePair {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 15px;
+  align-items: stretch;
+}
+
+.response {
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  padding: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.response:hover {
+  background: var(--bg-hover);
+}
+
+.responsePreferred {
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.responseRejected {
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.responseLabel {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+  color: var(--text-secondary);
+}
+
+.responsePreferred .responseLabel {
+  color: #10b981;
+}
+
+.responseRejected .responseLabel {
+  color: #ef4444;
+}
+
+.responseText {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--text-primary);
+}
+
+.vsBadge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.promptBox {
+  background: var(--info-bg);
+  border: 1px solid var(--info-border);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.promptBoxLabel {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--accent-secondary);
+}
+
+.promptBoxText {
+  font-size: 0.9rem;
+  margin-top: 5px;
+}
+
+/* ===== Slider ===== */
+.sliderContainer {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin: 15px 0;
+}
+
+.sliderContainer label {
+  font-size: 0.9rem;
+  min-width: 80px;
+}
+
+.slider {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+  outline: none;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.sliderValue {
+  font-family: var(--font-mono, monospace);
+  font-size: 1rem;
+  color: var(--accent-primary);
+  min-width: 50px;
+}
+
+/* ===== KL Visualization ===== */
+.klVisualization {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: var(--bg-hover);
+  border-radius: 10px;
+}
+
+.policyCircle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  text-align: center;
+  font-weight: 600;
+}
+
+.klArrow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.klArrow svg {
+  width: 60px;
+  height: 24px;
+}
+
+.klValueLabel {
+  font-family: monospace;
+  font-size: 0.85rem;
+  color: #f59e0b;
+}
+
+/* ===== Reward Demo Bars ===== */
+.rewardDemo {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rewardBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rewardBarLabel {
+  font-size: 0.85rem;
+  min-width: 100px;
+}
+
+.rewardBarLabelBold {
+  font-size: 0.85rem;
+  min-width: 100px;
+  font-weight: 600;
+}
+
+.rewardBarTrack {
+  flex: 1;
+  height: 24px;
+  background: var(--bg-hover);
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+}
+
+.rewardBarFill {
+  height: 100%;
+  border-radius: 12px;
+  transition: width 0.5s ease;
+}
+
+.rewardBarValue {
+  font-family: monospace;
+  font-size: 0.85rem;
+  min-width: 60px;
+  text-align: right;
+}
+
+.netValueHighlight {
+  color: var(--accent-secondary);
+  font-weight: 600;
+}
+
+/* ===== Reward Model Loss Visualization ===== */
+.rmLossViz {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.rmCanvas {
+  width: 100%;
+  height: 200px;
+  display: block;
+}
+
+.rmSliders {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.rmSliderGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rmSliderGroupLabel {
+  font-size: 0.85rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.rmSliderGroupValuePreferred {
+  font-family: monospace;
+  font-weight: 600;
+  color: #10b981;
+}
+
+.rmSliderGroupValueRejected {
+  font-family: monospace;
+  font-weight: 600;
+  color: #ef4444;
+}
+
+.rmSlider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 8px;
+  border-radius: 4px;
+  outline: none;
+  width: 100%;
+}
+
+.rmSliderPreferred {
+  background: linear-gradient(90deg, #064e3b, #10b981);
+}
+
+.rmSliderRejected {
+  background: linear-gradient(90deg, #7f1d1d, #ef4444);
+}
+
+.rmSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.rmLossDisplay {
+  display: flex;
+  justify-content: space-around;
+  padding: 15px;
+  background: var(--bg-hover);
+  border-radius: 10px;
+}
+
+.rmMetric {
+  text-align: center;
+}
+
+.rmMetricValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-family: monospace;
+}
+
+.rmMetricLabel {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+/* ===== Hint / Explanation Text ===== */
+.hintText {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.klExplanation {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-top: 15px;
+}
+
+.bradleyTerryHint {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 1000px) {
+  .responsePair {
+    grid-template-columns: 1fr;
+  }
+  .vsBadge {
+    padding: 10px;
+  }
+  .rmSliders {
+    grid-template-columns: 1fr;
+  }
+}

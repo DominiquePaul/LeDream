@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <title>DreamerV2 - ML Method Visualizations</title>
+    <link rel="stylesheet" href="../css/sidebar.css">
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+            }
+        };
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js" async></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #e8e8e8;
+        }
+
+        .main-content {
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.2rem;
+            margin-bottom: 8px;
+            background: linear-gradient(90deg, #f59e0b, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        /* Core Ideas */
+        .key-ideas {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .idea {
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .idea:hover {
+            background: rgba(0,0,0,0.4);
+        }
+
+        .idea.active {
+            border-color: #00d9ff;
+            background: rgba(0, 217, 255, 0.1);
+        }
+
+        .idea-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+
+        .idea h4 {
+            font-size: 1rem;
+            margin-bottom: 8px;
+        }
+
+        .idea p {
+            font-size: 0.8rem;
+            color: #888;
+            line-height: 1.4;
+        }
+
+        .info-panel {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 15px;
+            min-height: 100px;
+        }
+
+        .info-panel h4 {
+            color: #00d9ff;
+            margin-bottom: 8px;
+        }
+
+        .info-panel p {
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: #aaa;
+        }
+
+        .formula {
+            background: rgba(168, 85, 247, 0.1);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            margin: 10px 0;
+            font-size: 1rem;
+            text-align: center;
+            color: #e0e0e0;
+        }
+
+        /* Pipeline SVG */
+        .pipeline-svg {
+            width: 100%;
+            height: 380px;
+        }
+
+        .pipeline-stage {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .pipeline-stage:hover {
+            filter: brightness(1.2);
+        }
+
+        .pipeline-stage.active {
+            filter: drop-shadow(0 0 15px currentColor);
+        }
+
+        .flow-arrow {
+            stroke-dasharray: 8 4;
+            animation: flowDash 1s linear infinite;
+        }
+
+        @keyframes flowDash {
+            to { stroke-dashoffset: -12; }
+        }
+
+        /* Model Components */
+        .model-equations {
+            display: grid;
+            gap: 15px;
+        }
+
+        .model-item {
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .model-item:hover {
+            background: rgba(0,0,0,0.4);
+        }
+
+        .model-item.active {
+            border-color: #a855f7;
+        }
+
+        .model-item h4 {
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .model-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        /* Imagination Canvas */
+        .imagination-canvas {
+            width: 100%;
+            height: 280px;
+        }
+
+        .canvas-container {
+            position: relative;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        /* Slider */
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .slider-container label {
+            font-size: 0.9rem;
+            min-width: 120px;
+        }
+
+        .slider {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 8px;
+            border-radius: 4px;
+            background: linear-gradient(90deg, #f59e0b, #a855f7);
+            outline: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #fff;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        .slider-value {
+            font-family: monospace;
+            font-size: 1rem;
+            color: #00d9ff;
+            min-width: 50px;
+        }
+
+        /* Comparison Bars */
+        .comparison-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .comparison-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .comparison-label {
+            font-size: 0.85rem;
+            min-width: 100px;
+        }
+
+        .comparison-bar-track {
+            flex: 1;
+            height: 24px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .comparison-bar-fill {
+            height: 100%;
+            border-radius: 12px;
+            transition: width 0.5s ease;
+        }
+
+        .comparison-value {
+            font-family: monospace;
+            font-size: 0.85rem;
+            min-width: 60px;
+            text-align: right;
+        }
+
+        /* Key Features */
+        .key-features {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .feature {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .feature-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .feature h4 {
+            font-size: 0.95rem;
+            margin-bottom: 5px;
+        }
+
+        .feature p {
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        /* Value estimation canvas */
+        .value-canvas {
+            width: 100%;
+            height: 250px;
+        }
+
+        /* Toggle buttons */
+        .toggle-btns {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+
+        .toggle-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(0,0,0,0.3);
+            color: #aaa;
+        }
+
+        .toggle-btn.active {
+            border-color: #00d9ff;
+            background: rgba(0, 217, 255, 0.1);
+            color: #00d9ff;
+        }
+
+        .toggle-btn:hover {
+            background: rgba(0,0,0,0.5);
+        }
+
+        /* Metrics row */
+        .metrics-row {
+            display: flex;
+            justify-content: space-around;
+            padding: 15px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+
+        .metric {
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            font-family: monospace;
+        }
+
+        .metric-label {
+            font-size: 0.75rem;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        @media (max-width: 1000px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            .key-ideas {
+                grid-template-columns: 1fr;
+            }
+            .key-features {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding-top: 70px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Menu Button -->
+    <button class="mobile-menu-btn" aria-label="Toggle menu">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+    </button>
+
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <button class="sidebar-toggle" aria-label="Toggle sidebar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+        </button>
+
+        <div class="sidebar-header">
+            <div class="sidebar-logo">📊</div>
+            <div class="sidebar-title">
+                <h1>ML Methods</h1>
+                <span>Interactive Visualizations</span>
+            </div>
+        </div>
+
+        <div class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Overview</div>
+                <ul class="nav-items">
+                    <li class="nav-item">
+                        <a href="../index.html" class="nav-link" data-tooltip="Home">
+                            <div class="nav-icon other">🏠</div>
+                            <div class="nav-text">
+                                <span>Home</span>
+                                <span>All methods overview</span>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Standard RL</div>
+                <ul class="nav-items">
+                    <li class="nav-item">
+                        <a href="sac.html" class="nav-link" data-tooltip="SAC">
+                            <div class="nav-icon rl">🎯</div>
+                            <div class="nav-text">
+                                <span>SAC</span>
+                                <span>Soft Actor-Critic</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="rlhf.html" class="nav-link" data-tooltip="RLHF">
+                            <div class="nav-icon rl">👤</div>
+                            <div class="nav-text">
+                                <span>RLHF</span>
+                                <span>RL from Human Feedback</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="cql.html" class="nav-link" data-tooltip="CQL">
+                            <div class="nav-icon rl">🛡️</div>
+                            <div class="nav-text">
+                                <span>CQL</span>
+                                <span>Conservative Q-Learning</span>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">World Models</div>
+                <ul class="nav-items">
+                    <li class="nav-item">
+                        <a href="world-models.html" class="nav-link" data-tooltip="World Models">
+                            <div class="nav-icon wm">🧠</div>
+                            <div class="nav-text">
+                                <span>World Models</span>
+                                <span>Ha & Schmidhuber</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="planet.html" class="nav-link" data-tooltip="PlaNet">
+                            <div class="nav-icon wm">🪐</div>
+                            <div class="nav-text">
+                                <span>PlaNet</span>
+                                <span>Latent Dynamics Planning</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="dreamer.html" class="nav-link" data-tooltip="Dreamer">
+                            <div class="nav-icon wm">💭</div>
+                            <div class="nav-text">
+                                <span>Dreamer</span>
+                                <span>Latent Imagination</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="dreamerv2.html" class="nav-link" data-tooltip="DreamerV2">
+                            <div class="nav-icon wm">🎲</div>
+                            <div class="nav-text">
+                                <span>DreamerV2</span>
+                                <span>Discrete World Models</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="dreamerv3.html" class="nav-link" data-tooltip="DreamerV3">
+                            <div class="nav-icon wm">🌐</div>
+                            <div class="nav-text">
+                                <span>DreamerV3</span>
+                                <span>Diverse Domains</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="vjepa.html" class="nav-link" data-tooltip="V-JEPA">
+                            <div class="nav-icon wm">🎬</div>
+                            <div class="nav-text">
+                                <span>V-JEPA</span>
+                                <span>Feature Prediction</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="vjepa2.html" class="nav-link" data-tooltip="V-JEPA 2">
+                            <div class="nav-icon wm">🤖</div>
+                            <div class="nav-text">
+                                <span>V-JEPA 2</span>
+                                <span>Understanding & Planning</span>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">Robotics Concepts</div>
+                <ul class="nav-items">
+                    <li class="nav-item">
+                        <a href="robot-controllers.html" class="nav-link" data-tooltip="Controllers">
+                            <div class="nav-icon" style="background: linear-gradient(135deg, #f59e0b, #ef4444);">🦾</div>
+                            <div class="nav-text">
+                                <span>Controllers</span>
+                                <span>Impedance, Stiffness & Contact</span>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+            <span>Press <kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">Ctrl+B</kbd> to toggle</span>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <h1>DreamerV2</h1>
+            <p class="subtitle">Mastering Atari with Discrete World Models &mdash; Hafner, Lillicrap, Norouzi, Ba &middot; ICLR 2021</p>
+            <div style="text-align: center; margin-bottom: 20px;">
+                <a href="https://danijar.com/dreamerv2" target="_blank" style="color: #888; text-decoration: none; font-size: 0.85rem; transition: color 0.2s;">
+                    <span style="margin-right: 5px;">🔗</span> danijar.com/dreamerv2
+                </a>
+            </div>
+
+            <!-- Three Core Ideas -->
+            <div class="card" style="margin-bottom: 20px;">
+                <div class="card-title">
+                    <div class="icon" style="background: linear-gradient(135deg, #f59e0b, #a855f7);">💡</div>
+                    Core Ideas
+                </div>
+                <div class="key-ideas">
+                    <div class="idea" data-idea="1">
+                        <div class="idea-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">🎲</div>
+                        <h4>Discrete Latent Representations</h4>
+                        <p>Replace Gaussian latents with 32 categorical variables &times; 32 classes, creating a sparse binary vector of 1024 with 32 active bits</p>
+                    </div>
+                    <div class="idea" data-idea="2">
+                        <div class="idea-icon" style="background: linear-gradient(135deg, #a855f7, #7c3aed);">⚖️</div>
+                        <h4>KL Balancing</h4>
+                        <p>Asymmetric KL loss with &alpha;=0.8 trains the prior faster than it regularizes the posterior, preventing collapse</p>
+                    </div>
+                    <div class="idea" data-idea="3">
+                        <div class="idea-icon" style="background: linear-gradient(135deg, #10b981, #059669);">🔀</div>
+                        <h4>Mixed Actor Gradients</h4>
+                        <p>Combine Reinforce (unbiased, high variance) with straight-through dynamics backprop (biased, low variance) via mixing ratio &rho;</p>
+                    </div>
+                </div>
+                <div class="info-panel" id="idea-info" style="display: none;">
+                </div>
+            </div>
+
+            <div class="main-grid">
+                <!-- World Model Components -->
+                <div class="card">
+                    <div class="card-title">
+                        <div class="icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">🧩</div>
+                        World Model Components (RSSM)
+                    </div>
+                    <div class="model-equations">
+                        <div class="model-item" data-model="recurrent">
+                            <h4><span class="model-dot" style="background: #3b82f6;"></span>Recurrent Model</h4>
+                            <div class="formula">
+                                \( h_t = f_\phi(h_{t-1}, z_{t-1}, a_{t-1}) \)
+                            </div>
+                            <p style="font-size: 0.8rem; color: #888; margin-top: 8px;">Deterministic GRU backbone that integrates past information into a recurrent state</p>
+                        </div>
+                        <div class="model-item" data-model="repr">
+                            <h4><span class="model-dot" style="background: #10b981;"></span>Representation Model</h4>
+                            <div class="formula">
+                                \( z_t \sim q_\phi(z_t \mid h_t, x_t) \quad \text{[32 categoricals} \times \text{32 classes]} \)
+                            </div>
+                            <p style="font-size: 0.8rem; color: #888; margin-top: 8px;">Encodes observations into discrete latent states &mdash; 32 categorical variables each with 32 classes</p>
+                        </div>
+                        <div class="model-item" data-model="trans">
+                            <h4><span class="model-dot" style="background: #f59e0b;"></span>Transition Predictor</h4>
+                            <div class="formula">
+                                \( \hat{z}_t \sim p_\phi(\hat{z}_t \mid h_t) \quad \text{[predicts without image]} \)
+                            </div>
+                            <p style="font-size: 0.8rem; color: #888; margin-top: 8px;">Predicts next discrete latent state without seeing the observation &mdash; enables imagination</p>
+                        </div>
+                        <div class="model-item" data-model="image">
+                            <h4><span class="model-dot" style="background: #a855f7;"></span>Image Predictor</h4>
+                            <div class="formula">
+                                \( \hat{x}_t \sim p_\phi(\hat{x}_t \mid h_t, z_t) \)
+                            </div>
+                            <p style="font-size: 0.8rem; color: #888; margin-top: 8px;">Reconstructs images from the combined deterministic and stochastic state</p>
+                        </div>
+                        <div class="model-item" data-model="reward">
+                            <h4><span class="model-dot" style="background: #ef4444;"></span>Reward Predictor</h4>
+                            <div class="formula">
+                                \( \hat{r}_t \sim p_\phi(\hat{r}_t \mid h_t, z_t) \)
+                            </div>
+                            <p style="font-size: 0.8rem; color: #888; margin-top: 8px;">Predicts scalar rewards from latent states to evaluate imagined trajectories</p>
+                        </div>
+                        <div class="model-item" data-model="discount">
+                            <h4><span class="model-dot" style="background: #00d9ff;"></span>Discount Predictor</h4>
+                            <div class="formula">
+                                \( \hat{\gamma}_t \sim p_\phi(\hat{\gamma}_t \mid h_t, z_t) \)
+                            </div>
+                            <p style="font-size: 0.8rem; color: #888; margin-top: 8px;">Predicts episode continuation probability &mdash; replaces fixed discount with a learned signal</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DreamerV2 Architecture SVG -->
+                <div class="card">
+                    <div class="card-title">
+                        <div class="icon" style="background: linear-gradient(135deg, #a855f7, #7c3aed);">🏗️</div>
+                        DreamerV2 Architecture
+                    </div>
+                    <svg class="pipeline-svg" viewBox="0 0 500 380">
+                        <!-- Phase 1: World Model Learning -->
+                        <text x="120" y="15" text-anchor="middle" fill="#f59e0b" font-size="10" font-weight="bold">1. World Model Learning</text>
+
+                        <!-- Dataset -->
+                        <rect x="15" y="25" width="65" height="45" rx="8" fill="#f59e0b" class="pipeline-stage" data-component="dataset"/>
+                        <text x="47" y="45" text-anchor="middle" fill="white" font-size="9" font-weight="bold">Dataset</text>
+                        <text x="47" y="57" text-anchor="middle" fill="white" font-size="8">(x, a, r)</text>
+
+                        <!-- RSSM with Discrete -->
+                        <rect x="100" y="25" width="90" height="45" rx="8" fill="rgba(245,158,11,0.3)" stroke="#f59e0b" stroke-width="2" class="pipeline-stage" data-component="rssm"/>
+                        <text x="145" y="42" text-anchor="middle" fill="#f59e0b" font-size="9" font-weight="bold">RSSM</text>
+                        <text x="145" y="55" text-anchor="middle" fill="#888" font-size="8">Discrete Latents</text>
+
+                        <!-- 32x32 Categorical Grid -->
+                        <rect x="210" y="25" width="55" height="45" rx="6" fill="rgba(168,85,247,0.2)" stroke="#a855f7" stroke-width="1.5" class="pipeline-stage" data-component="categorical"/>
+                        <text x="237" y="39" text-anchor="middle" fill="#a855f7" font-size="8" font-weight="bold">32&times;32</text>
+                        <!-- Mini grid to represent categoricals -->
+                        <g transform="translate(215, 43)">
+                            <rect x="0" y="0" width="4" height="4" rx="1" fill="#a855f7" opacity="0.9"/>
+                            <rect x="6" y="0" width="4" height="4" rx="1" fill="#a855f7" opacity="0.3"/>
+                            <rect x="12" y="0" width="4" height="4" rx="1" fill="#a855f7" opacity="0.3"/>
+                            <rect x="18" y="0" width="4" height="4" rx="1" fill="#a855f7" opacity="0.3"/>
+                            <rect x="24" y="0" width="4" height="4" rx="1" fill="#a855f7" opacity="0.9"/>
+                            <rect x="30" y="0" width="4" height="4" rx="1" fill="#a855f7" opacity="0.3"/>
+                            <rect x="36" y="0" width="4" height="4" rx="1" fill="#a855f7" opacity="0.3"/>
+                            <rect x="0" y="6" width="4" height="4" rx="1" fill="#a855f7" opacity="0.3"/>
+                            <rect x="6" y="6" width="4" height="4" rx="1" fill="#a855f7" opacity="0.3"/>
+                            <rect x="12" y="6" width="4" height="4" rx="1" fill="#a855f7" opacity="0.9"/>
+                            <rect x="18" y="6" width="4" height="4" rx="1" fill="#a855f7" opacity="0.3"/>
+                            <rect x="24" y="6" width="4" height="4" rx="1" fill="#a855f7" opacity="0.3"/>
+                            <rect x="30" y="6" width="4" height="4" rx="1" fill="#a855f7" opacity="0.3"/>
+                            <rect x="36" y="6" width="4" height="4" rx="1" fill="#a855f7" opacity="0.9"/>
+                            <rect x="0" y="12" width="4" height="4" rx="1" fill="#a855f7" opacity="0.3"/>
+                            <rect x="6" y="12" width="4" height="4" rx="1" fill="#a855f7" opacity="0.9"/>
+                            <rect x="12" y="12" width="4" height="4" rx="1" fill="#a855f7" opacity="0.3"/>
+                            <rect x="18" y="12" width="4" height="4" rx="1" fill="#a855f7" opacity="0.9"/>
+                            <rect x="24" y="12" width="4" height="4" rx="1" fill="#a855f7" opacity="0.3"/>
+                            <rect x="30" y="12" width="4" height="4" rx="1" fill="#a855f7" opacity="0.3"/>
+                            <rect x="36" y="12" width="4" height="4" rx="1" fill="#a855f7" opacity="0.3"/>
+                        </g>
+
+                        <!-- Arrow Dataset to RSSM -->
+                        <path d="M 80 48 L 98 48" stroke="#f59e0b" stroke-width="2" fill="none" marker-end="url(#arrowOrange)" class="flow-arrow"/>
+                        <!-- Arrow RSSM to Categorical -->
+                        <path d="M 190 48 L 208 48" stroke="#a855f7" stroke-width="2" fill="none" marker-end="url(#arrowPurple)"/>
+
+                        <!-- KL Balancing -->
+                        <rect x="100" y="82" width="90" height="28" rx="6" fill="rgba(168,85,247,0.15)" stroke="#a855f7" stroke-width="1.5" class="pipeline-stage" data-component="klbalance"/>
+                        <text x="145" y="100" text-anchor="middle" fill="#a855f7" font-size="8" font-weight="bold">KL Balancing (&alpha;=0.8)</text>
+
+                        <!-- Phase 2: Actor-Critic in Imagination -->
+                        <text x="380" y="15" text-anchor="middle" fill="#10b981" font-size="10" font-weight="bold">2. Actor-Critic in Imagination</text>
+
+                        <!-- Imagination Cloud -->
+                        <ellipse cx="380" cy="50" rx="85" ry="30" fill="rgba(16,185,129,0.12)" stroke="#10b981" stroke-width="2" stroke-dasharray="4" class="pipeline-stage" data-component="imagination"/>
+                        <text x="380" y="45" text-anchor="middle" fill="#10b981" font-size="9" font-weight="bold">Imagined</text>
+                        <text x="380" y="57" text-anchor="middle" fill="#888" font-size="8">Trajectories (H=15)</text>
+
+                        <!-- Arrow Categorical to Imagination -->
+                        <path d="M 265 48 L 293 48" stroke="#10b981" stroke-width="2" fill="none" marker-end="url(#arrowGreen)" class="flow-arrow"/>
+
+                        <!-- Actor (Reinforce path) -->
+                        <rect x="290" y="100" width="80" height="50" rx="8" fill="#10b981" class="pipeline-stage" data-component="actor"/>
+                        <text x="330" y="120" text-anchor="middle" fill="white" font-size="9" font-weight="bold">Actor</text>
+                        <text x="330" y="135" text-anchor="middle" fill="white" font-size="7">REINFORCE</text>
+                        <text x="330" y="145" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-size="7">+ Straight-Through</text>
+
+                        <!-- Value / Critic -->
+                        <rect x="390" y="100" width="80" height="50" rx="8" fill="rgba(168,85,247,0.3)" stroke="#a855f7" stroke-width="2" class="pipeline-stage" data-component="value"/>
+                        <text x="430" y="120" text-anchor="middle" fill="#a855f7" font-size="9" font-weight="bold">Critic</text>
+                        <text x="430" y="135" text-anchor="middle" fill="#888" font-size="8">v_&xi;(s_t)</text>
+
+                        <!-- Arrows from Imagination to Actor/Critic -->
+                        <path d="M 340 80 Q 335 92 332 98" stroke="#10b981" stroke-width="2" fill="none" marker-end="url(#arrowGreen)"/>
+                        <path d="M 420 80 Q 428 92 430 98" stroke="#a855f7" stroke-width="2" fill="none" marker-end="url(#arrowPurple)"/>
+
+                        <!-- Mixed Gradients Box -->
+                        <rect x="290" y="168" width="180" height="32" rx="8" fill="rgba(0,217,255,0.12)" stroke="#00d9ff" stroke-width="1.5" class="pipeline-stage" data-component="mixedgrad"/>
+                        <text x="380" y="188" text-anchor="middle" fill="#00d9ff" font-size="8" font-weight="bold">Mixed Gradients: &rho;&middot;REINFORCE + (1-&rho;)&middot;Backprop</text>
+
+                        <path d="M 330 150 L 345 166" stroke="#00d9ff" stroke-width="1.5" fill="none" marker-end="url(#arrowCyan)"/>
+                        <path d="M 430 150 L 415 166" stroke="#00d9ff" stroke-width="1.5" fill="none" marker-end="url(#arrowCyan)"/>
+
+                        <!-- Phase 3: Environment -->
+                        <text x="80" y="135" text-anchor="middle" fill="#00d9ff" font-size="10" font-weight="bold">3. Act in Environment</text>
+
+                        <!-- Environment -->
+                        <rect x="15" y="145" width="80" height="50" rx="8" fill="rgba(0,217,255,0.2)" stroke="#00d9ff" stroke-width="2" class="pipeline-stage" data-component="env"/>
+                        <text x="55" y="165" text-anchor="middle" fill="#00d9ff" font-size="9" font-weight="bold">Atari</text>
+                        <text x="55" y="178" text-anchor="middle" fill="#888" font-size="8">64&times;64 images</text>
+
+                        <!-- Arrow: Actor to Env -->
+                        <path d="M 290 135 Q 190 155 97 170" stroke="#10b981" stroke-width="2" fill="none" marker-end="url(#arrowGreen)" stroke-dasharray="6"/>
+                        <text x="190" y="148" fill="#888" font-size="8">actions</text>
+
+                        <!-- Arrow: Env to Dataset -->
+                        <path d="M 55 145 Q 50 100 48 72" stroke="#f59e0b" stroke-width="2" fill="none" marker-end="url(#arrowOrange)" stroke-dasharray="6"/>
+                        <text x="30" y="115" fill="#888" font-size="8">data</text>
+
+                        <!-- Discrete vs Gaussian Comparison -->
+                        <text x="250" y="230" text-anchor="middle" fill="#888" font-size="10" font-weight="bold">Latent Space Comparison</text>
+
+                        <!-- V1 Gaussian -->
+                        <rect x="30" y="245" width="190" height="50" rx="8" fill="rgba(59,130,246,0.15)" stroke="#3b82f6" stroke-width="1.5" class="pipeline-stage" data-component="gaussian"/>
+                        <text x="125" y="262" text-anchor="middle" fill="#3b82f6" font-size="9" font-weight="bold">V1: Diagonal Gaussian</text>
+                        <text x="125" y="278" text-anchor="middle" fill="#888" font-size="8">z ~ N(&mu;, &sigma;&sup2;) &middot; 30 dim continuous</text>
+                        <text x="125" y="290" text-anchor="middle" fill="#666" font-size="7">Reparameterization gradients</text>
+
+                        <!-- V2 Categorical -->
+                        <rect x="250" y="245" width="220" height="50" rx="8" fill="rgba(168,85,247,0.15)" stroke="#a855f7" stroke-width="1.5" class="pipeline-stage" data-component="v2categorical"/>
+                        <text x="360" y="262" text-anchor="middle" fill="#a855f7" font-size="9" font-weight="bold">V2: 32 Categoricals &times; 32 Classes</text>
+                        <text x="360" y="278" text-anchor="middle" fill="#888" font-size="8">z &isin; {0,1}&sup1;&sup0;&sup2;&sup4; &middot; 32 active bits</text>
+                        <text x="360" y="290" text-anchor="middle" fill="#666" font-size="7">Straight-through gradients</text>
+
+                        <!-- Arrow between them -->
+                        <path d="M 220 270 L 248 270" stroke="#888" stroke-width="1.5" fill="none" marker-end="url(#arrowGray)"/>
+                        <text x="234" y="264" fill="#10b981" font-size="10" font-weight="bold">&rarr;</text>
+
+                        <!-- Training Objectives -->
+                        <rect x="30" y="315" width="210" height="35" rx="8" fill="rgba(16,185,129,0.15)" stroke="#10b981" stroke-width="1.5"/>
+                        <text x="135" y="330" text-anchor="middle" fill="#10b981" font-size="8" font-weight="bold">Actor: &rho;&middot;REINFORCE + (1-&rho;)&middot;V^&lambda;</text>
+                        <text x="135" y="343" text-anchor="middle" fill="#888" font-size="7">+ entropy reg. &eta;&middot;H[a|s]</text>
+
+                        <rect x="260" y="315" width="210" height="35" rx="8" fill="rgba(168,85,247,0.15)" stroke="#a855f7" stroke-width="1.5"/>
+                        <text x="365" y="330" text-anchor="middle" fill="#a855f7" font-size="8" font-weight="bold">Critic: min &frac12;||v_&xi;(s) - sg(V^&lambda;)||&sup2;</text>
+                        <text x="365" y="343" text-anchor="middle" fill="#888" font-size="7">Stop-gradient on targets</text>
+
+                        <!-- Arrow Markers -->
+                        <defs>
+                            <marker id="arrowCyan" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#00d9ff"/>
+                            </marker>
+                            <marker id="arrowBlue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#3b82f6"/>
+                            </marker>
+                            <marker id="arrowOrange" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#f59e0b"/>
+                            </marker>
+                            <marker id="arrowGreen" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#10b981"/>
+                            </marker>
+                            <marker id="arrowPurple" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#a855f7"/>
+                            </marker>
+                            <marker id="arrowGray" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#888"/>
+                            </marker>
+                        </defs>
+                    </svg>
+
+                    <div class="info-panel" id="component-info" style="display: none;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- KL Balancing + Atari Benchmark -->
+            <div class="main-grid">
+                <!-- KL Balancing Interactive -->
+                <div class="card">
+                    <div class="card-title">
+                        <div class="icon" style="background: linear-gradient(135deg, #a855f7, #7c3aed);">⚖️</div>
+                        KL Balancing Effect
+                    </div>
+                    <div class="slider-container">
+                        <label>&alpha; (balance):</label>
+                        <input type="range" class="slider" id="alphaSlider" min="0" max="100" step="1" value="80">
+                        <span class="slider-value" id="alphaValue">0.80</span>
+                    </div>
+                    <div class="canvas-container">
+                        <canvas class="imagination-canvas" id="klCanvas"></canvas>
+                    </div>
+                    <div class="metrics-row">
+                        <div class="metric">
+                            <div class="metric-value" id="metricPrior" style="color: #a855f7;">0.80</div>
+                            <div class="metric-label">Prior Learning</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value" id="metricPost" style="color: #10b981;">0.20</div>
+                            <div class="metric-label">Posterior Reg.</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value" id="metricBalance" style="color: #f59e0b;">Optimal</div>
+                            <div class="metric-label">Balance</div>
+                        </div>
+                    </div>
+                    <p style="font-size: 0.85rem; color: #888; text-align: center; margin-top: 10px;">
+                        &alpha;=0.8 encourages learning an accurate prior while limiting posterior regularization. KL balancing outperforms standard KL on 44 of 55 Atari tasks.
+                    </p>
+                </div>
+
+                <!-- Atari Benchmark Results -->
+                <div class="card">
+                    <div class="card-title">
+                        <div class="icon" style="background: linear-gradient(135deg, #10b981, #059669);">🏆</div>
+                        Atari Benchmark Results
+                    </div>
+                    <div class="comparison-container">
+                        <p style="font-size: 0.85rem; color: #888; margin-bottom: 10px;">Performance across 55 Atari games (200M frames):</p>
+                        <div id="benchmarkBars"></div>
+                        <div class="slider-container" style="margin-top: 10px;">
+                            <label style="min-width: 60px;">Metric:</label>
+                            <select id="metricSelect" style="flex: 1; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: #e8e8e8; padding: 8px; border-radius: 8px; font-size: 0.85rem;">
+                                <option value="gamer_median">Gamer Median</option>
+                                <option value="gamer_mean">Gamer Mean</option>
+                                <option value="clipped_record">Clipped Record Mean</option>
+                            </select>
+                        </div>
+                        <p style="font-size: 0.8rem; color: #888; margin-top: 10px; text-align: center;">
+                            DreamerV2 is the first agent to achieve human-level Atari performance using a world model, on a single GPU.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Training Objectives -->
+            <div class="card" style="margin-bottom: 20px;">
+                <div class="card-title">
+                    <div class="icon" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">📐</div>
+                    Training Objectives
+                </div>
+                <div class="model-equations">
+                    <div class="model-item" data-loss="worldmodel">
+                        <h4><span class="model-dot" style="background: #f59e0b;"></span>World Model: ELBO / Variational Free Energy</h4>
+                        <div class="formula">
+                            \( \mathcal{L}(\phi) = \mathbb{E}\left[\sum_t -\ln p(x_t|h_t,z_t) - \ln p(r_t|h_t,z_t) - \ln p(\gamma_t|h_t,z_t) + \beta \cdot \text{KL}\left[q(z_t|h_t,x_t) \| p(z_t|h_t)\right]\right] \)
+                        </div>
+                        <p style="font-size: 0.8rem; color: #888; margin-top: 8px;">&beta;=0.1 for Atari, &beta;=1.0 for continuous control. KL uses balancing with &alpha;=0.8.</p>
+                    </div>
+                    <div class="model-item" data-loss="actor">
+                        <h4><span class="model-dot" style="background: #10b981;"></span>Actor Loss (combined)</h4>
+                        <div class="formula">
+                            \( \mathcal{L}(\psi) = \mathbb{E}\left[\sum_t -\rho \ln p(a_t|s_t) \cdot \text{sg}(V^\lambda_t - v(s_t)) - (1-\rho) \cdot V^\lambda_t - \eta \cdot H[a_t|s_t]\right] \)
+                        </div>
+                        <p style="font-size: 0.8rem; color: #888; margin-top: 8px;">For Atari (discrete): &rho;=1 (pure REINFORCE). For continuous control: &rho;=0 (dynamics backprop). Entropy coefficient &eta; encourages exploration.</p>
+                    </div>
+                    <div class="model-item" data-loss="critic">
+                        <h4><span class="model-dot" style="background: #a855f7;"></span>Critic Loss</h4>
+                        <div class="formula">
+                            \( \mathcal{L}(\xi) = \mathbb{E}\left[\sum_t \frac{1}{2}\left(v_\xi(s_t) - \text{sg}(V^\lambda_t)\right)^2\right] \)
+                        </div>
+                        <p style="font-size: 0.8rem; color: #888; margin-top: 8px;">The critic regresses to the &lambda;-return targets with stop-gradient &mdash; standard value function regression.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Paper Lineage -->
+            <div class="card" style="margin-bottom: 20px;">
+                <div class="card-title">
+                    <div class="icon" style="background: linear-gradient(135deg, #6366f1, #4f46e5);">🌳</div>
+                    Paper Lineage
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div>
+                        <h4 style="font-size: 0.9rem; color: #f59e0b; margin-bottom: 12px;">Builds On</h4>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #f59e0b;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">Dreamer (V1)</div>
+                                <div style="font-size: 0.75rem; color: #888;">Hafner et al., 2019 &mdash; Same RSSM architecture but with Gaussian latents and pure dynamics backprop for actor. V2 switches to discrete latents and mixed gradients.</div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #f59e0b;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">PlaNet</div>
+                                <div style="font-size: 0.75rem; color: #888;">Hafner et al., 2018 &mdash; The original RSSM world model, using online CEM planning instead of learned behaviors.</div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #f59e0b;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">Straight-Through Estimator</div>
+                                <div style="font-size: 0.75rem; color: #888;">Bengio et al., 2013 &mdash; Enables gradient flow through discrete sampling by using softmax probabilities in the backward pass.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 style="font-size: 0.9rem; color: #10b981; margin-bottom: 12px;">Built Upon By</h4>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #10b981;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">DreamerV3</div>
+                                <div style="font-size: 0.75rem; color: #888;">Hafner et al., 2023 &mdash; Adds symlog predictions, free bits, return normalization. Fixed hyperparameters across 150+ tasks in 8 domains.</div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #10b981;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">DayDreamer</div>
+                                <div style="font-size: 0.75rem; color: #888;">Wu et al., 2022 &mdash; Applies DreamerV2 to real robots, learning locomotion in ~1 hour.</div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #10b981;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">IRIS</div>
+                                <div style="font-size: 0.75rem; color: #888;">Micheli et al., 2023 &mdash; Transformer-based world model with discrete tokens, inspired by DreamerV2's discrete latent approach.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Key Features -->
+            <div class="key-features">
+                <div class="feature">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">🎮</div>
+                    <h4>Human-Level Atari</h4>
+                    <p>First agent to achieve human-level performance on 55 Atari games purely through world model imagination</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #a855f7, #7c3aed);">🖥️</div>
+                    <h4>Single GPU</h4>
+                    <p>Trains in 10 days on a single V100 GPU, 200M frames, 22M parameters</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #10b981, #059669);">🎲</div>
+                    <h4>Discrete Latents</h4>
+                    <p>32&times;32 categorical variables: sparse, multimodal, better than Gaussian for complex environments</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="../js/sidebar.js"></script>
+    <script>
+        // ==================== Key Ideas Interaction ====================
+        const ideaInfo = {
+            1: {
+                title: 'Discrete Latent Representations: From Gaussian to Categorical',
+                desc: 'The stochastic state in DreamerV2 is a vector of 32 categorical variables, each with 32 classes. Sampling produces a sparse binary vector of length 1024 with exactly 32 active bits. This is fundamentally different from DreamerV1\'s diagonal Gaussian latents. Benefits: (1) A categorical prior can perfectly fit the aggregate posterior (mixture of categoricals is categorical), while a Gaussian cannot match a mixture of Gaussians. (2) Sparsity from one-hot vectors aids generalization. (3) Straight-through gradients avoid exploding/vanishing gradient issues of reparameterization. (4) Better inductive bias for modeling discrete events in Atari (rooms, items appearing/disappearing).'
+            },
+            2: {
+                title: 'KL Balancing: Asymmetric Learning',
+                desc: 'The KL divergence in the ELBO serves dual purposes: training the prior toward the posterior AND regularizing the posterior toward the prior. Standard KL treats both equally, but learning the transition function is harder than learning representations. KL balancing uses \u03b1=0.8 for the prior learning term and (1-\u03b1)=0.2 for the posterior regularization term. Implementation: kl_loss = \u03b1 \u00b7 KL[sg(posterior) || prior] + (1-\u03b1) \u00b7 KL[posterior || sg(prior)]. This encourages learning an accurate prior over increasing posterior entropy. KL balancing outperforms standard KL on 44 of 55 Atari tasks.'
+            },
+            3: {
+                title: 'Mixed Actor Gradients: Best of Both Worlds',
+                desc: 'DreamerV2 combines two gradient estimators for the actor: (1) REINFORCE \u2014 unbiased but high variance policy gradient using ln \u03c0(a|s) \u00b7 (V^\u03bb - v(s)) as baseline-subtracted advantage; (2) Straight-through dynamics backpropagation \u2014 biased but low variance gradients flowing back through the learned dynamics. Combined: L(\u03c8) = -\u03c1 \u00b7 ln p(a|s) \u00b7 sg(V^\u03bb - v(s)) - (1-\u03c1) \u00b7 V^\u03bb - \u03b7 \u00b7 H[a|s]. For Atari (discrete actions): \u03c1=1 (pure REINFORCE works better). For continuous control: \u03c1=0 (dynamics backprop works better). The entropy regularizer \u03b7 encourages exploration.'
+            }
+        };
+
+        document.querySelectorAll('.idea').forEach(idea => {
+            idea.addEventListener('click', function() {
+                document.querySelectorAll('.idea').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                const num = this.dataset.idea;
+                const info = ideaInfo[num];
+                const panel = document.getElementById('idea-info');
+                panel.style.display = 'block';
+                panel.innerHTML = `
+                    <h4>${info.title}</h4>
+                    <p>${info.desc}</p>
+                `;
+            });
+        });
+
+        // ==================== Architecture Interaction ====================
+        const componentInfo = {
+            dataset: {
+                title: 'Dataset of Experience',
+                desc: 'A growing replay buffer of (image, action, reward) sequences collected by the agent. For Atari, images are 64\u00d764 grayscale. The dataset grows as the agent interacts with the environment using its learned policy, continuously improving the world model with new experience.'
+            },
+            rssm: {
+                title: 'Recurrent State Space Model (RSSM) with Discrete Latents',
+                desc: 'The RSSM combines a deterministic recurrent path (GRU with 600 units) with stochastic latent variables. In DreamerV2, the stochastic variables are 32 categorical distributions with 32 classes each, replacing the Gaussian distributions of V1. The model state is s_t = (h_t, z_t) where h_t is the deterministic recurrent state and z_t is the discrete stochastic state.'
+            },
+            categorical: {
+                title: '32\u00d732 Categorical Grid',
+                desc: 'Each stochastic state consists of 32 categorical variables, each choosing one of 32 classes. This produces a one-hot vector per variable, concatenated into a sparse binary vector of length 1024 with exactly 32 active bits (one per variable). The highlighted cells in the grid represent the active classes. Gradients flow through discrete sampling via the straight-through estimator.'
+            },
+            klbalance: {
+                title: 'KL Balancing (\u03b1=0.8)',
+                desc: 'The KL divergence loss is split into two terms with asymmetric weights: kl_loss = \u03b1 \u00b7 KL[sg(posterior) || prior] + (1-\u03b1) \u00b7 KL[posterior || sg(prior)]. With \u03b1=0.8, the prior is trained 4x more aggressively than the posterior is regularized. The stop-gradient (sg) ensures each term only trains one side. This prevents the common failure mode where the posterior collapses to match an undertrained prior.'
+            },
+            imagination: {
+                title: 'Imagined Trajectories',
+                desc: 'Starting from encoded real states, the transition predictor unrolls for H=15 steps using the current actor policy. This generates batches of imagined state-action-reward sequences entirely in the latent space. For each batch of 50 real states, 15-step imagined trajectories are generated, creating 750 (s, a, r) tuples per batch for actor-critic training.'
+            },
+            actor: {
+                title: 'Actor with Mixed Gradients',
+                desc: 'The actor combines REINFORCE and straight-through dynamics backpropagation. For Atari (discrete actions), \u03c1=1 uses pure REINFORCE with a learned value baseline. For continuous control, \u03c1=0 uses pure dynamics backprop. The entropy bonus \u03b7\u00b7H[a|s] encourages exploration. The actor network is an MLP with 4 layers of 400 units and ELU activations.'
+            },
+            value: {
+                title: 'Critic / Value Model',
+                desc: 'The critic v_\u03be(s_t) estimates the \u03bb-return V^\u03bb. Trained by regression: min \u00bd||v_\u03be(s_t) - sg(V^\u03bb_t)||\u00b2. Stop-gradient on targets prevents the critic loss from affecting the world model. The critic uses the same architecture as the actor: 4 layers of 400 units with ELU. A separate slow-moving target network (EMA) is used for computing V^\u03bb targets.'
+            },
+            mixedgrad: {
+                title: 'Mixed Gradient Estimator',
+                desc: 'The key innovation for the actor: combining REINFORCE (unbiased, high variance) with straight-through dynamics backprop (biased, low variance). The mixing ratio \u03c1 controls the balance. REINFORCE uses the advantage V^\u03bb - v(s) as a baseline to reduce variance. Dynamics backprop flows gradients through the entire imagined trajectory back through the transition model. The optimal \u03c1 depends on the action space.'
+            },
+            env: {
+                title: 'Atari Environment',
+                desc: '55 Atari games from the Arcade Learning Environment. Images are downscaled to 64\u00d764 grayscale. The agent uses action repeat of 1 (every frame) and is trained for 200M environment frames on a single NVIDIA V100 GPU over approximately 10 days. DreamerV2 achieves a human-normalized median score of 2.15, surpassing IQN, Rainbow, and other model-free methods.'
+            },
+            gaussian: {
+                title: 'V1: Diagonal Gaussian Latents',
+                desc: 'DreamerV1 uses 30-dimensional diagonal Gaussian latent variables z ~ N(\u03bc, \u03c3\u00b2). Gradients flow through sampling via the reparameterization trick: z = \u03bc + \u03c3 \u00b7 \u03b5, \u03b5 ~ N(0,I). While mathematically elegant, this has limitations: (1) the aggregate posterior is a mixture of Gaussians, which a single Gaussian prior cannot match, (2) continuous representations may not be ideal for discrete environments like Atari.'
+            },
+            v2categorical: {
+                title: 'V2: Categorical Latents (32\u00d732)',
+                desc: 'DreamerV2 replaces Gaussians with 32 categorical variables of 32 classes each. Gradients flow through the straight-through estimator: forward pass uses sampled one-hot vectors, backward pass uses the softmax probabilities. Advantages: (1) categorical priors can exactly match the aggregate posterior, (2) sparse one-hot vectors provide natural regularization, (3) stable gradients without exploding/vanishing issues, (4) 2^1024 possible discrete states vs continuous Gaussian space.'
+            }
+        };
+
+        document.querySelectorAll('.pipeline-stage').forEach(stage => {
+            stage.addEventListener('click', function() {
+                document.querySelectorAll('.pipeline-stage').forEach(s => s.classList.remove('active'));
+                this.classList.add('active');
+                const component = this.dataset.component;
+                if (component && componentInfo[component]) {
+                    const info = componentInfo[component];
+                    const panel = document.getElementById('component-info');
+                    panel.style.display = 'block';
+                    panel.innerHTML = `
+                        <h4>${info.title}</h4>
+                        <p>${info.desc}</p>
+                    `;
+                }
+            });
+        });
+
+        // ==================== Model Item Interaction ====================
+        document.querySelectorAll('.model-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.model-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // ==================== KL Balancing Canvas ====================
+        const klCanvas = document.getElementById('klCanvas');
+        const klCtx = klCanvas.getContext('2d');
+        const alphaSlider = document.getElementById('alphaSlider');
+
+        function drawKLViz() {
+            const dpr = window.devicePixelRatio || 1;
+            const rect = klCanvas.getBoundingClientRect();
+            const w = rect.width, h = rect.height;
+            klCanvas.width = w * dpr;
+            klCanvas.height = h * dpr;
+            klCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+            const alpha = parseInt(alphaSlider.value) / 100;
+            const pad = { left: 55, right: 20, top: 25, bottom: 40 };
+            const pw = w - pad.left - pad.right;
+            const ph = h - pad.top - pad.bottom;
+
+            // Clear
+            klCtx.clearRect(0, 0, w, h);
+
+            // Axes
+            klCtx.strokeStyle = '#444';
+            klCtx.lineWidth = 1;
+            klCtx.beginPath();
+            klCtx.moveTo(pad.left, pad.top);
+            klCtx.lineTo(pad.left, h - pad.bottom);
+            klCtx.lineTo(w - pad.right, h - pad.bottom);
+            klCtx.stroke();
+
+            klCtx.fillStyle = '#888';
+            klCtx.font = '11px sans-serif';
+            klCtx.textAlign = 'center';
+            klCtx.fillText('Training Steps', w / 2, h - 8);
+
+            klCtx.save();
+            klCtx.translate(15, h / 2);
+            klCtx.rotate(-Math.PI / 2);
+            klCtx.fillText('Learning Signal', 0, 0);
+            klCtx.restore();
+
+            // Y axis labels
+            klCtx.textAlign = 'right';
+            klCtx.font = '10px sans-serif';
+            for (let y = 0; y <= 1.0; y += 0.2) {
+                const cy = h - pad.bottom - (y / 1.0) * ph;
+                klCtx.fillStyle = '#555';
+                klCtx.fillText(y.toFixed(1), pad.left - 8, cy + 4);
+                klCtx.strokeStyle = 'rgba(255,255,255,0.05)';
+                klCtx.beginPath();
+                klCtx.moveTo(pad.left, cy);
+                klCtx.lineTo(w - pad.right, cy);
+                klCtx.stroke();
+            }
+
+            // X axis labels
+            klCtx.textAlign = 'center';
+            const stepLabels = ['0', '50k', '100k', '150k', '200k'];
+            stepLabels.forEach((label, i) => {
+                const cx = pad.left + (i / (stepLabels.length - 1)) * pw;
+                klCtx.fillStyle = '#555';
+                klCtx.fillText(label, cx, h - pad.bottom + 15);
+            });
+
+            const nPoints = 100;
+
+            // Prior learning curve: converges faster with higher alpha
+            klCtx.beginPath();
+            klCtx.strokeStyle = '#a855f7';
+            klCtx.lineWidth = 2.5;
+            for (let i = 0; i < nPoints; i++) {
+                const t = i / (nPoints - 1);
+                const priorRate = alpha;
+                const val = priorRate * (1 - Math.exp(-t * (3 + 4 * alpha)));
+                const cx = pad.left + t * pw;
+                const cy = h - pad.bottom - val * ph;
+                i === 0 ? klCtx.moveTo(cx, cy) : klCtx.lineTo(cx, cy);
+            }
+            klCtx.stroke();
+
+            // Posterior regularization curve: constrained with lower (1-alpha)
+            klCtx.beginPath();
+            klCtx.strokeStyle = '#10b981';
+            klCtx.lineWidth = 2.5;
+            for (let i = 0; i < nPoints; i++) {
+                const t = i / (nPoints - 1);
+                const postRate = 1 - alpha;
+                const val = postRate * (1 - Math.exp(-t * (3 + 4 * (1 - alpha))));
+                const cx = pad.left + t * pw;
+                const cy = h - pad.bottom - val * ph;
+                i === 0 ? klCtx.moveTo(cx, cy) : klCtx.lineTo(cx, cy);
+            }
+            klCtx.stroke();
+
+            // Optimal zone indicator
+            if (alpha >= 0.7 && alpha <= 0.9) {
+                klCtx.fillStyle = 'rgba(16, 185, 129, 0.08)';
+                klCtx.fillRect(pad.left, pad.top, pw, ph);
+            }
+
+            // Legend
+            klCtx.font = '11px sans-serif';
+            klCtx.textAlign = 'left';
+
+            klCtx.fillStyle = '#a855f7';
+            klCtx.fillRect(pad.left + 10, pad.top + 5, 16, 3);
+            klCtx.fillText('Prior Learning (\u03b1)', pad.left + 32, pad.top + 12);
+
+            klCtx.fillStyle = '#10b981';
+            klCtx.fillRect(pad.left + 10, pad.top + 20, 16, 3);
+            klCtx.fillText('Posterior Regularization (1-\u03b1)', pad.left + 32, pad.top + 27);
+
+            // Alpha vertical indicator line at 80% of x-axis representing the current value
+            const alphaX = pad.left + alpha * pw;
+            klCtx.strokeStyle = 'rgba(245, 158, 11, 0.5)';
+            klCtx.lineWidth = 1;
+            klCtx.setLineDash([4, 4]);
+            klCtx.beginPath();
+            klCtx.moveTo(alphaX, pad.top);
+            klCtx.lineTo(alphaX, h - pad.bottom);
+            klCtx.stroke();
+            klCtx.setLineDash([]);
+
+            klCtx.fillStyle = '#f59e0b';
+            klCtx.font = '10px sans-serif';
+            klCtx.textAlign = 'center';
+            klCtx.fillText('\u03b1=' + alpha.toFixed(2), alphaX, pad.top - 5);
+
+            // Update metrics
+            document.getElementById('alphaValue').textContent = alpha.toFixed(2);
+            document.getElementById('metricPrior').textContent = alpha.toFixed(2);
+            document.getElementById('metricPost').textContent = (1 - alpha).toFixed(2);
+
+            let balanceText, balanceColor;
+            if (alpha >= 0.7 && alpha <= 0.9) {
+                balanceText = 'Optimal';
+                balanceColor = '#10b981';
+            } else if (alpha >= 0.5 && alpha < 0.7) {
+                balanceText = 'Moderate';
+                balanceColor = '#f59e0b';
+            } else if (alpha > 0.9) {
+                balanceText = 'Aggressive';
+                balanceColor = '#ef4444';
+            } else {
+                balanceText = 'Over-Reg.';
+                balanceColor = '#ef4444';
+            }
+            document.getElementById('metricBalance').textContent = balanceText;
+            document.getElementById('metricBalance').style.color = balanceColor;
+        }
+
+        alphaSlider.addEventListener('input', drawKLViz);
+
+        // ==================== Atari Benchmark Results ====================
+        const benchmarkData = {
+            'gamer_median': {
+                'DreamerV2': 2.15,
+                'IQN': 1.29,
+                'Rainbow': 1.47,
+                'C51': 1.09,
+                'DQN': 0.65
+            },
+            'gamer_mean': {
+                'DreamerV2': 11.33,
+                'IQN': 8.85,
+                'Rainbow': 9.12,
+                'C51': 7.70,
+                'DQN': 2.84
+            },
+            'clipped_record': {
+                'DreamerV2': 0.28,
+                'IQN': 0.21,
+                'Rainbow': 0.17,
+                'C51': 0.15,
+                'DQN': 0.12
+            }
+        };
+
+        const methodColors = {
+            'DreamerV2': '#a855f7',
+            'IQN': '#3b82f6',
+            'Rainbow': '#10b981',
+            'C51': '#f59e0b',
+            'DQN': '#888'
+        };
+
+        function renderBenchmark(metricName) {
+            const data = benchmarkData[metricName];
+            const maxVal = Math.max(...Object.values(data), 0.01);
+            const container = document.getElementById('benchmarkBars');
+            container.innerHTML = '';
+
+            for (const [method, score] of Object.entries(data)) {
+                const row = document.createElement('div');
+                row.className = 'comparison-row';
+                const pct = Math.max(score, 0) / maxVal * 100;
+                const color = methodColors[method];
+                const isDreamerV2 = method === 'DreamerV2';
+                row.innerHTML = `
+                    <span class="comparison-label" style="color: ${color}; font-weight: ${isDreamerV2 ? '700' : '400'};">${method}</span>
+                    <div class="comparison-bar-track">
+                        <div class="comparison-bar-fill" style="width: ${pct}%; background: ${color}; opacity: ${isDreamerV2 ? 1 : 0.7};"></div>
+                    </div>
+                    <span class="comparison-value" style="color: ${color};">${score}</span>
+                `;
+                container.appendChild(row);
+            }
+        }
+
+        document.getElementById('metricSelect').addEventListener('change', function() {
+            renderBenchmark(this.value);
+        });
+
+        // ==================== Initialize ====================
+        window.addEventListener('resize', drawKLViz);
+
+        setTimeout(() => {
+            drawKLViz();
+            renderBenchmark('gamer_median');
+        }, 100);
+    </script>
+</body>
+</html>

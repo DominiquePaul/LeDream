@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <title>Dreamer - ML Method Visualizations</title>
+    <link rel="stylesheet" href="../css/sidebar.css">
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+            }
+        };
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js" async></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #e8e8e8;
+        }
+
+        .main-content {
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.2rem;
+            margin-bottom: 8px;
+            background: linear-gradient(90deg, #00d9ff, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+            font-size: 1rem;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        /* Core Ideas */
+        .key-ideas {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .idea {
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .idea:hover {
+            background: rgba(0,0,0,0.4);
+        }
+
+        .idea.active {
+            border-color: #00d9ff;
+            background: rgba(0, 217, 255, 0.1);
+        }
+
+        .idea-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+
+        .idea h4 {
+            font-size: 1rem;
+            margin-bottom: 8px;
+        }
+
+        .idea p {
+            font-size: 0.8rem;
+            color: #888;
+            line-height: 1.4;
+        }
+
+        .info-panel {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 15px;
+            min-height: 100px;
+        }
+
+        .info-panel h4 {
+            color: #00d9ff;
+            margin-bottom: 8px;
+        }
+
+        .info-panel p {
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: #aaa;
+        }
+
+        .formula {
+            background: rgba(168, 85, 247, 0.1);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            margin: 10px 0;
+            font-size: 1rem;
+            text-align: center;
+            color: #e0e0e0;
+        }
+
+        /* Pipeline SVG */
+        .pipeline-svg {
+            width: 100%;
+            height: 380px;
+        }
+
+        .pipeline-stage {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .pipeline-stage:hover {
+            filter: brightness(1.2);
+        }
+
+        .pipeline-stage.active {
+            filter: drop-shadow(0 0 15px currentColor);
+        }
+
+        .flow-arrow {
+            stroke-dasharray: 8 4;
+            animation: flowDash 1s linear infinite;
+        }
+
+        @keyframes flowDash {
+            to { stroke-dashoffset: -12; }
+        }
+
+        /* Model Components */
+        .model-equations {
+            display: grid;
+            gap: 15px;
+        }
+
+        .model-item {
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .model-item:hover {
+            background: rgba(0,0,0,0.4);
+        }
+
+        .model-item.active {
+            border-color: #a855f7;
+        }
+
+        .model-item h4 {
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .model-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        /* Imagination Canvas */
+        .imagination-canvas {
+            width: 100%;
+            height: 280px;
+        }
+
+        .canvas-container {
+            position: relative;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        /* Slider */
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .slider-container label {
+            font-size: 0.9rem;
+            min-width: 120px;
+        }
+
+        .slider {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 8px;
+            border-radius: 4px;
+            background: linear-gradient(90deg, #3b82f6, #a855f7);
+            outline: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #fff;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        .slider-value {
+            font-family: monospace;
+            font-size: 1rem;
+            color: #00d9ff;
+            min-width: 50px;
+        }
+
+        /* Comparison Bars */
+        .comparison-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .comparison-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .comparison-label {
+            font-size: 0.85rem;
+            min-width: 100px;
+        }
+
+        .comparison-bar-track {
+            flex: 1;
+            height: 24px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .comparison-bar-fill {
+            height: 100%;
+            border-radius: 12px;
+            transition: width 0.5s ease;
+        }
+
+        .comparison-value {
+            font-family: monospace;
+            font-size: 0.85rem;
+            min-width: 60px;
+            text-align: right;
+        }
+
+        /* Key Features */
+        .key-features {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .feature {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .feature-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .feature h4 {
+            font-size: 0.95rem;
+            margin-bottom: 5px;
+        }
+
+        .feature p {
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        /* Value estimation canvas */
+        .value-canvas {
+            width: 100%;
+            height: 250px;
+        }
+
+        /* Toggle buttons */
+        .toggle-btns {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+
+        .toggle-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(0,0,0,0.3);
+            color: #aaa;
+        }
+
+        .toggle-btn.active {
+            border-color: #00d9ff;
+            background: rgba(0, 217, 255, 0.1);
+            color: #00d9ff;
+        }
+
+        .toggle-btn:hover {
+            background: rgba(0,0,0,0.5);
+        }
+
+        /* Metrics row */
+        .metrics-row {
+            display: flex;
+            justify-content: space-around;
+            padding: 15px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+
+        .metric {
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            font-family: monospace;
+        }
+
+        .metric-label {
+            font-size: 0.75rem;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        @media (max-width: 1000px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            .key-ideas {
+                grid-template-columns: 1fr;
+            }
+            .key-features {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding-top: 70px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Menu Button -->
+    <button class="mobile-menu-btn" aria-label="Toggle menu">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+    </button>
+
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <button class="sidebar-toggle" aria-label="Toggle sidebar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+        </button>
+
+        <div class="sidebar-header">
+            <div class="sidebar-logo">📊</div>
+            <div class="sidebar-title">
+                <h1>ML Methods</h1>
+                <span>Interactive Visualizations</span>
+            </div>
+        </div>
+
+        <div class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Overview</div>
+                <ul class="nav-items">
+                    <li class="nav-item">
+                        <a href="../index.html" class="nav-link" data-tooltip="Home">
+                            <div class="nav-icon other">🏠</div>
+                            <div class="nav-text">
+                                <span>Home</span>
+                                <span>All methods overview</span>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Standard RL</div>
+                <ul class="nav-items">
+                    <li class="nav-item">
+                        <a href="sac.html" class="nav-link" data-tooltip="SAC">
+                            <div class="nav-icon rl">🎯</div>
+                            <div class="nav-text">
+                                <span>SAC</span>
+                                <span>Soft Actor-Critic</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="rlhf.html" class="nav-link" data-tooltip="RLHF">
+                            <div class="nav-icon rl">👤</div>
+                            <div class="nav-text">
+                                <span>RLHF</span>
+                                <span>RL from Human Feedback</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="cql.html" class="nav-link" data-tooltip="CQL">
+                            <div class="nav-icon rl">🛡️</div>
+                            <div class="nav-text">
+                                <span>CQL</span>
+                                <span>Conservative Q-Learning</span>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">World Models</div>
+                <ul class="nav-items">
+                    <li class="nav-item">
+                        <a href="world-models.html" class="nav-link" data-tooltip="World Models">
+                            <div class="nav-icon wm">🧠</div>
+                            <div class="nav-text">
+                                <span>World Models</span>
+                                <span>Ha & Schmidhuber</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="planet.html" class="nav-link" data-tooltip="PlaNet">
+                            <div class="nav-icon wm">🪐</div>
+                            <div class="nav-text">
+                                <span>PlaNet</span>
+                                <span>Latent Dynamics Planning</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="dreamer.html" class="nav-link" data-tooltip="Dreamer">
+                            <div class="nav-icon wm">💭</div>
+                            <div class="nav-text">
+                                <span>Dreamer</span>
+                                <span>Latent Imagination</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="dreamerv2.html" class="nav-link" data-tooltip="DreamerV2">
+                            <div class="nav-icon wm">🎲</div>
+                            <div class="nav-text">
+                                <span>DreamerV2</span>
+                                <span>Discrete World Models</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="dreamerv3.html" class="nav-link" data-tooltip="DreamerV3">
+                            <div class="nav-icon wm">🌐</div>
+                            <div class="nav-text">
+                                <span>DreamerV3</span>
+                                <span>Diverse Domains</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="vjepa.html" class="nav-link" data-tooltip="V-JEPA">
+                            <div class="nav-icon wm">🎬</div>
+                            <div class="nav-text">
+                                <span>V-JEPA</span>
+                                <span>Feature Prediction</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="vjepa2.html" class="nav-link" data-tooltip="V-JEPA 2">
+                            <div class="nav-icon wm">🤖</div>
+                            <div class="nav-text">
+                                <span>V-JEPA 2</span>
+                                <span>Understanding & Planning</span>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">Robotics Concepts</div>
+                <ul class="nav-items">
+                    <li class="nav-item">
+                        <a href="robot-controllers.html" class="nav-link" data-tooltip="Controllers">
+                            <div class="nav-icon" style="background: linear-gradient(135deg, #f59e0b, #ef4444);">🦾</div>
+                            <div class="nav-text">
+                                <span>Controllers</span>
+                                <span>Impedance, Stiffness & Contact</span>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+            <span>Press <kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">Ctrl+B</kbd> to toggle</span>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <h1>Dreamer</h1>
+            <p class="subtitle">Dream to Control: Learning Behaviors by Latent Imagination &mdash; Hafner et al., ICLR 2020</p>
+            <div style="text-align: center; margin-bottom: 20px;">
+                <a href="https://danijar.com/dreamer" target="_blank" style="color: #888; text-decoration: none; font-size: 0.85rem; transition: color 0.2s;">
+                    <span style="margin-right: 5px;">🔗</span> danijar.com/dreamer
+                </a>
+            </div>
+
+            <!-- Three Core Ideas -->
+            <div class="card" style="margin-bottom: 20px;">
+                <div class="card-title">
+                    <div class="icon" style="background: linear-gradient(135deg, #00d9ff, #0099cc);">💡</div>
+                    Core Ideas
+                </div>
+                <div class="key-ideas">
+                    <div class="idea" data-idea="1">
+                        <div class="idea-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">🌍</div>
+                        <h4>World Model</h4>
+                        <p>Learn a latent dynamics model from experience to predict future states, rewards, and observations in a compact state space</p>
+                    </div>
+                    <div class="idea" data-idea="2">
+                        <div class="idea-icon" style="background: linear-gradient(135deg, #a855f7, #7c3aed);">💭</div>
+                        <h4>Latent Imagination</h4>
+                        <p>Imagine thousands of trajectories entirely in the learned latent space &mdash; no environment interaction needed during behavior learning</p>
+                    </div>
+                    <div class="idea" data-idea="3">
+                        <div class="idea-icon" style="background: linear-gradient(135deg, #10b981, #059669);">📈</div>
+                        <h4>Actor-Critic in Imagination</h4>
+                        <p>Learn an actor and value function by backpropagating analytic gradients of multi-step returns through the learned dynamics</p>
+                    </div>
+                </div>
+                <div class="info-panel" id="idea-info" style="display: none;">
+                </div>
+            </div>
+
+            <div class="main-grid">
+                <!-- World Model Components -->
+                <div class="card">
+                    <div class="card-title">
+                        <div class="icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">🧩</div>
+                        World Model Components (RSSM)
+                    </div>
+                    <div class="model-equations">
+                        <div class="model-item" data-model="repr">
+                            <h4><span class="model-dot" style="background: #10b981;"></span>Representation Model</h4>
+                            <div class="formula">
+                                \( p(s_t \mid s_{t-1}, a_{t-1}, o_t) \)
+                            </div>
+                            <p style="font-size: 0.8rem; color: #888; margin-top: 8px;">Encodes observations and past states into compact latent states using the RSSM + CNN encoder</p>
+                        </div>
+                        <div class="model-item" data-model="trans">
+                            <h4><span class="model-dot" style="background: #3b82f6;"></span>Transition Model</h4>
+                            <div class="formula">
+                                \( q(s_t \mid s_{t-1}, a_{t-1}) \)
+                            </div>
+                            <p style="font-size: 0.8rem; color: #888; margin-top: 8px;">Predicts next latent state without seeing the observation &mdash; enables imagination without rendering</p>
+                        </div>
+                        <div class="model-item" data-model="reward">
+                            <h4><span class="model-dot" style="background: #ef4444;"></span>Reward Model</h4>
+                            <div class="formula">
+                                \( q(r_t \mid s_t) \)
+                            </div>
+                            <p style="font-size: 0.8rem; color: #888; margin-top: 8px;">Predicts scalar rewards from latent states to evaluate imagined trajectories</p>
+                        </div>
+                        <div class="model-item" data-model="obs">
+                            <h4><span class="model-dot" style="background: #a855f7;"></span>Observation Model (for learning)</h4>
+                            <div class="formula">
+                                \( q(o_t \mid s_t) \)
+                            </div>
+                            <p style="font-size: 0.8rem; color: #888; margin-top: 8px;">Reconstructs images from latent states &mdash; provides learning signal via pixel reconstruction loss</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dreamer Architecture SVG -->
+                <div class="card">
+                    <div class="card-title">
+                        <div class="icon" style="background: linear-gradient(135deg, #10b981, #059669);">🏗️</div>
+                        Dreamer Architecture
+                    </div>
+                    <svg class="pipeline-svg" viewBox="0 0 500 360">
+                        <!-- Phase 1: Learn Dynamics -->
+                        <text x="95" y="15" text-anchor="middle" fill="#f59e0b" font-size="10" font-weight="bold">1. Learn Dynamics</text>
+
+                        <!-- Dataset -->
+                        <rect x="20" y="25" width="70" height="45" rx="8" fill="#f59e0b" class="pipeline-stage" data-component="dataset"/>
+                        <text x="55" y="45" text-anchor="middle" fill="white" font-size="9" font-weight="bold">Dataset</text>
+                        <text x="55" y="57" text-anchor="middle" fill="white" font-size="8">(o, a, r)</text>
+
+                        <!-- RSSM -->
+                        <rect x="110" y="25" width="80" height="45" rx="8" fill="rgba(245,158,11,0.3)" stroke="#f59e0b" stroke-width="2" class="pipeline-stage" data-component="rssm"/>
+                        <text x="150" y="45" text-anchor="middle" fill="#f59e0b" font-size="9" font-weight="bold">RSSM</text>
+                        <text x="150" y="57" text-anchor="middle" fill="#888" font-size="8">World Model</text>
+
+                        <!-- Arrow Dataset to RSSM -->
+                        <path d="M 90 48 L 108 48" stroke="#f59e0b" stroke-width="2" fill="none" marker-end="url(#arrowOrange)" class="flow-arrow"/>
+
+                        <!-- Phase 2: Learn Behavior -->
+                        <text x="340" y="15" text-anchor="middle" fill="#a855f7" font-size="10" font-weight="bold">2. Learn Behavior in Imagination</text>
+
+                        <!-- Latent State -->
+                        <rect x="230" y="25" width="70" height="45" rx="8" fill="#3b82f6" class="pipeline-stage" data-component="latent"/>
+                        <text x="265" y="42" text-anchor="middle" fill="white" font-size="9" font-weight="bold">Latent</text>
+                        <text x="265" y="55" text-anchor="middle" fill="white" font-size="8">State s_t</text>
+
+                        <!-- Arrow RSSM to Latent -->
+                        <path d="M 190 48 L 228 48" stroke="#3b82f6" stroke-width="2" fill="none" marker-end="url(#arrowBlue)"/>
+
+                        <!-- Imagination Cloud -->
+                        <ellipse cx="380" cy="47" rx="85" ry="30" fill="rgba(168,85,247,0.15)" stroke="#a855f7" stroke-width="2" stroke-dasharray="4" class="pipeline-stage" data-component="imagination"/>
+                        <text x="380" y="42" text-anchor="middle" fill="#a855f7" font-size="9" font-weight="bold">Imagined</text>
+                        <text x="380" y="54" text-anchor="middle" fill="#888" font-size="8">Trajectories</text>
+
+                        <!-- Arrow Latent to Imagination -->
+                        <path d="M 300 48 L 293 48" stroke="#a855f7" stroke-width="2" fill="none" marker-end="url(#arrowPurple)" class="flow-arrow"/>
+
+                        <!-- Actor -->
+                        <rect x="230" y="110" width="90" height="50" rx="8" fill="#10b981" class="pipeline-stage" data-component="actor"/>
+                        <text x="275" y="130" text-anchor="middle" fill="white" font-size="9" font-weight="bold">Action Model</text>
+                        <text x="275" y="145" text-anchor="middle" fill="white" font-size="8">q_&phi;(a_t | s_t)</text>
+
+                        <!-- Value -->
+                        <rect x="350" y="110" width="90" height="50" rx="8" fill="rgba(168,85,247,0.3)" stroke="#a855f7" stroke-width="2" class="pipeline-stage" data-component="value"/>
+                        <text x="395" y="130" text-anchor="middle" fill="#a855f7" font-size="9" font-weight="bold">Value Model</text>
+                        <text x="395" y="145" text-anchor="middle" fill="#888" font-size="8">v_&psi;(s_t)</text>
+
+                        <!-- Arrows from Imagination to Actor/Value -->
+                        <path d="M 350 77 Q 310 95 295 110" stroke="#10b981" stroke-width="2" fill="none" marker-end="url(#arrowGreen)"/>
+                        <path d="M 400 77 Q 400 95 398 108" stroke="#a855f7" stroke-width="2" fill="none" marker-end="url(#arrowPurple)"/>
+
+                        <!-- Gradient flow arrow (key innovation) -->
+                        <rect x="270" y="180" width="160" height="35" rx="8" fill="rgba(0,217,255,0.15)" stroke="#00d9ff" stroke-width="2" class="pipeline-stage" data-component="gradients"/>
+                        <text x="350" y="200" text-anchor="middle" fill="#00d9ff" font-size="9" font-weight="bold">Backprop through dynamics</text>
+
+                        <path d="M 395 160 L 395 178" stroke="#00d9ff" stroke-width="2" fill="none" marker-end="url(#arrowCyan)"/>
+                        <path d="M 275 160 L 310 178" stroke="#00d9ff" stroke-width="2" fill="none" marker-end="url(#arrowCyan)"/>
+
+                        <!-- Phase 3: Act in Environment -->
+                        <text x="130" y="110" text-anchor="middle" fill="#00d9ff" font-size="10" font-weight="bold">3. Act in Environment</text>
+
+                        <!-- Environment -->
+                        <rect x="20" y="120" width="80" height="50" rx="8" fill="rgba(0,217,255,0.2)" stroke="#00d9ff" stroke-width="2" class="pipeline-stage" data-component="env"/>
+                        <text x="60" y="140" text-anchor="middle" fill="#00d9ff" font-size="9" font-weight="bold">Environment</text>
+                        <text x="60" y="153" text-anchor="middle" fill="#888" font-size="8">64x64 images</text>
+
+                        <!-- Arrow: Actor to Env -->
+                        <path d="M 230 145 Q 170 150 102 145" stroke="#10b981" stroke-width="2" fill="none" marker-end="url(#arrowGreen)" stroke-dasharray="6"/>
+                        <text x="165" y="140" fill="#888" font-size="8">actions</text>
+
+                        <!-- Arrow: Env to Dataset -->
+                        <path d="M 60 120 Q 55 90 55 72" stroke="#f59e0b" stroke-width="2" fill="none" marker-end="url(#arrowOrange)" stroke-dasharray="6"/>
+                        <text x="30" y="95" fill="#888" font-size="8">data</text>
+
+                        <!-- Value Estimation Section -->
+                        <text x="250" y="245" text-anchor="middle" fill="#888" font-size="10" font-weight="bold">Value Estimation: V_&lambda;</text>
+
+                        <rect x="30" y="255" width="130" height="40" rx="8" fill="rgba(239,68,68,0.2)" stroke="#ef4444" stroke-width="1.5" class="pipeline-stage" data-component="vr"/>
+                        <text x="95" y="272" text-anchor="middle" fill="#ef4444" font-size="9" font-weight="bold">V_R: Sum rewards</text>
+                        <text x="95" y="285" text-anchor="middle" fill="#888" font-size="8">No value model</text>
+
+                        <rect x="180" y="255" width="130" height="40" rx="8" fill="rgba(59,130,246,0.2)" stroke="#3b82f6" stroke-width="1.5" class="pipeline-stage" data-component="vn"/>
+                        <text x="245" y="272" text-anchor="middle" fill="#3b82f6" font-size="9" font-weight="bold">V_N^k: k-step returns</text>
+                        <text x="245" y="285" text-anchor="middle" fill="#888" font-size="8">Bootstrap at step k</text>
+
+                        <rect x="330" y="255" width="140" height="40" rx="8" fill="rgba(168,85,247,0.2)" stroke="#a855f7" stroke-width="1.5" class="pipeline-stage" data-component="vlambda"/>
+                        <text x="400" y="272" text-anchor="middle" fill="#a855f7" font-size="9" font-weight="bold">V_&lambda;: Exponential avg</text>
+                        <text x="400" y="285" text-anchor="middle" fill="#888" font-size="8">&lambda;-weighted (like GAE)</text>
+
+                        <!-- Arrows between V estimates -->
+                        <path d="M 160 275 L 178 275" stroke="#888" stroke-width="1.5" fill="none" marker-end="url(#arrowGray)"/>
+                        <path d="M 310 275 L 328 275" stroke="#888" stroke-width="1.5" fill="none" marker-end="url(#arrowGray)"/>
+
+                        <!-- Training Objectives -->
+                        <rect x="30" y="315" width="210" height="35" rx="8" fill="rgba(16,185,129,0.15)" stroke="#10b981" stroke-width="1.5"/>
+                        <text x="135" y="335" text-anchor="middle" fill="#10b981" font-size="9" font-weight="bold">Actor: max &Sigma; V_&lambda;(s_&tau;)</text>
+
+                        <rect x="260" y="315" width="210" height="35" rx="8" fill="rgba(168,85,247,0.15)" stroke="#a855f7" stroke-width="1.5"/>
+                        <text x="365" y="335" text-anchor="middle" fill="#a855f7" font-size="9" font-weight="bold">Critic: min &Sigma; ||v_&psi;(s_&tau;) - V_&lambda;||&sup2;</text>
+
+                        <!-- Arrow Markers -->
+                        <defs>
+                            <marker id="arrowCyan" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#00d9ff"/>
+                            </marker>
+                            <marker id="arrowBlue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#3b82f6"/>
+                            </marker>
+                            <marker id="arrowOrange" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#f59e0b"/>
+                            </marker>
+                            <marker id="arrowGreen" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#10b981"/>
+                            </marker>
+                            <marker id="arrowPurple" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#a855f7"/>
+                            </marker>
+                            <marker id="arrowGray" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#888"/>
+                            </marker>
+                        </defs>
+                    </svg>
+
+                    <div class="info-panel" id="component-info" style="display: none;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Imagination Horizon + Benchmark Results -->
+            <div class="main-grid">
+                <!-- Interactive Imagination Horizon -->
+                <div class="card">
+                    <div class="card-title">
+                        <div class="icon" style="background: linear-gradient(135deg, #a855f7, #7c3aed);">🔮</div>
+                        Imagination Horizon Effect
+                    </div>
+                    <div class="slider-container">
+                        <label>Horizon H:</label>
+                        <input type="range" class="slider" id="horizonSlider" min="1" max="45" step="1" value="15">
+                        <span class="slider-value" id="horizonValue">15</span>
+                    </div>
+                    <div class="toggle-btns">
+                        <button class="toggle-btn active" id="btnDreamer" data-method="dreamer">Dreamer (V_&lambda;)</button>
+                        <button class="toggle-btn" id="btnNoValue" data-method="novalue">No Value Model</button>
+                        <button class="toggle-btn" id="btnPlaNet" data-method="planet">PlaNet (planning)</button>
+                    </div>
+                    <div class="canvas-container">
+                        <canvas class="imagination-canvas" id="horizonCanvas"></canvas>
+                    </div>
+                    <div class="metrics-row">
+                        <div class="metric">
+                            <div class="metric-value" id="metricReturn" style="color: #10b981;">823</div>
+                            <div class="metric-label">Avg Return</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value" id="metricRobust" style="color: #a855f7;">High</div>
+                            <div class="metric-label">Horizon Robustness</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value" id="metricSteps" style="color: #00d9ff;">5M</div>
+                            <div class="metric-label">Env Steps</div>
+                        </div>
+                    </div>
+                    <p style="font-size: 0.85rem; color: #888; text-align: center; margin-top: 10px;">
+                        The value model makes Dreamer robust to the imagination horizon &mdash; it estimates rewards beyond H steps.
+                    </p>
+                </div>
+
+                <!-- DeepMind Control Suite Results -->
+                <div class="card">
+                    <div class="card-title">
+                        <div class="icon" style="background: linear-gradient(135deg, #10b981, #059669);">🏆</div>
+                        DeepMind Control Suite Results
+                    </div>
+                    <div class="comparison-container">
+                        <p style="font-size: 0.85rem; color: #888; margin-bottom: 10px;">Average performance across 20 visual control tasks at 5M environment steps:</p>
+                        <div id="benchmarkBars"></div>
+                        <div class="slider-container" style="margin-top: 10px;">
+                            <label style="min-width: 60px;">Task:</label>
+                            <select id="taskSelect" style="flex: 1; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: #e8e8e8; padding: 8px; border-radius: 8px; font-size: 0.85rem;">
+                                <option value="average">Average (20 tasks)</option>
+                                <option value="cheetah_run">Cheetah Run</option>
+                                <option value="walker_walk">Walker Walk</option>
+                                <option value="cartpole_swingup">Cartpole Swingup</option>
+                                <option value="hopper_hop">Hopper Hop</option>
+                                <option value="quadruped_walk">Quadruped Walk</option>
+                                <option value="finger_turn_hard">Finger Turn Hard</option>
+                            </select>
+                        </div>
+                        <p style="font-size: 0.8rem; color: #888; margin-top: 10px; text-align: center;">
+                            Dreamer matches model-free performance (D4PG at 10&sup8; steps) in 20x fewer environment steps.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Training Objectives -->
+            <div class="card" style="margin-bottom: 20px;">
+                <div class="card-title">
+                    <div class="icon" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">📐</div>
+                    Training Objectives
+                </div>
+                <div class="model-equations">
+                    <div class="model-item" data-loss="dynamics">
+                        <h4><span class="model-dot" style="background: #f59e0b;"></span>Dynamics Learning: ELBO Objective</h4>
+                        <div class="formula">
+                            \( \mathcal{J}_{\text{REC}} = \mathbb{E}_p \left[ \sum_t \ln q(o_t | s_t) + \ln q(r_t | s_t) - \beta \, \text{KL}\left[ p(s_t | s_{t-1}, a_{t-1}, o_t) \,\|\, q(s_t | s_{t-1}, a_{t-1}) \right] \right] \)
+                        </div>
+                        <p style="font-size: 0.8rem; color: #888; margin-top: 8px;">Reconstruction of observations + rewards, regularized by KL divergence between posterior and prior (encourages consistent latent dynamics)</p>
+                    </div>
+                    <div class="model-item" data-loss="actor">
+                        <h4><span class="model-dot" style="background: #10b981;"></span>Actor Objective: Maximize Imagined Returns</h4>
+                        <div class="formula">
+                            \( \max_\phi \; \mathbb{E}_{q_\theta, q_\phi} \left[ \sum_{\tau=t}^{t+H} V_\lambda(s_\tau) \right] \)
+                        </div>
+                        <p style="font-size: 0.8rem; color: #888; margin-top: 8px;">Maximize value estimates along imagined trajectories &mdash; gradients flow back through the dynamics via reparameterization</p>
+                    </div>
+                    <div class="model-item" data-loss="critic">
+                        <h4><span class="model-dot" style="background: #a855f7;"></span>Critic Objective: Regress V_&lambda; Targets</h4>
+                        <div class="formula">
+                            \( \min_\psi \; \mathbb{E}_{q_\theta, q_\phi} \left[ \sum_{\tau=t}^{t+H} \frac{1}{2} \| v_\psi(s_\tau) - V_\lambda(s_\tau) \|^2 \right] \)
+                        </div>
+                        <p style="font-size: 0.8rem; color: #888; margin-top: 8px;">The value model learns to predict the &lambda;-weighted returns &mdash; targets are computed from imagined trajectories (gradient stopped)</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Paper Lineage -->
+            <div class="card" style="margin-bottom: 20px;">
+                <div class="card-title">
+                    <div class="icon" style="background: linear-gradient(135deg, #6366f1, #4f46e5);">🌳</div>
+                    Paper Lineage
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div>
+                        <h4 style="font-size: 0.9rem; color: #f59e0b; margin-bottom: 12px;">Builds On</h4>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #f59e0b;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">PlaNet</div>
+                                <div style="font-size: 0.75rem; color: #888;">Hafner et al., 2018 &mdash; Same RSSM world model, but uses online planning (CEM) instead of learned behaviors. Dreamer replaces planning with actor-critic.</div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #f59e0b;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">World Models</div>
+                                <div style="font-size: 0.75rem; color: #888;">Ha &amp; Schmidhuber, 2018 &mdash; Two-stage world model (VAE + MDN-RNN) with evolved controllers in imagination. Pioneer of learning in latent space.</div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #f59e0b;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">SAC</div>
+                                <div style="font-size: 0.75rem; color: #888;">Haarnoja et al., 2018 &mdash; The tanh-Gaussian policy parameterization and reparameterization trick used in Dreamer's action model.</div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #f59e0b;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">Dyna</div>
+                                <div style="font-size: 0.75rem; color: #888;">Sutton, 1991 &mdash; The classic architecture of learning, planning, and acting with a learned model. Dreamer is a deep learning instantiation of Dyna.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 style="font-size: 0.9rem; color: #10b981; margin-bottom: 12px;">Built Upon By</h4>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #10b981;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">DreamerV2</div>
+                                <div style="font-size: 0.75rem; color: #888;">Hafner et al., 2021 &mdash; Discrete latent states (categorical), KL balancing, achieves human-level Atari from pixels with a single GPU.</div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #10b981;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">DreamerV3</div>
+                                <div style="font-size: 0.75rem; color: #888;">Hafner et al., 2023 &mdash; Fixed hyperparameters across domains, symlog predictions, scales from Atari to Minecraft to DMLab without tuning.</div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #10b981;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">DayDreamer</div>
+                                <div style="font-size: 0.75rem; color: #888;">Wu et al., 2022 &mdash; Applies Dreamer to real robots (A1 quadruped, UR5 arm), learning locomotion in ~1 hour of real interaction.</div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #10b981;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">TD-MPC / TD-MPC2</div>
+                                <div style="font-size: 0.75rem; color: #888;">Hansen et al., 2022/2024 &mdash; Combines learned latent dynamics with model-predictive control and TD-learning. Alternative to pure imagination-based approach.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Key Features -->
+            <div class="key-features">
+                <div class="feature">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">🖼️</div>
+                    <h4>Pixel-to-Control</h4>
+                    <p>Learns directly from 64&times;64 image observations, no state access needed</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #a855f7, #7c3aed);">⚡</div>
+                    <h4>Data Efficient</h4>
+                    <p>Matches D4PG (10&sup8; steps) with only 5&times;10&sup6; steps &mdash; 20x more efficient</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #10b981, #059669);">🎯</div>
+                    <h4>Analytic Gradients</h4>
+                    <p>Backpropagates value gradients through learned dynamics via reparameterization</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="../js/sidebar.js"></script>
+    <script>
+        // ==================== Key Ideas Interaction ====================
+        const ideaInfo = {
+            1: {
+                title: 'World Model: Learning the Rules of the Game',
+                desc: 'Dreamer learns a Recurrent State Space Model (RSSM) that compresses high-dimensional image observations into compact latent states. The model has three components: a representation model (encoder) that maps observations to latent states, a transition model that predicts next states from actions alone (without seeing observations), and a reward model. The key insight is that the transition model enables "imagination" \u2014 predicting the future without rendering any images, making it extremely fast.'
+            },
+            2: {
+                title: 'Latent Imagination: Dreaming Up Experience',
+                desc: 'Instead of planning action-by-action with the world model (like PlaNet does with CEM), Dreamer imagines entire trajectories in the latent space. Starting from encoded real states, it rolls out the transition model for H steps, generating thousands of imagined trajectories in parallel. This is vastly more efficient than environment interaction because: (1) latent states are tiny compared to images, (2) no rendering is needed, and (3) batches of trajectories run in parallel on GPU.'
+            },
+            3: {
+                title: 'Actor-Critic by Backprop Through Dynamics',
+                desc: 'The action and value models are trained cooperatively on imagined trajectories. The actor maximizes value estimates along trajectories, and crucially, gradients flow back through the learned dynamics via reparameterization. This is what distinguishes Dreamer from model-free actor-critics: instead of using REINFORCE-style gradients (high variance), Dreamer uses analytic gradients through the differentiable world model. The value model (V_\u03bb) uses exponentially-weighted multi-step returns to balance bias and variance, making the method robust to the imagination horizon length.'
+            }
+        };
+
+        document.querySelectorAll('.idea').forEach(idea => {
+            idea.addEventListener('click', function() {
+                document.querySelectorAll('.idea').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                const num = this.dataset.idea;
+                const info = ideaInfo[num];
+                const panel = document.getElementById('idea-info');
+                panel.style.display = 'block';
+                panel.innerHTML = `
+                    <h4>${info.title}</h4>
+                    <p>${info.desc}</p>
+                `;
+            });
+        });
+
+        // ==================== Architecture Interaction ====================
+        const componentInfo = {
+            dataset: {
+                title: 'Dataset of Experience',
+                desc: 'A growing replay buffer of (observation, action, reward) sequences collected by the agent. Initialized with S=5 random seed episodes. After every C=100 training steps, the agent executes its current policy in the environment for 1 episode, adding new experience. The dataset grows over time, improving the world model.'
+            },
+            rssm: {
+                title: 'Recurrent State Space Model (RSSM)',
+                desc: 'The world model combines a deterministic recurrent path (GRU) with stochastic latent variables. The deterministic path provides memory, while the stochastic variables capture uncertainty. The CNN encoder processes 64\u00d764 images, and the model is trained via the ELBO objective (reconstruction + KL regularization). Latent states are 30-dimensional diagonal Gaussians.'
+            },
+            latent: {
+                title: 'Compact Latent State',
+                desc: 'The latent state s_t is a compact vector combining the deterministic recurrent state h_t and stochastic state z_t. This is much smaller than a 64\u00d764\u00d73 image, enabling fast parallel imagination of thousands of trajectories. The representation model encodes real observations, while the transition model predicts future states without observations.'
+            },
+            imagination: {
+                title: 'Imagined Trajectories',
+                desc: 'Starting from real encoded states s_t, Dreamer unrolls the transition model for H=15 steps using the current action model. This generates batches of imagined state-action-reward sequences entirely in the latent space. No images are rendered. These trajectories are used to train the actor and critic via backpropagation through the dynamics.'
+            },
+            actor: {
+                title: 'Action Model (Policy)',
+                desc: 'A dense neural network with parameters \u03c6 that outputs a tanh-transformed Gaussian: a_\u03c4 = tanh(\u03bc_\u03c6(s_\u03c4) + \u03c3_\u03c6(s_\u03c4)\u00b7\u03b5). The reparameterization trick allows gradients to flow through sampled actions back into the model. The actor is trained to maximize V_\u03bb estimates along imagined trajectories. Exploration noise Normal(0, 0.3) is added during environment interaction.'
+            },
+            value: {
+                title: 'Value Model (Critic)',
+                desc: 'A dense neural network v_\u03c8(s_\u03c4) that estimates the V_\u03bb targets. Trained by regression: min \u03a3 \u00bd||v_\u03c8(s_\u03c4) - V_\u03bb(s_\u03c4)||\u00b2. The value model allows the agent to estimate rewards beyond the imagination horizon H, which is critical for long-horizon tasks. Without it, the agent becomes short-sighted.'
+            },
+            env: {
+                title: 'Environment (DeepMind Control Suite)',
+                desc: '20 visual control tasks with 64\u00d764\u00d73 image observations. Tasks include locomotion (Walker, Cheetah, Quadruped), balance (Cartpole, Acrobot), and manipulation (Cup, Finger). Episodes last 1000 steps with rewards in [0,1]. Dreamer uses action repeat R=2 and trains for ~3 hours per 10\u2076 steps on a single V100 GPU.'
+            },
+            gradients: {
+                title: 'Backpropagation Through Dynamics (Key Innovation)',
+                desc: 'The defining feature of Dreamer: analytic gradients of value estimates are propagated backwards through the entire imagined trajectory and through the learned dynamics. This is possible because (1) the transition model is differentiable, (2) actions are sampled via reparameterization, and (3) stochastic latent states use the reparameterization trick. This gives much lower variance gradients than REINFORCE/policy gradient methods.'
+            },
+            vr: {
+                title: 'V_R: Pure Reward Sum',
+                desc: 'The simplest value estimate: just sum rewards from \u03c4 to \u03c4+H. This ignores any rewards beyond the horizon H. Used as an ablation \u2014 without a value model, the agent is short-sighted and performance degrades for tasks requiring long-horizon credit assignment.'
+            },
+            vn: {
+                title: 'V_N^k: k-step Returns',
+                desc: 'Sum k steps of rewards then bootstrap with the value model: V_N^k(s_\u03c4) = \u03a3 \u03b3^(n-\u03c4) r_n + \u03b3^(h-\u03c4) v_\u03c8(s_h). Different values of k trade off bias (from value model errors) and variance (from imagined rewards). k=1 is pure TD, k=H is V_R.'
+            },
+            vlambda: {
+                title: 'V_\u03bb: Exponentially-Weighted Average',
+                desc: 'The final value estimate used by Dreamer. Combines all k-step returns with exponentially decaying weights: V_\u03bb = (1-\u03bb) \u03a3 \u03bb^(n-1) V_N^n + \u03bb^(H-1) V_N^H. With \u03bb=0.95, this behaves like GAE (Generalized Advantage Estimation) and smoothly balances bias vs variance. This makes Dreamer robust to the choice of imagination horizon H.'
+            }
+        };
+
+        document.querySelectorAll('.pipeline-stage').forEach(stage => {
+            stage.addEventListener('click', function() {
+                document.querySelectorAll('.pipeline-stage').forEach(s => s.classList.remove('active'));
+                this.classList.add('active');
+                const component = this.dataset.component;
+                if (component && componentInfo[component]) {
+                    const info = componentInfo[component];
+                    const panel = document.getElementById('component-info');
+                    panel.style.display = 'block';
+                    panel.innerHTML = `
+                        <h4>${info.title}</h4>
+                        <p>${info.desc}</p>
+                    `;
+                }
+            });
+        });
+
+        // ==================== Model Item Interaction ====================
+        document.querySelectorAll('.model-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.model-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // ==================== Horizon Effect Canvas ====================
+        const horizonCanvas = document.getElementById('horizonCanvas');
+        const horizonCtx = horizonCanvas.getContext('2d');
+        const horizonSlider = document.getElementById('horizonSlider');
+        let selectedMethod = 'dreamer';
+
+        // Simulated performance curves as a function of horizon
+        function getPerformance(method, H) {
+            switch(method) {
+                case 'dreamer':
+                    // Robust: high performance across horizons, slight peak around 15-20
+                    return 700 + 150 * (1 - Math.exp(-H / 5)) - 20 * Math.max(0, (H - 30) / 30);
+                case 'novalue':
+                    // Only sees rewards within horizon - drops at low H, peaks then drops
+                    return 200 + 500 * (1 - Math.exp(-H / 8)) * Math.exp(-Math.max(0, H - 20) / 25);
+                case 'planet':
+                    // Online planning: good at short horizons, degrades with compounding errors
+                    return 500 + 200 * (1 - Math.exp(-H / 3)) - 150 * Math.max(0, (H - 12) / 20);
+            }
+        }
+
+        function drawHorizonViz() {
+            const dpr = window.devicePixelRatio || 1;
+            const rect = horizonCanvas.getBoundingClientRect();
+            const w = rect.width, h = rect.height;
+            horizonCanvas.width = w * dpr;
+            horizonCanvas.height = h * dpr;
+            horizonCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+            const pad = { left: 55, right: 20, top: 20, bottom: 40 };
+            const pw = w - pad.left - pad.right;
+            const ph = h - pad.top - pad.bottom;
+
+            // Axes
+            horizonCtx.strokeStyle = '#444';
+            horizonCtx.lineWidth = 1;
+            horizonCtx.beginPath();
+            horizonCtx.moveTo(pad.left, pad.top);
+            horizonCtx.lineTo(pad.left, h - pad.bottom);
+            horizonCtx.lineTo(w - pad.right, h - pad.bottom);
+            horizonCtx.stroke();
+
+            horizonCtx.fillStyle = '#888';
+            horizonCtx.font = '11px sans-serif';
+            horizonCtx.textAlign = 'center';
+            horizonCtx.fillText('Imagination Horizon H', w / 2, h - 8);
+
+            horizonCtx.save();
+            horizonCtx.translate(15, h / 2);
+            horizonCtx.rotate(-Math.PI / 2);
+            horizonCtx.fillText('Episode Return', 0, 0);
+            horizonCtx.restore();
+
+            // Y axis labels
+            horizonCtx.textAlign = 'right';
+            horizonCtx.font = '10px sans-serif';
+            for (let y = 0; y <= 1000; y += 200) {
+                const cy = h - pad.bottom - (y / 1000) * ph;
+                horizonCtx.fillStyle = '#555';
+                horizonCtx.fillText(y.toString(), pad.left - 8, cy + 4);
+                horizonCtx.strokeStyle = 'rgba(255,255,255,0.05)';
+                horizonCtx.beginPath();
+                horizonCtx.moveTo(pad.left, cy);
+                horizonCtx.lineTo(w - pad.right, cy);
+                horizonCtx.stroke();
+            }
+
+            // X axis labels
+            horizonCtx.textAlign = 'center';
+            for (let x = 5; x <= 45; x += 5) {
+                const cx = pad.left + ((x - 1) / 44) * pw;
+                horizonCtx.fillStyle = '#555';
+                horizonCtx.fillText(x.toString(), cx, h - pad.bottom + 15);
+            }
+
+            const H = parseInt(horizonSlider.value);
+            const maxH = 45;
+
+            // Draw all three curves
+            const methods = [
+                { key: 'planet', color: '#3b82f6', label: 'PlaNet' },
+                { key: 'novalue', color: '#10b981', label: 'No value' },
+                { key: 'dreamer', color: '#a855f7', label: 'Dreamer' }
+            ];
+
+            methods.forEach(m => {
+                horizonCtx.beginPath();
+                horizonCtx.strokeStyle = m.key === selectedMethod ? m.color : m.color + '60';
+                horizonCtx.lineWidth = m.key === selectedMethod ? 3 : 1.5;
+                for (let i = 1; i <= maxH; i++) {
+                    const perf = getPerformance(m.key, i);
+                    const cx = pad.left + ((i - 1) / (maxH - 1)) * pw;
+                    const cy = h - pad.bottom - (Math.max(0, perf) / 1000) * ph;
+                    i === 1 ? horizonCtx.moveTo(cx, cy) : horizonCtx.lineTo(cx, cy);
+                }
+                horizonCtx.stroke();
+
+                // Label at end
+                const endPerf = getPerformance(m.key, maxH);
+                const endY = h - pad.bottom - (Math.max(0, endPerf) / 1000) * ph;
+                horizonCtx.fillStyle = m.color;
+                horizonCtx.font = '10px sans-serif';
+                horizonCtx.textAlign = 'left';
+                // Avoid overlapping labels
+                horizonCtx.fillText(m.label, w - pad.right - 55, endY + (m.key === 'novalue' ? -8 : m.key === 'planet' ? 12 : 4));
+            });
+
+            // Current horizon line
+            const hx = pad.left + ((H - 1) / (maxH - 1)) * pw;
+            horizonCtx.strokeStyle = 'rgba(255,255,255,0.3)';
+            horizonCtx.lineWidth = 1;
+            horizonCtx.setLineDash([4, 4]);
+            horizonCtx.beginPath();
+            horizonCtx.moveTo(hx, pad.top);
+            horizonCtx.lineTo(hx, h - pad.bottom);
+            horizonCtx.stroke();
+            horizonCtx.setLineDash([]);
+
+            // Dot on selected curve at current H
+            const perfAtH = getPerformance(selectedMethod, H);
+            const dotY = h - pad.bottom - (Math.max(0, perfAtH) / 1000) * ph;
+            const dotColor = methods.find(m => m.key === selectedMethod).color;
+            horizonCtx.beginPath();
+            horizonCtx.arc(hx, dotY, 6, 0, 2 * Math.PI);
+            horizonCtx.fillStyle = dotColor;
+            horizonCtx.fill();
+            horizonCtx.strokeStyle = '#fff';
+            horizonCtx.lineWidth = 2;
+            horizonCtx.stroke();
+
+            // Update metrics
+            document.getElementById('metricReturn').textContent = Math.round(perfAtH);
+            document.getElementById('horizonValue').textContent = H;
+
+            // Robustness metric
+            const performances = [];
+            for (let h = 5; h <= 40; h += 5) {
+                performances.push(getPerformance(selectedMethod, h));
+            }
+            const spread = Math.max(...performances) - Math.min(...performances);
+            const robustness = spread < 100 ? 'High' : spread < 250 ? 'Medium' : 'Low';
+            document.getElementById('metricRobust').textContent = robustness;
+            document.getElementById('metricRobust').style.color = robustness === 'High' ? '#10b981' : robustness === 'Medium' ? '#f59e0b' : '#ef4444';
+        }
+
+        horizonSlider.addEventListener('input', drawHorizonViz);
+
+        document.querySelectorAll('.toggle-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                selectedMethod = this.dataset.method;
+                drawHorizonViz();
+            });
+        });
+
+        // ==================== Benchmark Results ====================
+        const benchmarkData = {
+            'average': { 'Dreamer': 823, 'PlaNet': 332, 'D4PG (1e8)': 786, 'A3C (1e8)': 263 },
+            'cheetah_run': { 'Dreamer': 770, 'PlaNet': 510, 'D4PG (1e8)': 480, 'A3C (1e8)': 250 },
+            'walker_walk': { 'Dreamer': 918, 'PlaNet': 560, 'D4PG (1e8)': 900, 'A3C (1e8)': 200 },
+            'cartpole_swingup': { 'Dreamer': 762, 'PlaNet': 475, 'D4PG (1e8)': 830, 'A3C (1e8)': 400 },
+            'hopper_hop': { 'Dreamer': 237, 'PlaNet': 45, 'D4PG (1e8)': 130, 'A3C (1e8)': 2 },
+            'quadruped_walk': { 'Dreamer': 876, 'PlaNet': 180, 'D4PG (1e8)': 480, 'A3C (1e8)': 50 },
+            'finger_turn_hard': { 'Dreamer': 468, 'PlaNet': 205, 'D4PG (1e8)': 220, 'A3C (1e8)': 80 }
+        };
+
+        const methodColors = {
+            'Dreamer': '#a855f7',
+            'PlaNet': '#3b82f6',
+            'D4PG (1e8)': '#f59e0b',
+            'A3C (1e8)': '#888'
+        };
+
+        function renderBenchmark(taskName) {
+            const data = benchmarkData[taskName];
+            const maxVal = Math.max(...Object.values(data), 1);
+            const container = document.getElementById('benchmarkBars');
+            container.innerHTML = '';
+
+            for (const [method, score] of Object.entries(data)) {
+                const row = document.createElement('div');
+                row.className = 'comparison-row';
+                const pct = Math.max(score, 0) / maxVal * 100;
+                const color = methodColors[method];
+                const isDreamer = method === 'Dreamer';
+                row.innerHTML = `
+                    <span class="comparison-label" style="color: ${color}; font-weight: ${isDreamer ? '700' : '400'};">${method}</span>
+                    <div class="comparison-bar-track">
+                        <div class="comparison-bar-fill" style="width: ${pct}%; background: ${color}; opacity: ${isDreamer ? 1 : 0.7};"></div>
+                    </div>
+                    <span class="comparison-value" style="color: ${color};">${score}</span>
+                `;
+                container.appendChild(row);
+            }
+        }
+
+        document.getElementById('taskSelect').addEventListener('change', function() {
+            renderBenchmark(this.value);
+        });
+
+        // ==================== Initialize ====================
+        window.addEventListener('resize', drawHorizonViz);
+
+        setTimeout(() => {
+            drawHorizonViz();
+            renderBenchmark('average');
+        }, 100);
+    </script>
+</body>
+</html>

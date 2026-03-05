@@ -1,0 +1,71 @@
+<!--
+  Simple Pendulum - The "Hello World" of MuJoCo
+  
+  A single rigid body (pole) attached to a fixed point via a hinge joint.
+  This is the simplest possible articulated system: 1 DOF, 1 body, 1 joint.
+  
+  Key MJCF concepts demonstrated:
+  - worldbody: the root of the kinematic tree (fixed frame)
+  - body: a rigid body with mass/inertia
+  - joint: connects bodies, defines degrees of freedom
+  - geom: collision/visual geometry
+  - actuator: applies forces/torques to joints
+-->
+<mujoco model="simple_pendulum">
+  <!-- Compiler settings: coordinate system and angle units -->
+  <compiler angle="radian" coordinate="local"/>
+  
+  <!-- Simulation options -->
+  <option gravity="0 0 -9.81" timestep="0.002">
+    <flag contact="disable"/>  <!-- No contacts needed for a pendulum -->
+  </option>
+  
+  <!-- Default properties (inherited by child elements) -->
+  <default>
+    <joint damping="0.05"/>
+    <geom rgba="0.3 0.6 0.9 1.0"/>
+  </default>
+  
+  <!-- Visual settings -->
+  <visual>
+    <headlight ambient="0.3 0.3 0.3"/>
+  </visual>
+  
+  <!-- The kinematic tree -->
+  <worldbody>
+    <!-- Light source -->
+    <light pos="0 0 3" dir="0 0 -1" diffuse="1 1 1"/>
+    
+    <!-- Ground plane for visual reference -->
+    <geom type="plane" size="2 2 0.01" rgba="0.9 0.9 0.9 1" pos="0 0 -1.5"/>
+    
+    <!-- Pivot point (visual only) -->
+    <geom type="sphere" size="0.05" rgba="0.8 0.2 0.2 1" pos="0 0 0"/>
+    
+    <!-- The pendulum body -->
+    <body name="pole" pos="0 0 0">
+      <!-- Hinge joint: 1 DOF rotation around Y-axis -->
+      <joint name="hinge" type="hinge" axis="0 1 0" pos="0 0 0"/>
+      
+      <!-- The pole geometry: a capsule (cylinder with rounded ends) -->
+      <geom name="pole_geom" type="capsule" size="0.03" fromto="0 0 0 0 0 -0.6" mass="1.0"/>
+      
+      <!-- Tip mass (bob of the pendulum) -->
+      <geom name="bob" type="sphere" size="0.08" pos="0 0 -0.6" mass="2.0"
+            rgba="0.9 0.3 0.1 1.0"/>
+    </body>
+  </worldbody>
+  
+  <!-- Actuators: how we apply control to the system -->
+  <actuator>
+    <!-- Motor actuator: applies torque directly to the hinge joint -->
+    <motor name="torque" joint="hinge" gear="1" ctrllimited="true" ctrlrange="-3 3"/>
+  </actuator>
+  
+  <!-- Sensors: how we observe the system -->
+  <sensor>
+    <jointpos name="hinge_pos" joint="hinge"/>
+    <jointvel name="hinge_vel" joint="hinge"/>
+    <actuatorfrc name="motor_force" actuator="torque"/>
+  </sensor>
+</mujoco>

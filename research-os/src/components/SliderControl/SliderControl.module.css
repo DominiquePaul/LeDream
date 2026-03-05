@@ -1,0 +1,26 @@
+.wrapper {
+  margin-bottom: 20px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.label {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.value {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--accent-primary);
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+}
+
+.slider {
+  width: 100%;
+}

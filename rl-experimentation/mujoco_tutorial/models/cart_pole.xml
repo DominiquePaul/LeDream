@@ -1,0 +1,72 @@
+<!--
+  Cart-Pole (Inverted Pendulum on a Cart)
+  
+  Classic control problem: balance a pole on a moving cart.
+  2 DOF system: cart slides along x-axis, pole rotates around hinge.
+  
+  Key MJCF concepts demonstrated:
+  - Kinematic chains: cart -> pole (parent-child relationship)
+  - Slide joint: 1 DOF translation
+  - Under-actuated system: 2 DOF but only 1 actuator (cart force)
+  - Joint limits and damping
+-->
+<mujoco model="cart_pole">
+  <compiler angle="radian" coordinate="local"/>
+  
+  <option gravity="0 0 -9.81" timestep="0.002">
+    <flag contact="disable"/>
+  </option>
+  
+  <default>
+    <joint damping="0.05"/>
+    <geom contype="0" conaffinity="0"/>  <!-- Disable all collisions -->
+  </default>
+  
+  <visual>
+    <headlight ambient="0.4 0.4 0.4"/>
+  </visual>
+  
+  <worldbody>
+    <light pos="0 -2 3" dir="0 0.3 -1" diffuse="1 1 1"/>
+    
+    <!-- Ground and rail -->
+    <geom type="plane" size="3 3 0.01" rgba="0.9 0.9 0.9 1" pos="0 0 -0.5"/>
+    <geom type="capsule" size="0.02" fromto="-2.5 0 0 2.5 0 0" rgba="0.5 0.5 0.5 0.5"/>
+    
+    <!-- Cart body -->
+    <body name="cart" pos="0 0 0">
+      <!-- Slide joint: cart moves along x-axis -->
+      <joint name="slider" type="slide" axis="1 0 0" limited="true" range="-2.4 2.4"
+             damping="0.5"/>
+      
+      <!-- Cart geometry -->
+      <geom name="cart_geom" type="box" size="0.2 0.15 0.08" rgba="0.2 0.2 0.8 1" mass="1.0"/>
+      
+      <!-- Pole body (child of cart - moves with cart) -->
+      <body name="pole" pos="0 0 0.08">
+        <!-- Hinge joint: pole rotates relative to cart -->
+        <joint name="hinge" type="hinge" axis="0 1 0" damping="0.01"/>
+        
+        <!-- Pole geometry -->
+        <geom name="pole_geom" type="capsule" size="0.02" fromto="0 0 0 0 0 0.6"
+              rgba="0.9 0.5 0.1 1" mass="0.1"/>
+        
+        <!-- Pole tip -->
+        <geom name="tip" type="sphere" size="0.04" pos="0 0 0.6"
+              rgba="0.9 0.2 0.2 1" mass="0.05"/>
+      </body>
+    </body>
+  </worldbody>
+  
+  <actuator>
+    <!-- Only the cart is actuated - this makes it an under-actuated system -->
+    <motor name="slide_force" joint="slider" gear="10" ctrllimited="true" ctrlrange="-1 1"/>
+  </actuator>
+  
+  <sensor>
+    <jointpos name="cart_pos" joint="slider"/>
+    <jointvel name="cart_vel" joint="slider"/>
+    <jointpos name="pole_angle" joint="hinge"/>
+    <jointvel name="pole_angular_vel" joint="hinge"/>
+  </sensor>
+</mujoco>

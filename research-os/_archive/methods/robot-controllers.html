@@ -1,0 +1,1514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <title>Robot Controllers - ML Method Visualizations</title>
+    <link rel="stylesheet" href="../css/sidebar.css">
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+            }
+        };
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js" async></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #e8e8e8;
+        }
+
+        .main-content { padding: 20px; min-height: 100vh; }
+        .container { max-width: 1400px; margin: 0 auto; }
+
+        h1 {
+            text-align: center;
+            font-size: 2.2rem;
+            margin-bottom: 8px;
+            background: linear-gradient(90deg, #f59e0b, #ef4444);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+            font-size: 1rem;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .formula {
+            background: rgba(168, 85, 247, 0.1);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            margin: 10px 0;
+            font-size: 1rem;
+            text-align: center;
+            color: #e0e0e0;
+        }
+
+        /* Controller type cards */
+        .ctrl-types {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .ctrl-type {
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            text-align: center;
+        }
+
+        .ctrl-type:hover { background: rgba(0,0,0,0.4); }
+
+        .ctrl-type.active {
+            border-color: #f59e0b;
+            background: rgba(245, 158, 11, 0.1);
+        }
+
+        .ctrl-type-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin: 0 auto 10px;
+        }
+
+        .ctrl-type h4 { font-size: 0.9rem; margin-bottom: 4px; }
+        .ctrl-type p { font-size: 0.75rem; color: #888; line-height: 1.3; }
+
+        .info-panel {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 15px;
+            min-height: 80px;
+        }
+
+        .info-panel h4 { color: #f59e0b; margin-bottom: 8px; }
+        .info-panel p { font-size: 0.9rem; line-height: 1.5; color: #aaa; }
+
+        /* Impedance viz canvas */
+        .sim-canvas-container {
+            position: relative;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        .sim-canvas { width: 100%; height: 300px; }
+
+        .slider-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 8px 0;
+        }
+
+        .slider-row label {
+            font-size: 0.85rem;
+            min-width: 90px;
+            color: #ccc;
+        }
+
+        .slider-row input[type="range"] {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 6px;
+            border-radius: 3px;
+            outline: none;
+        }
+
+        .slider-row input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #fff;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        .slider-row .slider-val {
+            font-family: monospace;
+            font-size: 0.9rem;
+            min-width: 50px;
+            text-align: right;
+        }
+
+        .slider-k input { background: linear-gradient(90deg, #10b981, #ef4444); }
+        .slider-d input { background: linear-gradient(90deg, #3b82f6, #a855f7); }
+
+        /* Stiffness spectrum */
+        .spectrum-bar {
+            position: relative;
+            height: 50px;
+            border-radius: 12px;
+            margin: 15px 0;
+            overflow: visible;
+        }
+
+        .spectrum-gradient {
+            width: 100%;
+            height: 100%;
+            border-radius: 12px;
+            background: linear-gradient(90deg, #10b981 0%, #f59e0b 50%, #ef4444 100%);
+        }
+
+        .spectrum-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 6px;
+        }
+
+        .spectrum-labels span { font-size: 0.8rem; color: #888; }
+
+        .spectrum-marker {
+            position: absolute;
+            top: -8px;
+            width: 4px;
+            height: 66px;
+            background: white;
+            border-radius: 2px;
+            transition: left 0.4s ease;
+            box-shadow: 0 0 10px rgba(255,255,255,0.5);
+        }
+
+        .spectrum-marker::after {
+            content: attr(data-label);
+            position: absolute;
+            top: -22px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.7rem;
+            color: #fff;
+            white-space: nowrap;
+            background: rgba(0,0,0,0.7);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        /* Tradeoff cards */
+        .tradeoff-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .tradeoff-card {
+            border-radius: 10px;
+            padding: 14px;
+        }
+
+        .tradeoff-card h4 {
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tradeoff-card ul {
+            list-style: none;
+            font-size: 0.8rem;
+            color: #aaa;
+            line-height: 1.6;
+        }
+
+        .tradeoff-card ul li::before {
+            content: '• ';
+            font-weight: bold;
+        }
+
+        /* Intuition viz */
+        .intuition-row {
+            display: flex;
+            gap: 20px;
+            margin: 15px 0;
+        }
+
+        .intuition-item {
+            flex: 1;
+            text-align: center;
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            padding: 20px 15px;
+        }
+
+        .intuition-item canvas { width: 100%; height: 120px; }
+
+        .intuition-item h4 {
+            font-size: 0.9rem;
+            margin: 10px 0 4px;
+        }
+
+        .intuition-item p { font-size: 0.78rem; color: #888; }
+
+        /* SERL context */
+        .serl-factors {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .serl-factor {
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .serl-factor:hover { background: rgba(0,0,0,0.4); }
+        .serl-factor.active { border-color: #ef4444; background: rgba(239,68,68,0.1); }
+
+        .serl-factor-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            margin: 0 auto 10px;
+        }
+
+        .serl-factor h4 { font-size: 0.85rem; margin-bottom: 4px; }
+        .serl-factor p { font-size: 0.75rem; color: #888; line-height: 1.3; }
+
+        /* Key features bottom */
+        .key-features {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .feature {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .feature-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .feature h4 { font-size: 0.95rem; margin-bottom: 5px; }
+        .feature p { font-size: 0.8rem; color: #888; }
+
+        /* Pipeline SVG */
+        .pipeline-svg { width: 100%; height: 220px; }
+
+        .flow-arrow {
+            stroke-dasharray: 8 4;
+            animation: flowDash 1s linear infinite;
+        }
+
+        @keyframes flowDash { to { stroke-dashoffset: -12; } }
+
+        @media (max-width: 1000px) {
+            .main-grid { grid-template-columns: 1fr; }
+            .ctrl-types { grid-template-columns: 1fr; }
+            .serl-factors { grid-template-columns: 1fr; }
+            .key-features { grid-template-columns: 1fr; }
+            .tradeoff-grid { grid-template-columns: 1fr; }
+            .intuition-row { flex-direction: column; }
+        }
+
+        @media (max-width: 768px) {
+            .main-content { padding-top: 70px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Menu Button -->
+    <button class="mobile-menu-btn" aria-label="Toggle menu">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+    </button>
+
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <button class="sidebar-toggle" aria-label="Toggle sidebar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+        </button>
+
+        <div class="sidebar-header">
+            <div class="sidebar-logo">📊</div>
+            <div class="sidebar-title">
+                <h1>ML Methods</h1>
+                <span>Interactive Visualizations</span>
+            </div>
+        </div>
+
+        <div class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Overview</div>
+                <ul class="nav-items">
+                    <li class="nav-item">
+                        <a href="../index.html" class="nav-link" data-tooltip="Home">
+                            <div class="nav-icon other">🏠</div>
+                            <div class="nav-text">
+                                <span>Home</span>
+                                <span>All methods overview</span>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Standard RL</div>
+                <ul class="nav-items">
+                    <li class="nav-item">
+                        <a href="sac.html" class="nav-link" data-tooltip="SAC">
+                            <div class="nav-icon rl">🎯</div>
+                            <div class="nav-text"><span>SAC</span><span>Soft Actor-Critic</span></div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="rlhf.html" class="nav-link" data-tooltip="RLHF">
+                            <div class="nav-icon rl">👤</div>
+                            <div class="nav-text"><span>RLHF</span><span>RL from Human Feedback</span></div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="cql.html" class="nav-link" data-tooltip="CQL">
+                            <div class="nav-icon rl">🛡️</div>
+                            <div class="nav-text"><span>CQL</span><span>Conservative Q-Learning</span></div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">World Models</div>
+                <ul class="nav-items">
+                    <li class="nav-item"><a href="world-models.html" class="nav-link" data-tooltip="World Models"><div class="nav-icon wm">🧠</div><div class="nav-text"><span>World Models</span><span>Ha & Schmidhuber</span></div></a></li>
+                    <li class="nav-item"><a href="planet.html" class="nav-link" data-tooltip="PlaNet"><div class="nav-icon wm">🪐</div><div class="nav-text"><span>PlaNet</span><span>Latent Dynamics Planning</span></div></a></li>
+                    <li class="nav-item"><a href="dreamer.html" class="nav-link" data-tooltip="Dreamer"><div class="nav-icon wm">💭</div><div class="nav-text"><span>Dreamer</span><span>Latent Imagination</span></div></a></li>
+                    <li class="nav-item"><a href="dreamerv2.html" class="nav-link" data-tooltip="DreamerV2"><div class="nav-icon wm">🎲</div><div class="nav-text"><span>DreamerV2</span><span>Discrete World Models</span></div></a></li>
+                    <li class="nav-item"><a href="dreamerv3.html" class="nav-link" data-tooltip="DreamerV3"><div class="nav-icon wm">🌐</div><div class="nav-text"><span>DreamerV3</span><span>Diverse Domains</span></div></a></li>
+                    <li class="nav-item"><a href="vjepa.html" class="nav-link" data-tooltip="V-JEPA"><div class="nav-icon wm">🎬</div><div class="nav-text"><span>V-JEPA</span><span>Feature Prediction</span></div></a></li>
+                    <li class="nav-item"><a href="vjepa2.html" class="nav-link" data-tooltip="V-JEPA 2"><div class="nav-icon wm">🤖</div><div class="nav-text"><span>V-JEPA 2</span><span>Understanding & Planning</span></div></a></li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Robotics Concepts</div>
+                <ul class="nav-items">
+                    <li class="nav-item">
+                        <a href="robot-controllers.html" class="nav-link active" data-tooltip="Controllers">
+                            <div class="nav-icon" style="background: linear-gradient(135deg, #f59e0b, #ef4444);">🦾</div>
+                            <div class="nav-text"><span>Controllers</span><span>Impedance, Stiffness & Contact</span></div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+            <span>Press <kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">Ctrl+B</kbd> to toggle</span>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <h1>Robot Controllers</h1>
+            <p class="subtitle">Low-level control laws for manipulation &mdash; from position control to impedance tuning for contact-rich RL</p>
+
+            <!-- What is a controller + Control Types -->
+            <div class="card" style="margin-bottom: 20px;">
+                <div class="card-title">
+                    <div class="icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">🎮</div>
+                    What Is a Controller?
+                </div>
+                <p style="font-size: 0.88rem; color: #aaa; line-height: 1.6; margin-bottom: 18px;">
+                    The <strong style="color: #f59e0b;">controller</strong> is the low-level robot control law that converts desired motion &mdash; from a planner, policy, or RL agent &mdash; into actuator commands (motor torques or currents). The RL policy outputs a <em>target</em>; the controller figures out the physical forces needed to reach it.
+                </p>
+
+                <!-- Pipeline: Policy -> Controller -> Robot -->
+                <svg class="pipeline-svg" viewBox="0 0 700 200">
+                    <defs>
+                        <marker id="arrW" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#f59e0b"/></marker>
+                        <marker id="arrG" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#10b981"/></marker>
+                        <marker id="arrB" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#3b82f6"/></marker>
+                        <marker id="arrR" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#ef4444"/></marker>
+                    </defs>
+
+                    <!-- RL Policy -->
+                    <rect x="20" y="55" width="130" height="60" rx="10" fill="#a855f7"/>
+                    <text x="85" y="82" text-anchor="middle" fill="white" font-size="12" font-weight="bold">RL Policy &pi;</text>
+                    <text x="85" y="100" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-size="10">outputs x_des, v_des</text>
+
+                    <!-- Arrow -->
+                    <path d="M 150 85 L 210 85" stroke="#f59e0b" stroke-width="2.5" fill="none" marker-end="url(#arrW)" class="flow-arrow"/>
+                    <text x="180" y="75" text-anchor="middle" fill="#f59e0b" font-size="9">desired pose</text>
+
+                    <!-- Controller -->
+                    <rect x="215" y="40" width="170" height="90" rx="10" fill="rgba(245,158,11,0.2)" stroke="#f59e0b" stroke-width="2"/>
+                    <text x="300" y="65" text-anchor="middle" fill="#f59e0b" font-size="12" font-weight="bold">Controller</text>
+                    <text x="300" y="82" text-anchor="middle" fill="#888" font-size="9">e.g. Impedance</text>
+                    <text x="300" y="98" text-anchor="middle" fill="#888" font-size="9">F = K(x_des &minus; x) + D(&middot;)</text>
+                    <text x="300" y="114" text-anchor="middle" fill="#888" font-size="9">runs at ~1 kHz</text>
+
+                    <!-- Arrow -->
+                    <path d="M 385 85 L 445 85" stroke="#10b981" stroke-width="2.5" fill="none" marker-end="url(#arrG)" class="flow-arrow"/>
+                    <text x="415" y="75" text-anchor="middle" fill="#10b981" font-size="9">torques &tau;</text>
+
+                    <!-- Robot -->
+                    <rect x="450" y="55" width="130" height="60" rx="10" fill="#10b981"/>
+                    <text x="515" y="82" text-anchor="middle" fill="white" font-size="12" font-weight="bold">Robot Arm</text>
+                    <text x="515" y="100" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-size="10">joints + actuators</text>
+
+                    <!-- Feedback arrow -->
+                    <path d="M 515 115 Q 515 170 300 170 Q 85 170 85 115" stroke="#3b82f6" stroke-width="2" fill="none" marker-end="url(#arrB)" stroke-dasharray="6 3"/>
+                    <text x="300" y="162" text-anchor="middle" fill="#3b82f6" font-size="9">state feedback (x, v, F)</text>
+
+                    <!-- Environment -->
+                    <rect x="610" y="55" width="75" height="60" rx="10" fill="rgba(239,68,68,0.15)" stroke="#ef4444" stroke-width="2"/>
+                    <text x="647" y="82" text-anchor="middle" fill="#ef4444" font-size="11" font-weight="bold">Object</text>
+                    <text x="647" y="98" text-anchor="middle" fill="#ef4444" font-size="9">contact</text>
+
+                    <!-- Contact arrow -->
+                    <path d="M 580 85 L 607 85" stroke="#ef4444" stroke-width="2.5" fill="none" marker-end="url(#arrR)"/>
+                </svg>
+
+                <p style="font-size: 0.82rem; color: #666; text-align: center; margin-top: 4px;">The policy decides <em>where</em> to go. The controller decides <em>how hard</em> to push to get there.</p>
+            </div>
+
+            <div class="main-grid">
+                <!-- Controller Types -->
+                <div class="card">
+                    <div class="card-title">
+                        <div class="icon" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">🔧</div>
+                        Controller Types
+                    </div>
+                    <div class="ctrl-types">
+                        <div class="ctrl-type active" data-ctrl="position">
+                            <div class="ctrl-type-icon" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">📍</div>
+                            <h4>Position</h4>
+                            <p>Track a target joint / Cartesian position</p>
+                        </div>
+                        <div class="ctrl-type" data-ctrl="velocity">
+                            <div class="ctrl-type-icon" style="background: linear-gradient(135deg, #10b981, #059669);">💨</div>
+                            <h4>Velocity</h4>
+                            <p>Track a desired velocity profile</p>
+                        </div>
+                        <div class="ctrl-type" data-ctrl="torque">
+                            <div class="ctrl-type-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);">⚡</div>
+                            <h4>Torque / Force</h4>
+                            <p>Directly command joint torques or Cartesian forces</p>
+                        </div>
+                        <div class="ctrl-type" data-ctrl="impedance">
+                            <div class="ctrl-type-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">🧲</div>
+                            <h4>Impedance</h4>
+                            <p>Virtual mass&ndash;spring&ndash;damper relationship</p>
+                        </div>
+                    </div>
+                    <div class="info-panel" id="ctrl-info">
+                        <h4>Position Control</h4>
+                        <p>The simplest mode: the controller drives joints to reach exact target positions (or Cartesian poses). Very stiff inner loop &mdash; the robot resists any deviation. Great for pick-and-place in free space, but brittle on contact: any position error during insertion causes force spikes.</p>
+                    </div>
+                </div>
+
+                <!-- Impedance Controller Equation + Explanation -->
+                <div class="card">
+                    <div class="card-title">
+                        <div class="icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">🧲</div>
+                        Impedance Control
+                    </div>
+                    <p style="font-size: 0.85rem; color: #aaa; line-height: 1.5; margin-bottom: 12px;">
+                        An impedance controller makes the robot behave like a <strong style="color: #f59e0b;">virtual mass&ndash;spring&ndash;damper</strong> relative to a target pose. It does <em>not</em> strictly enforce position &mdash; it enforces a <em>mechanical relationship</em> between motion and force.
+                    </p>
+                    <div style="background: rgba(0,0,0,0.35); border-radius: 12px; padding: 16px; border: 1px solid rgba(255,255,255,0.08);">
+                        <div style="text-align: center; font-size: 1.1rem; color: #e0e0e0; line-height: 2;">
+                            \[
+                                F = \underbrace{K (x_{\text{des}} - x)}_{\text{spring}} + \underbrace{D (\dot{x}_{\text{des}} - \dot{x})}_{\text{damper}} + \underbrace{M (\ddot{x}_{\text{des}} - \ddot{x})}_{\text{inertia}}
+                            \]
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 14px;">
+                        <div style="background: rgba(16,185,129,0.1); border-radius: 8px; padding: 10px; border-left: 3px solid #10b981;">
+                            <div style="font-size: 0.85rem; color: #10b981; font-weight: 700;">K &mdash; Stiffness</div>
+                            <div style="font-size: 0.75rem; color: #888; margin-top: 4px;">How strongly the spring pulls back to target. Units: N/m</div>
+                        </div>
+                        <div style="background: rgba(59,130,246,0.1); border-radius: 8px; padding: 10px; border-left: 3px solid #3b82f6;">
+                            <div style="font-size: 0.85rem; color: #3b82f6; font-weight: 700;">D &mdash; Damping</div>
+                            <div style="font-size: 0.75rem; color: #888; margin-top: 4px;">Resists velocity differences. Prevents oscillation. Units: Ns/m</div>
+                        </div>
+                        <div style="background: rgba(168,85,247,0.1); border-radius: 8px; padding: 10px; border-left: 3px solid #a855f7;">
+                            <div style="font-size: 0.85rem; color: #a855f7; font-weight: 700;">M &mdash; Inertia</div>
+                            <div style="font-size: 0.75rem; color: #888; margin-top: 4px;">Virtual mass shaping. Often set to zero in practice.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Impedance Simulation + Stiffness Spectrum -->
+            <div class="main-grid">
+                <!-- Spring-Damper Simulation -->
+                <div class="card">
+                    <div class="card-title">
+                        <div class="icon" style="background: linear-gradient(135deg, #10b981, #059669);">🎛️</div>
+                        Interactive: Feel the Impedance
+                    </div>
+                    <p style="font-size: 0.82rem; color: #888; margin-bottom: 12px;">Drag the sliders to see how stiffness K and damping D change the robot's response when it contacts a wall. The robot tries to reach the dashed target (x<sub>des</sub>).</p>
+
+                    <div class="slider-row slider-k">
+                        <label style="color: #10b981;">K (stiffness):</label>
+                        <input type="range" id="sliderK" min="5" max="500" step="5" value="80">
+                        <span class="slider-val" id="valK" style="color: #10b981;">80</span>
+                    </div>
+                    <div class="slider-row slider-d">
+                        <label style="color: #3b82f6;">D (damping):</label>
+                        <input type="range" id="sliderD" min="0" max="100" step="1" value="20">
+                        <span class="slider-val" id="valD" style="color: #3b82f6;">20</span>
+                    </div>
+
+                    <div class="sim-canvas-container">
+                        <canvas class="sim-canvas" id="simCanvas"></canvas>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-around; margin-top: 12px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 1.2rem; font-weight: 700; font-family: monospace; color: #10b981;" id="metricPos">0.00</div>
+                            <div style="font-size: 0.72rem; color: #888;">Position error</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 1.2rem; font-weight: 700; font-family: monospace; color: #ef4444;" id="metricForce">0.0 N</div>
+                            <div style="font-size: 0.72rem; color: #888;">Contact force</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 1.2rem; font-weight: 700; font-family: monospace; color: #f59e0b;" id="metricBehavior">Compliant</div>
+                            <div style="font-size: 0.72rem; color: #888;">Behavior</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stiffness Tradeoffs -->
+                <div class="card">
+                    <div class="card-title">
+                        <div class="icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);">⚖️</div>
+                        Stiffness Tradeoff
+                    </div>
+                    <p style="font-size: 0.85rem; color: #aaa; margin-bottom: 12px;">
+                        The stiffness gain K is the single most important tuning parameter for contact-rich tasks. Getting it wrong dominates all other sources of error &mdash; sometimes more than the learned policy itself.
+                    </p>
+
+                    <div class="spectrum-bar">
+                        <div class="spectrum-gradient"></div>
+                        <div class="spectrum-marker" id="spectrumMarker" style="left: 30%;" data-label="sweet spot"></div>
+                    </div>
+                    <div class="spectrum-labels">
+                        <span>Compliant (low K)</span>
+                        <span>Medium</span>
+                        <span>Very Stiff (high K)</span>
+                    </div>
+
+                    <div class="tradeoff-grid" style="margin-top: 18px;">
+                        <div class="tradeoff-card" style="background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2);">
+                            <h4 style="color: #ef4444;">🚫 Too Stiff</h4>
+                            <ul>
+                                <li style="color: #ccc;">Contacts become brittle</li>
+                                <li style="color: #ccc;">Small pose errors &rarr; force spikes</li>
+                                <li style="color: #ccc;">Chatter, jamming, or damage</li>
+                                <li style="color: #ccc;">RL policies become unstable</li>
+                            </ul>
+                        </div>
+                        <div class="tradeoff-card" style="background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2);">
+                            <h4 style="color: #10b981;">🚫 Too Compliant</h4>
+                            <ul>
+                                <li style="color: #ccc;">Robot yields too much</li>
+                                <li style="color: #ccc;">Insertion or alignment fails</li>
+                                <li style="color: #ccc;">Insufficient contact force</li>
+                                <li style="color: #ccc;">Sluggish, imprecise motion</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <p style="font-size: 0.82rem; color: #666; text-align: center; margin-top: 12px;">Contact-rich tasks need the <strong style="color: #f59e0b;">sweet spot</strong> &mdash; compliant enough to absorb errors, stiff enough to accomplish the task.</p>
+                </div>
+            </div>
+
+            <!-- Intuition: Rigid Rod vs Springy Wrist -->
+            <div class="card" style="margin-bottom: 20px;">
+                <div class="card-title">
+                    <div class="icon" style="background: linear-gradient(135deg, #a855f7, #7c3aed);">💡</div>
+                    Intuition: What Does Stiffness Feel Like?
+                </div>
+                <div class="intuition-row">
+                    <div class="intuition-item" style="border: 2px solid rgba(239,68,68,0.3);">
+                        <canvas id="rigidCanvas" width="280" height="120"></canvas>
+                        <h4 style="color: #ef4444;">Stiff Controller</h4>
+                        <p>Robot behaves like a <strong>rigid metal rod</strong>. Pushes through obstacles with full force. Any contact mismatch = damage.</p>
+                    </div>
+                    <div class="intuition-item" style="border: 2px solid rgba(16,185,129,0.3);">
+                        <canvas id="springyCanvas" width="280" height="120"></canvas>
+                        <h4 style="color: #10b981;">Compliant Controller</h4>
+                        <p>Robot behaves like a <strong>springy wrist</strong>. Absorbs contact gently. Can adapt to misalignment. Needed for contact-rich tasks.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SERL Hierarchical Controller -->
+            <div class="card" style="margin-bottom: 20px;">
+                <div class="card-title">
+                    <div class="icon" style="background: linear-gradient(135deg, #ec4899, #be185d);">📐</div>
+                    SERL: Hierarchical Control &amp; Force Bounding
+                </div>
+                <p style="font-size: 0.85rem; color: #aaa; line-height: 1.6; margin-bottom: 15px;">
+                    SERL uses a <strong style="color: #ec4899;">two-layered control hierarchy</strong>: the RL policy &pi;(a|s) sends setpoint targets at ~10 Hz, while a downstream impedance controller tracks them at 1 kHz. Each RL timestep blocks 100 inner-loop steps. This mismatch creates a critical safety problem.
+                </p>
+
+                <!-- Two-layer hierarchy diagram -->
+                <svg width="100%" height="180" viewBox="0 0 750 170" style="margin-bottom: 15px;">
+                    <defs>
+                        <marker id="arrPink" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#ec4899"/></marker>
+                        <marker id="arrAmber" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#f59e0b"/></marker>
+                        <marker id="arrGreen2" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#10b981"/></marker>
+                    </defs>
+
+                    <!-- RL Policy (outer loop) -->
+                    <rect x="15" y="30" width="160" height="65" rx="10" fill="#a855f7"/>
+                    <text x="95" y="55" text-anchor="middle" fill="white" font-size="12" font-weight="bold">RL Policy &pi;(a|s)</text>
+                    <text x="95" y="72" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-size="10">~10 Hz (outer loop)</text>
+
+                    <!-- Arrow: RL to clamp -->
+                    <path d="M 175 62 L 230 62" stroke="#ec4899" stroke-width="2.5" fill="none" marker-end="url(#arrPink)" class="flow-arrow"/>
+                    <text x="202" y="54" text-anchor="middle" fill="#ec4899" font-size="9">p_ref</text>
+
+                    <!-- Error Clamp Box -->
+                    <rect x="235" y="25" width="130" height="75" rx="10" fill="rgba(236,72,153,0.15)" stroke="#ec4899" stroke-width="2"/>
+                    <text x="300" y="48" text-anchor="middle" fill="#ec4899" font-size="11" font-weight="bold">Error Clamp</text>
+                    <text x="300" y="64" text-anchor="middle" fill="#888" font-size="10">|e| &le; &Delta;</text>
+                    <text x="300" y="80" text-anchor="middle" fill="#888" font-size="9">bounds max force</text>
+
+                    <!-- Arrow: clamp to impedance -->
+                    <path d="M 365 62 L 420 62" stroke="#f59e0b" stroke-width="2.5" fill="none" marker-end="url(#arrAmber)" class="flow-arrow"/>
+                    <text x="392" y="54" text-anchor="middle" fill="#f59e0b" font-size="9">e (clamped)</text>
+
+                    <!-- Impedance Controller -->
+                    <rect x="425" y="20" width="175" height="85" rx="10" fill="rgba(245,158,11,0.2)" stroke="#f59e0b" stroke-width="2"/>
+                    <text x="512" y="43" text-anchor="middle" fill="#f59e0b" font-size="11" font-weight="bold">Impedance Controller</text>
+                    <text x="512" y="60" text-anchor="middle" fill="#888" font-size="9">F = k_p&middot;e + k_d&middot;&edot; + F_ff + F_cor</text>
+                    <text x="512" y="76" text-anchor="middle" fill="#888" font-size="9">1 kHz (inner loop)</text>
+                    <text x="512" y="90" text-anchor="middle" fill="#888" font-size="9">&tau; = J^T F + &tau;_null</text>
+
+                    <!-- Arrow: impedance to robot -->
+                    <path d="M 600 62 L 655 62" stroke="#10b981" stroke-width="2.5" fill="none" marker-end="url(#arrGreen2)" class="flow-arrow"/>
+                    <text x="627" y="54" text-anchor="middle" fill="#10b981" font-size="9">&tau;</text>
+
+                    <!-- Robot -->
+                    <rect x="660" y="35" width="75" height="55" rx="10" fill="#10b981"/>
+                    <text x="697" y="58" text-anchor="middle" fill="white" font-size="11" font-weight="bold">Robot</text>
+                    <text x="697" y="72" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-size="9">joints</text>
+
+                    <!-- Frequency annotations -->
+                    <rect x="15" y="110" width="160" height="30" rx="6" fill="rgba(168,85,247,0.15)" stroke="rgba(168,85,247,0.3)" stroke-width="1"/>
+                    <text x="95" y="130" text-anchor="middle" fill="#a855f7" font-size="10">1 step = 100 ms</text>
+
+                    <rect x="425" y="110" width="175" height="30" rx="6" fill="rgba(245,158,11,0.15)" stroke="rgba(245,158,11,0.3)" stroke-width="1"/>
+                    <text x="512" y="130" text-anchor="middle" fill="#f59e0b" font-size="10">100 steps per RL step</text>
+
+                    <!-- Big bracket showing ratio -->
+                    <path d="M 180 120 Q 302 155 425 120" stroke="#888" stroke-width="1" fill="none" stroke-dasharray="4 3"/>
+                    <text x="302" y="155" text-anchor="middle" fill="#888" font-size="9">1:100 ratio</text>
+                </svg>
+
+                <div class="main-grid" style="margin-bottom: 0;">
+                    <!-- SERL impedance equation -->
+                    <div style="background: rgba(0,0,0,0.2); border-radius: 12px; padding: 16px;">
+                        <h4 style="font-size: 0.9rem; color: #f59e0b; margin-bottom: 10px;">SERL Impedance Objective</h4>
+                        <div style="background: rgba(0,0,0,0.35); border-radius: 10px; padding: 14px; border: 1px solid rgba(255,255,255,0.08);">
+                            <div style="text-align: center; font-size: 1rem; color: #e0e0e0; line-height: 2;">
+                                \[
+                                    F = \underbrace{k_p \cdot e}_{\text{spring}} + \underbrace{k_d \cdot \dot{e}}_{\text{damper}} + \underbrace{F_{ff}}_{\text{feed-fwd}} + \underbrace{F_{cor}}_{\text{Coriolis}}
+                                \]
+                            </div>
+                        </div>
+                        <p style="font-size: 0.78rem; color: #888; margin-top: 8px; line-height: 1.5;">
+                            where <strong style="color: #ccc;">e = p &minus; p<sub>ref</sub></strong>, p is the measured pose, p<sub>ref</sub> is the target from the RL policy. F<sub>ff</sub> is feed-forward force, F<sub>cor</sub> is Coriolis compensation. This is then converted to joint torques: <strong style="color: #ccc;">&tau; = J<sup>T</sup>F + &tau;<sub>null</sub></strong>.
+                        </p>
+                    </div>
+
+                    <!-- The force bounding problem + solution -->
+                    <div style="background: rgba(0,0,0,0.2); border-radius: 12px; padding: 16px;">
+                        <h4 style="font-size: 0.9rem; color: #ec4899; margin-bottom: 10px;">The Force Bounding Problem</h4>
+                        <p style="font-size: 0.82rem; color: #aaa; line-height: 1.5; margin-bottom: 10px;">
+                            If p<sub>ref</sub> is far from the current pose (e.g. RL sends a big jump), the error e becomes large, generating <strong style="color: #ef4444;">dangerous forces</strong> on contact. Reducing gains k<sub>p</sub> hurts accuracy. SERL's solution: <strong style="color: #ec4899;">clamp the error</strong> so |e| &le; &Delta;.
+                        </p>
+                        <div style="background: rgba(0,0,0,0.35); border-radius: 10px; padding: 14px; border: 1px solid rgba(236,72,153,0.2);">
+                            <div style="text-align: center; font-size: 0.95rem; color: #e0e0e0; line-height: 2;">
+                                \[
+                                    |F_{\max}| \;\leq\; k_p \cdot |\Delta| \;+\; 2\, k_d \cdot |\Delta| \cdot f
+                                \]
+                            </div>
+                        </div>
+                        <p style="font-size: 0.78rem; color: #888; margin-top: 8px; line-height: 1.5;">
+                            where <strong style="color: #ccc;">f</strong> is the control frequency (1 kHz). By choosing &Delta; you get a <em>hard upper bound</em> on interaction force &mdash; without sacrificing gain accuracy.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Interactive Delta clamp visualization -->
+                <div style="background: rgba(0,0,0,0.15); border-radius: 12px; padding: 16px; margin-top: 15px;">
+                    <h4 style="font-size: 0.9rem; color: #e8e8e8; margin-bottom: 10px;">Interactive: Error Clamping &amp; Force Bound</h4>
+                    <p style="font-size: 0.8rem; color: #888; margin-bottom: 10px;">Adjust &Delta; to see how clamping the pose error limits the maximum force. Gains k<sub>p</sub>=80, k<sub>d</sub>=20, f=1000 Hz.</p>
+
+                    <div class="slider-row" style="margin-bottom: 4px;">
+                        <label style="color: #ec4899; min-width: 110px;">&Delta; (clamp):</label>
+                        <input type="range" id="sliderDelta" min="0.001" max="0.1" step="0.001" value="0.02" style="-webkit-appearance: none; flex: 1; height: 6px; border-radius: 3px; background: linear-gradient(90deg, #10b981, #ec4899); outline: none;">
+                        <span class="slider-val" id="valDelta" style="color: #ec4899; min-width: 70px;">0.020 m</span>
+                    </div>
+
+                    <div style="position: relative; background: rgba(0,0,0,0.3); border-radius: 10px; padding: 10px;">
+                        <canvas id="clampCanvas" style="width: 100%; height: 200px;"></canvas>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-around; margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 1.1rem; font-weight: 700; font-family: monospace; color: #ec4899;" id="metricFmax">0.0 N</div>
+                            <div style="font-size: 0.72rem; color: #888;">Max force F<sub>max</sub></div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 1.1rem; font-weight: 700; font-family: monospace; color: #f59e0b;" id="metricDelta">20.0 mm</div>
+                            <div style="font-size: 0.72rem; color: #888;">&Delta; (clamp radius)</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 1.1rem; font-weight: 700; font-family: monospace; color: #10b981;" id="metricSafety">Safe</div>
+                            <div style="font-size: 0.72rem; color: #888;">Contact safety</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Why SERL Cares -->
+            <div class="card" style="margin-bottom: 20px;">
+                <div class="card-title">
+                    <div class="icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);">🤖</div>
+                    Why Controller Choice Dominates RL Performance (SERL)
+                </div>
+                <p style="font-size: 0.85rem; color: #aaa; line-height: 1.6; margin-bottom: 15px;">
+                    SERL learns from <em>real</em> interaction on physical robots. The same RL policy can perform very differently depending on the low-level controller. For contact-rich manipulation, controller choice and impedance tuning can dominate performance &mdash; sometimes more than the learned policy itself. For example, in PCB insertion, an overly stiff controller bends fragile pins, while an overly compliant one cannot position the part.
+                </p>
+
+                <div class="serl-factors">
+                    <div class="serl-factor active" data-factor="type">
+                        <div class="serl-factor-icon" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">🔧</div>
+                        <h4>Controller Type</h4>
+                        <p>Position vs torque vs impedance</p>
+                    </div>
+                    <div class="serl-factor" data-factor="params">
+                        <div class="serl-factor-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">🎚️</div>
+                        <h4>Impedance Params</h4>
+                        <p>Stiffness K, damping D tuning</p>
+                    </div>
+                    <div class="serl-factor" data-factor="rate">
+                        <div class="serl-factor-icon" style="background: linear-gradient(135deg, #10b981, #059669);">⚡</div>
+                        <h4>Update Rate</h4>
+                        <p>Inner-loop frequency &amp; latency</p>
+                    </div>
+                </div>
+                <div class="info-panel" id="serl-info">
+                    <h4>OEM Controller Type</h4>
+                    <p>Most robot arms ship with a default position or velocity controller. Swapping to torque or impedance control often requires firmware changes or a custom driver. SERL found that impedance control is critical for contact-rich tasks &mdash; the OEM position controller made the same policy fail consistently on insertion tasks that the impedance controller handled easily.</p>
+                </div>
+            </div>
+
+            <!-- Key Takeaways -->
+            <div class="key-features">
+                <div class="feature">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">🧲</div>
+                    <h4>Impedance &ne; Position</h4>
+                    <p>Impedance control regulates the force-motion <em>relationship</em>, not the position. This enables safe contact.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);">🎯</div>
+                    <h4>K Dominates</h4>
+                    <p>Stiffness gain K is the single most impactful parameter for contact-rich RL performance.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #10b981, #059669);">🔄</div>
+                    <h4>Controller &gt; Policy</h4>
+                    <p>Wrong controller can make even a perfect policy fail. Get the low-level right first.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="../js/sidebar.js"></script>
+    <script>
+        // ==================== Controller Type Selector ====================
+        const ctrlInfo = {
+            position: {
+                title: 'Position Control',
+                desc: 'The simplest mode: the controller drives joints to reach exact target positions (or Cartesian poses). Very stiff inner loop \u2014 the robot resists any deviation. Great for pick-and-place in free space, but brittle on contact: any position error during insertion causes force spikes. Essentially impedance control with K \u2192 \u221e.'
+            },
+            velocity: {
+                title: 'Velocity Control',
+                desc: 'The controller tracks a desired velocity rather than a position. Useful when the task specifies motion rates (e.g. wiping, scanning). On contact the robot doesn\u2019t build up large position error \u2014 but it also has no notion of a \u201ctarget pose\u201d to spring back to. Often combined with an outer position loop.'
+            },
+            torque: {
+                title: 'Torque / Force Control',
+                desc: 'Directly commands joint torques or Cartesian forces. Maximum flexibility \u2014 you have full control over every force the robot exerts. Required for gravity compensation, dexterous manipulation, and human-safe robots. However, it demands a very accurate dynamics model and runs at high frequency (\u22651 kHz) to remain stable.'
+            },
+            impedance: {
+                title: 'Impedance Control',
+                desc: 'Makes the robot behave like a virtual mass\u2013spring\u2013damper around a target pose. The key insight: it does not enforce position, it enforces a mechanical relationship between displacement and force. Small errors produce gentle forces; large errors produce stronger restoring forces \u2014 all tunable via K, D, M. This is the go-to for contact-rich manipulation in SERL.'
+            }
+        };
+
+        document.querySelectorAll('.ctrl-type').forEach(card => {
+            card.addEventListener('click', function() {
+                document.querySelectorAll('.ctrl-type').forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+                const key = this.dataset.ctrl;
+                const info = ctrlInfo[key];
+                const panel = document.getElementById('ctrl-info');
+                panel.innerHTML = `<h4>${info.title}</h4><p>${info.desc}</p>`;
+            });
+        });
+
+        // ==================== SERL Factor Selector ====================
+        const serlInfo = {
+            type: {
+                title: 'OEM Controller Type',
+                desc: 'Most robot arms ship with a default position or velocity controller. Swapping to torque or impedance control often requires firmware changes or a custom driver. SERL found that impedance control is critical for contact-rich tasks \u2014 the OEM position controller made the same policy fail consistently on insertion tasks that the impedance controller handled easily.'
+            },
+            params: {
+                title: 'Impedance Parameters (K, D)',
+                desc: 'Even with impedance control enabled, the stiffness and damping values must be carefully tuned per task. PCB insertion needs lower K to avoid bending pins; peg-in-hole needs moderate K to maintain alignment force. SERL showed that re-tuning K alone (without retraining the policy) could flip a task from 0% to >90% success.'
+            },
+            rate: {
+                title: 'Update Rate & Inner-Loop Latency',
+                desc: 'The impedance controller runs in a fast inner loop (typically 1 kHz), while the RL policy runs at a slower outer loop (10\u201350 Hz). If the inner loop is too slow or has jitter, the robot cannot react to contact forces in time, causing instability. The ratio between policy rate and controller rate determines how smoothly learned actions are executed.'
+            }
+        };
+
+        document.querySelectorAll('.serl-factor').forEach(card => {
+            card.addEventListener('click', function() {
+                document.querySelectorAll('.serl-factor').forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+                const key = this.dataset.factor;
+                const info = serlInfo[key];
+                document.getElementById('serl-info').innerHTML = `<h4>${info.title}</h4><p>${info.desc}</p>`;
+            });
+        });
+
+        // ==================== Impedance Simulation Canvas ====================
+        const simCanvas = document.getElementById('simCanvas');
+        const simCtx = simCanvas.getContext('2d');
+        const sliderK = document.getElementById('sliderK');
+        const sliderD = document.getElementById('sliderD');
+
+        // Physics state
+        let simX = 0.15;   // current position (0 = left, 1 = right)
+        let simV = 0;       // velocity
+        const wallX = 0.6;  // wall position
+        const targetX = 0.8; // desired position (behind wall)
+        const dt = 1 / 60;
+        const mass = 1.0;
+        let contactForce = 0;
+        let simRunning = true;
+
+        function getK() { return parseFloat(sliderK.value); }
+        function getD() { return parseFloat(sliderD.value); }
+
+        function physicsStep() {
+            const K = getK();
+            const D = getD();
+            const error = targetX - simX;
+            const velError = 0 - simV;
+            let F = K * error + D * velError;
+
+            contactForce = 0;
+            // Wall contact: wall acts as a stiff spring
+            if (simX >= wallX) {
+                const wallF = 2000 * (simX - wallX); // wall stiffness
+                F -= wallF;
+                contactForce = wallF;
+            }
+
+            const a = F / mass;
+            simV += a * dt;
+            simV *= 0.995; // slight global damping
+            simX += simV * dt;
+
+            // Clamp
+            if (simX < 0) { simX = 0; simV = 0; }
+            if (simX > 1) { simX = 1; simV = 0; }
+        }
+
+        function drawSim() {
+            const dpr = window.devicePixelRatio || 1;
+            const rect = simCanvas.getBoundingClientRect();
+            const w = rect.width, h = rect.height;
+            simCanvas.width = w * dpr;
+            simCanvas.height = h * dpr;
+            simCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+            const pad = { left: 30, right: 30, top: 40, bottom: 50 };
+            const pw = w - pad.left - pad.right;
+            const ph = h - pad.top - pad.bottom;
+
+            function toX(v) { return pad.left + v * pw; }
+            const cy = pad.top + ph * 0.5;
+
+            // Background
+            simCtx.fillStyle = 'rgba(0,0,0,0)';
+            simCtx.clearRect(0, 0, w, h);
+
+            // Floor line
+            simCtx.strokeStyle = '#333';
+            simCtx.lineWidth = 1;
+            simCtx.beginPath();
+            simCtx.moveTo(pad.left, cy + 30);
+            simCtx.lineTo(w - pad.right, cy + 30);
+            simCtx.stroke();
+
+            // Wall
+            const wallPx = toX(wallX);
+            simCtx.fillStyle = 'rgba(239, 68, 68, 0.15)';
+            simCtx.fillRect(wallPx, pad.top, w - pad.right - wallPx, ph);
+            simCtx.strokeStyle = '#ef4444';
+            simCtx.lineWidth = 3;
+            simCtx.beginPath();
+            simCtx.moveTo(wallPx, pad.top);
+            simCtx.lineTo(wallPx, pad.top + ph);
+            simCtx.stroke();
+            // Hatching
+            simCtx.strokeStyle = 'rgba(239,68,68,0.3)';
+            simCtx.lineWidth = 1;
+            for (let i = 0; i < ph; i += 10) {
+                simCtx.beginPath();
+                simCtx.moveTo(wallPx, pad.top + i);
+                simCtx.lineTo(wallPx + 12, pad.top + i + 10);
+                simCtx.stroke();
+            }
+            simCtx.fillStyle = '#ef4444';
+            simCtx.font = '11px sans-serif';
+            simCtx.textAlign = 'center';
+            simCtx.fillText('Wall (obstacle)', wallPx + 35, pad.top + 15);
+
+            // Target (dashed line)
+            const targetPx = toX(targetX);
+            simCtx.strokeStyle = '#f59e0b';
+            simCtx.lineWidth = 2;
+            simCtx.setLineDash([6, 4]);
+            simCtx.beginPath();
+            simCtx.moveTo(targetPx, pad.top);
+            simCtx.lineTo(targetPx, pad.top + ph);
+            simCtx.stroke();
+            simCtx.setLineDash([]);
+            simCtx.fillStyle = '#f59e0b';
+            simCtx.font = '10px sans-serif';
+            simCtx.fillText('x_des (target)', targetPx, pad.top + ph + 15);
+
+            // Spring visualization (from robot to target)
+            const robPx = toX(simX);
+            const springStartX = robPx + 20;
+            const springEndX = Math.min(targetPx, wallPx) - 5;
+            if (springEndX > springStartX + 10) {
+                const nCoils = 8;
+                const coilW = (springEndX - springStartX) / nCoils;
+                const coilAmp = 8;
+                simCtx.strokeStyle = 'rgba(16,185,129,0.5)';
+                simCtx.lineWidth = 2;
+                simCtx.beginPath();
+                simCtx.moveTo(springStartX, cy);
+                for (let i = 0; i < nCoils; i++) {
+                    const sx = springStartX + i * coilW;
+                    simCtx.lineTo(sx + coilW * 0.25, cy - coilAmp);
+                    simCtx.lineTo(sx + coilW * 0.75, cy + coilAmp);
+                }
+                simCtx.lineTo(springEndX, cy);
+                simCtx.stroke();
+            }
+
+            // Robot (circle)
+            simCtx.beginPath();
+            simCtx.arc(robPx, cy, 18, 0, Math.PI * 2);
+            simCtx.fillStyle = '#3b82f6';
+            simCtx.fill();
+            simCtx.strokeStyle = '#60a5fa';
+            simCtx.lineWidth = 2;
+            simCtx.stroke();
+            simCtx.fillStyle = 'white';
+            simCtx.font = 'bold 11px sans-serif';
+            simCtx.textAlign = 'center';
+            simCtx.fillText('EE', robPx, cy + 4);
+
+            // Contact force arrow
+            if (contactForce > 1) {
+                const arrowLen = Math.min(contactForce * 0.3, 80);
+                simCtx.strokeStyle = '#ef4444';
+                simCtx.lineWidth = 3;
+                simCtx.beginPath();
+                simCtx.moveTo(wallPx, cy);
+                simCtx.lineTo(wallPx - arrowLen, cy);
+                simCtx.stroke();
+                // arrowhead
+                simCtx.beginPath();
+                simCtx.moveTo(wallPx - arrowLen, cy);
+                simCtx.lineTo(wallPx - arrowLen + 8, cy - 5);
+                simCtx.lineTo(wallPx - arrowLen + 8, cy + 5);
+                simCtx.closePath();
+                simCtx.fillStyle = '#ef4444';
+                simCtx.fill();
+
+                simCtx.fillStyle = '#ef4444';
+                simCtx.font = '10px sans-serif';
+                simCtx.fillText(contactForce.toFixed(0) + ' N', wallPx - arrowLen / 2, cy - 12);
+            }
+
+            // Labels
+            simCtx.fillStyle = '#3b82f6';
+            simCtx.font = '10px sans-serif';
+            simCtx.textAlign = 'center';
+            simCtx.fillText('robot end-effector', robPx, cy + 40);
+
+            // Update metrics
+            const posError = Math.abs(targetX - simX);
+            document.getElementById('metricPos').textContent = posError.toFixed(3);
+            document.getElementById('metricForce').textContent = contactForce.toFixed(1) + ' N';
+            const K = getK();
+            let behavior = 'Compliant';
+            if (K > 300) behavior = 'Very Stiff';
+            else if (K > 150) behavior = 'Stiff';
+            else if (K > 60) behavior = 'Medium';
+            document.getElementById('metricBehavior').textContent = behavior;
+            document.getElementById('metricBehavior').style.color =
+                K > 300 ? '#ef4444' : K > 150 ? '#f59e0b' : K > 60 ? '#f59e0b' : '#10b981';
+
+            // Update spectrum marker
+            const pct = Math.min(K / 500, 1) * 100;
+            document.getElementById('spectrumMarker').style.left = pct + '%';
+        }
+
+        sliderK.addEventListener('input', function() {
+            document.getElementById('valK').textContent = this.value;
+            // Reset simulation on big changes
+            simX = 0.15; simV = 0;
+        });
+        sliderD.addEventListener('input', function() {
+            document.getElementById('valD').textContent = this.value;
+            simX = 0.15; simV = 0;
+        });
+
+        function simLoop() {
+            for (let i = 0; i < 3; i++) physicsStep();
+            drawSim();
+            requestAnimationFrame(simLoop);
+        }
+
+        // ==================== Rigid vs Springy Canvases ====================
+        let animT = 0;
+
+        function drawRigidCanvas() {
+            const c = document.getElementById('rigidCanvas');
+            const ctx = c.getContext('2d');
+            const dpr = window.devicePixelRatio || 1;
+            const rect = c.getBoundingClientRect();
+            c.width = rect.width * dpr;
+            c.height = rect.height * dpr;
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            const w = rect.width, h = rect.height;
+
+            ctx.clearRect(0, 0, w, h);
+
+            const cy = h / 2;
+            const wallX = w * 0.65;
+
+            // Wall
+            ctx.fillStyle = 'rgba(239,68,68,0.1)';
+            ctx.fillRect(wallX, 10, w - wallX - 10, h - 20);
+            ctx.strokeStyle = '#ef4444';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(wallX, 10);
+            ctx.lineTo(wallX, h - 10);
+            ctx.stroke();
+
+            // Rigid rod
+            const rodTip = wallX - 2;
+            const rodBase = 30;
+            ctx.strokeStyle = '#888';
+            ctx.lineWidth = 6;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.moveTo(rodBase, cy);
+            ctx.lineTo(rodTip, cy);
+            ctx.stroke();
+
+            // Impact sparks
+            const sparkPhase = (animT * 3) % 1;
+            for (let i = 0; i < 5; i++) {
+                const angle = (i / 5) * Math.PI - Math.PI / 2;
+                const dist = 5 + sparkPhase * 20;
+                const sx = wallX + Math.cos(angle) * dist;
+                const sy = cy + Math.sin(angle) * dist;
+                ctx.fillStyle = `rgba(239, 68, 68, ${1 - sparkPhase})`;
+                ctx.beginPath();
+                ctx.arc(sx, sy, 2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Force arrow (large, constant)
+            ctx.strokeStyle = '#ef4444';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(wallX + 5, cy);
+            ctx.lineTo(wallX + 40, cy);
+            ctx.stroke();
+            ctx.fillStyle = '#ef4444';
+            ctx.beginPath();
+            ctx.moveTo(wallX + 40, cy);
+            ctx.lineTo(wallX + 34, cy - 5);
+            ctx.lineTo(wallX + 34, cy + 5);
+            ctx.closePath();
+            ctx.fill();
+            ctx.font = 'bold 10px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('HIGH F', wallX + 25, cy - 10);
+
+            // Circle at tip
+            ctx.beginPath();
+            ctx.arc(rodTip, cy, 8, 0, Math.PI * 2);
+            ctx.fillStyle = '#666';
+            ctx.fill();
+        }
+
+        function drawSpringyCanvas() {
+            const c = document.getElementById('springyCanvas');
+            const ctx = c.getContext('2d');
+            const dpr = window.devicePixelRatio || 1;
+            const rect = c.getBoundingClientRect();
+            c.width = rect.width * dpr;
+            c.height = rect.height * dpr;
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            const w = rect.width, h = rect.height;
+
+            ctx.clearRect(0, 0, w, h);
+
+            const cy = h / 2;
+            const wallX = w * 0.65;
+
+            // Wall
+            ctx.fillStyle = 'rgba(16,185,129,0.05)';
+            ctx.fillRect(wallX, 10, w - wallX - 10, h - 20);
+            ctx.strokeStyle = '#10b981';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(wallX, 10);
+            ctx.lineTo(wallX, h - 10);
+            ctx.stroke();
+
+            // Spring arm
+            const rodBase = 30;
+            const springStart = w * 0.35;
+            const tipX = wallX - 2 - Math.sin(animT * 2) * 8; // gentle oscillation
+
+            // Rigid part
+            ctx.strokeStyle = '#888';
+            ctx.lineWidth = 4;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.moveTo(rodBase, cy);
+            ctx.lineTo(springStart, cy);
+            ctx.stroke();
+
+            // Spring coils
+            const nCoils = 6;
+            const coilW = (tipX - springStart) / nCoils;
+            const coilAmp = 7;
+            ctx.strokeStyle = '#10b981';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.moveTo(springStart, cy);
+            for (let i = 0; i < nCoils; i++) {
+                const sx = springStart + i * coilW;
+                ctx.lineTo(sx + coilW * 0.25, cy - coilAmp);
+                ctx.lineTo(sx + coilW * 0.75, cy + coilAmp);
+            }
+            ctx.lineTo(tipX, cy);
+            ctx.stroke();
+
+            // Tip circle
+            ctx.beginPath();
+            ctx.arc(tipX, cy, 8, 0, Math.PI * 2);
+            ctx.fillStyle = '#10b981';
+            ctx.fill();
+
+            // Gentle force arrow (small)
+            ctx.strokeStyle = '#10b981';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(wallX + 3, cy);
+            ctx.lineTo(wallX + 16, cy);
+            ctx.stroke();
+            ctx.fillStyle = '#10b981';
+            ctx.beginPath();
+            ctx.moveTo(wallX + 16, cy);
+            ctx.lineTo(wallX + 12, cy - 3);
+            ctx.lineTo(wallX + 12, cy + 3);
+            ctx.closePath();
+            ctx.fill();
+            ctx.font = '10px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('low F', wallX + 12, cy - 10);
+        }
+
+        function animLoop() {
+            animT += 0.016;
+            drawRigidCanvas();
+            drawSpringyCanvas();
+            requestAnimationFrame(animLoop);
+        }
+
+        // ==================== Error Clamping / Force Bound Canvas ====================
+        const clampCanvas = document.getElementById('clampCanvas');
+        const clampCtx = clampCanvas.getContext('2d');
+        const sliderDelta = document.getElementById('sliderDelta');
+
+        const CLAMP_KP = 80;
+        const CLAMP_KD = 20;
+        const CLAMP_FREQ = 1000;
+
+        function drawClampViz() {
+            const dpr = window.devicePixelRatio || 1;
+            const rect = clampCanvas.getBoundingClientRect();
+            const w = rect.width, h = rect.height;
+            clampCanvas.width = w * dpr;
+            clampCanvas.height = h * dpr;
+            clampCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+            const delta = parseFloat(sliderDelta.value);
+            const pad = { left: 55, right: 20, top: 20, bottom: 35 };
+            const pw = w - pad.left - pad.right;
+            const ph = h - pad.top - pad.bottom;
+
+            // We'll plot error (x-axis) vs force (y-axis)
+            const eMax = 0.12; // max error to show (m)
+            const fMaxPlot = CLAMP_KP * 0.12 + 2 * CLAMP_KD * 0.12 * CLAMP_FREQ; // max force on plot
+
+            function toX(e) { return pad.left + (e / eMax) * pw; }
+            function toY(f) { return h - pad.bottom - (f / fMaxPlot) * ph; }
+
+            // Axes
+            clampCtx.strokeStyle = '#444';
+            clampCtx.lineWidth = 1;
+            clampCtx.beginPath();
+            clampCtx.moveTo(pad.left, pad.top);
+            clampCtx.lineTo(pad.left, h - pad.bottom);
+            clampCtx.lineTo(w - pad.right, h - pad.bottom);
+            clampCtx.stroke();
+
+            clampCtx.fillStyle = '#888';
+            clampCtx.font = '11px sans-serif';
+            clampCtx.textAlign = 'center';
+            clampCtx.fillText('Pose error |e| (m)', w / 2, h - 6);
+
+            clampCtx.save();
+            clampCtx.translate(14, h / 2);
+            clampCtx.rotate(-Math.PI / 2);
+            clampCtx.fillText('Force (N)', 0, 0);
+            clampCtx.restore();
+
+            // X axis ticks
+            clampCtx.font = '9px sans-serif';
+            clampCtx.textAlign = 'center';
+            for (let e = 0; e <= 0.12; e += 0.02) {
+                const x = toX(e);
+                clampCtx.fillStyle = '#555';
+                clampCtx.fillText((e * 1000).toFixed(0) + 'mm', x, h - pad.bottom + 14);
+                clampCtx.strokeStyle = 'rgba(255,255,255,0.05)';
+                clampCtx.beginPath();
+                clampCtx.moveTo(x, pad.top);
+                clampCtx.lineTo(x, h - pad.bottom);
+                clampCtx.stroke();
+            }
+
+            // Unclamped force line: F = kp * e + 2 * kd * e * f
+            clampCtx.beginPath();
+            clampCtx.strokeStyle = 'rgba(239,68,68,0.5)';
+            clampCtx.lineWidth = 2;
+            clampCtx.setLineDash([6, 4]);
+            for (let i = 0; i <= pw; i++) {
+                const e = (i / pw) * eMax;
+                const f = CLAMP_KP * e + 2 * CLAMP_KD * e * CLAMP_FREQ;
+                const cx = toX(e), cy = toY(f);
+                i === 0 ? clampCtx.moveTo(cx, cy) : clampCtx.lineTo(cx, cy);
+            }
+            clampCtx.stroke();
+            clampCtx.setLineDash([]);
+
+            // Clamped force line: same up to delta, then flat
+            const fBound = CLAMP_KP * delta + 2 * CLAMP_KD * delta * CLAMP_FREQ;
+            clampCtx.beginPath();
+            clampCtx.strokeStyle = '#10b981';
+            clampCtx.lineWidth = 3;
+            for (let i = 0; i <= pw; i++) {
+                const e = (i / pw) * eMax;
+                const f = e <= delta
+                    ? (CLAMP_KP * e + 2 * CLAMP_KD * e * CLAMP_FREQ)
+                    : fBound;
+                const cx = toX(e), cy = toY(f);
+                i === 0 ? clampCtx.moveTo(cx, cy) : clampCtx.lineTo(cx, cy);
+            }
+            clampCtx.stroke();
+
+            // Delta vertical line
+            const deltaX = toX(delta);
+            clampCtx.strokeStyle = '#ec4899';
+            clampCtx.lineWidth = 2;
+            clampCtx.setLineDash([4, 3]);
+            clampCtx.beginPath();
+            clampCtx.moveTo(deltaX, pad.top);
+            clampCtx.lineTo(deltaX, h - pad.bottom);
+            clampCtx.stroke();
+            clampCtx.setLineDash([]);
+
+            clampCtx.fillStyle = '#ec4899';
+            clampCtx.font = 'bold 10px sans-serif';
+            clampCtx.textAlign = 'center';
+            clampCtx.fillText('|e| = \u0394', deltaX, pad.top + 14);
+
+            // Force bound horizontal line
+            const fBoundY = toY(fBound);
+            clampCtx.strokeStyle = 'rgba(16,185,129,0.4)';
+            clampCtx.lineWidth = 1;
+            clampCtx.setLineDash([4, 3]);
+            clampCtx.beginPath();
+            clampCtx.moveTo(pad.left, fBoundY);
+            clampCtx.lineTo(w - pad.right, fBoundY);
+            clampCtx.stroke();
+            clampCtx.setLineDash([]);
+
+            clampCtx.fillStyle = '#10b981';
+            clampCtx.font = '10px sans-serif';
+            clampCtx.textAlign = 'left';
+            clampCtx.fillText('F_max = ' + fBound.toFixed(0) + ' N', pad.left + 5, fBoundY - 6);
+
+            // Danger zone shading (above force bound, right of delta)
+            clampCtx.fillStyle = 'rgba(239,68,68,0.06)';
+            clampCtx.fillRect(deltaX, pad.top, w - pad.right - deltaX, fBoundY - pad.top);
+
+            // Legend
+            clampCtx.font = '10px sans-serif';
+            clampCtx.textAlign = 'left';
+            const lx = w - pad.right - 145, ly = pad.top + 15;
+
+            clampCtx.strokeStyle = 'rgba(239,68,68,0.5)';
+            clampCtx.lineWidth = 2;
+            clampCtx.setLineDash([6, 4]);
+            clampCtx.beginPath();
+            clampCtx.moveTo(lx, ly);
+            clampCtx.lineTo(lx + 20, ly);
+            clampCtx.stroke();
+            clampCtx.setLineDash([]);
+            clampCtx.fillStyle = '#ef4444';
+            clampCtx.fillText('Unclamped', lx + 25, ly + 4);
+
+            clampCtx.strokeStyle = '#10b981';
+            clampCtx.lineWidth = 3;
+            clampCtx.beginPath();
+            clampCtx.moveTo(lx, ly + 16);
+            clampCtx.lineTo(lx + 20, ly + 16);
+            clampCtx.stroke();
+            clampCtx.fillStyle = '#10b981';
+            clampCtx.fillText('Clamped (|e|\u2264\u0394)', lx + 25, ly + 20);
+
+            // Update metrics
+            document.getElementById('metricFmax').textContent = fBound.toFixed(0) + ' N';
+            document.getElementById('metricDelta').textContent = (delta * 1000).toFixed(1) + ' mm';
+            const safeLevel = fBound < 500 ? 'Safe' : fBound < 2000 ? 'Caution' : 'Danger';
+            const safeColor = fBound < 500 ? '#10b981' : fBound < 2000 ? '#f59e0b' : '#ef4444';
+            document.getElementById('metricSafety').textContent = safeLevel;
+            document.getElementById('metricSafety').style.color = safeColor;
+            document.getElementById('valDelta').textContent = (delta * 1000).toFixed(0) === '0' ? delta.toFixed(3) + ' m' : (delta * 1000).toFixed(1) + ' mm';
+        }
+
+        sliderDelta.addEventListener('input', function() {
+            drawClampViz();
+        });
+
+        // ==================== Initialize ====================
+        setTimeout(() => {
+            simLoop();
+            animLoop();
+            drawClampViz();
+        }, 100);
+    </script>
+</body>
+</html>

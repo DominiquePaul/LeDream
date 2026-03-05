@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <title>Soft Actor-Critic (SAC) - ML Method Visualizations</title>
+    <link rel="stylesheet" href="../css/sidebar.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #e8e8e8;
+        }
+
+        .main-content {
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.2rem;
+            margin-bottom: 8px;
+            background: linear-gradient(90deg, #00d9ff, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+            font-size: 1rem;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .architecture-svg {
+            width: 100%;
+            height: 400px;
+        }
+
+        .network-box {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .network-box:hover {
+            filter: brightness(1.2);
+        }
+
+        .network-box.active {
+            filter: drop-shadow(0 0 15px currentColor);
+        }
+
+        .flow-arrow {
+            stroke-dasharray: 8 4;
+            animation: flowDash 1s linear infinite;
+        }
+
+        @keyframes flowDash {
+            to { stroke-dashoffset: -12; }
+        }
+
+        .info-panel {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 15px;
+            min-height: 120px;
+        }
+
+        .info-panel h4 {
+            color: #00d9ff;
+            margin-bottom: 8px;
+        }
+
+        .info-panel p {
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: #aaa;
+        }
+
+        .formula {
+            background: rgba(168, 85, 247, 0.1);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            margin: 10px 0;
+            font-family: 'Cambria Math', 'Times New Roman', serif;
+            font-size: 1rem;
+            text-align: center;
+            color: #e0e0e0;
+        }
+
+        .algorithm-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .step {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .step:hover {
+            background: rgba(0,0,0,0.4);
+        }
+
+        .step.active {
+            border-color: #00d9ff;
+            background: rgba(0, 217, 255, 0.1);
+        }
+
+        .step-number {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00d9ff, #a855f7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+
+        .step-content h4 {
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+        }
+
+        .step-content p {
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        .entropy-viz {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .entropy-slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .entropy-slider-container label {
+            font-size: 0.9rem;
+            min-width: 120px;
+        }
+
+        .entropy-slider {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 8px;
+            border-radius: 4px;
+            background: linear-gradient(90deg, #3b82f6, #a855f7);
+            outline: none;
+        }
+
+        .entropy-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #fff;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        .entropy-value {
+            font-family: monospace;
+            font-size: 1rem;
+            color: #00d9ff;
+            min-width: 50px;
+        }
+
+        .distribution-canvas {
+            width: 100%;
+            height: 200px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+        }
+
+        .key-features {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .feature {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .feature-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .feature h4 {
+            font-size: 0.95rem;
+            margin-bottom: 5px;
+        }
+
+        .feature p {
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        .loss-equations {
+            display: grid;
+            gap: 15px;
+        }
+
+        .loss-item {
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .loss-item:hover {
+            background: rgba(0,0,0,0.4);
+        }
+
+        .loss-item.active {
+            border-color: #a855f7;
+        }
+
+        .loss-item h4 {
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .loss-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00d9ff, #0099cc);
+            color: #000;
+            font-weight: 600;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 217, 255, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .replay-buffer-viz {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            padding: 15px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            min-height: 80px;
+        }
+
+        .experience {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+            transition: all 0.3s ease;
+        }
+
+        .experience.new {
+            animation: popIn 0.3s ease;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+
+        .sampled {
+            box-shadow: 0 0 8px currentColor;
+            transform: scale(1.2);
+        }
+
+        .legend {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+            font-size: 0.8rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }
+
+        @media (max-width: 1000px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            .key-features {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding-top: 70px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Menu Button -->
+    <button class="mobile-menu-btn" aria-label="Toggle menu">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+    </button>
+
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <button class="sidebar-toggle" aria-label="Toggle sidebar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+        </button>
+
+        <div class="sidebar-header">
+            <div class="sidebar-logo">📊</div>
+            <div class="sidebar-title">
+                <h1>ML Methods</h1>
+                <span>Interactive Visualizations</span>
+            </div>
+        </div>
+
+        <div class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Overview</div>
+                <ul class="nav-items">
+                    <li class="nav-item">
+                        <a href="../index.html" class="nav-link" data-tooltip="Home">
+                            <div class="nav-icon other">🏠</div>
+                            <div class="nav-text">
+                                <span>Home</span>
+                                <span>All methods overview</span>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Standard RL</div>
+                <ul class="nav-items">
+                    <li class="nav-item">
+                        <a href="sac.html" class="nav-link active" data-tooltip="SAC">
+                            <div class="nav-icon rl">🎯</div>
+                            <div class="nav-text">
+                                <span>SAC</span>
+                                <span>Soft Actor-Critic</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="rlhf.html" class="nav-link" data-tooltip="RLHF">
+                            <div class="nav-icon rl">👤</div>
+                            <div class="nav-text">
+                                <span>RLHF</span>
+                                <span>RL from Human Feedback</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="cql.html" class="nav-link" data-tooltip="CQL">
+                            <div class="nav-icon rl">🛡️</div>
+                            <div class="nav-text">
+                                <span>CQL</span>
+                                <span>Conservative Q-Learning</span>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">World Models</div>
+                <ul class="nav-items">
+                    <li class="nav-item">
+                        <a href="world-models.html" class="nav-link" data-tooltip="World Models">
+                            <div class="nav-icon wm">🧠</div>
+                            <div class="nav-text">
+                                <span>World Models</span>
+                                <span>Ha & Schmidhuber</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="planet.html" class="nav-link" data-tooltip="PlaNet">
+                            <div class="nav-icon wm">🪐</div>
+                            <div class="nav-text">
+                                <span>PlaNet</span>
+                                <span>Latent Dynamics Planning</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="dreamer.html" class="nav-link" data-tooltip="Dreamer">
+                            <div class="nav-icon wm">💭</div>
+                            <div class="nav-text">
+                                <span>Dreamer</span>
+                                <span>Latent Imagination</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="dreamerv2.html" class="nav-link" data-tooltip="DreamerV2">
+                            <div class="nav-icon wm">🎲</div>
+                            <div class="nav-text">
+                                <span>DreamerV2</span>
+                                <span>Discrete World Models</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="dreamerv3.html" class="nav-link" data-tooltip="DreamerV3">
+                            <div class="nav-icon wm">🌐</div>
+                            <div class="nav-text">
+                                <span>DreamerV3</span>
+                                <span>Diverse Domains</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="vjepa.html" class="nav-link" data-tooltip="V-JEPA">
+                            <div class="nav-icon wm">🎬</div>
+                            <div class="nav-text">
+                                <span>V-JEPA</span>
+                                <span>Feature Prediction</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="vjepa2.html" class="nav-link" data-tooltip="V-JEPA 2">
+                            <div class="nav-icon wm">🤖</div>
+                            <div class="nav-text">
+                                <span>V-JEPA 2</span>
+                                <span>Understanding & Planning</span>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">Robotics Concepts</div>
+                <ul class="nav-items">
+                    <li class="nav-item">
+                        <a href="robot-controllers.html" class="nav-link" data-tooltip="Controllers">
+                            <div class="nav-icon" style="background: linear-gradient(135deg, #f59e0b, #ef4444);">🦾</div>
+                            <div class="nav-text">
+                                <span>Controllers</span>
+                                <span>Impedance, Stiffness & Contact</span>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+            <span>Press <kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">Ctrl+B</kbd> to toggle</span>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <h1>Soft Actor-Critic (SAC)</h1>
+            <p class="subtitle">Maximum Entropy Reinforcement Learning Algorithm &mdash; Haarnoja et al., 2018</p>
+            <div style="text-align: center; margin-bottom: 20px;">
+                <a href="https://github.com/haarnoja/sac" target="_blank" style="color: #888; text-decoration: none; font-size: 0.85rem; transition: color 0.2s;">
+                    <span style="margin-right: 5px;">🔗</span> github.com/haarnoja/sac
+                </a>
+            </div>
+
+            <div class="main-grid">
+                <!-- Architecture Diagram -->
+                <div class="card">
+                    <div class="card-title">
+                        <div class="icon" style="background: linear-gradient(135deg, #00d9ff, #0099cc);">🏗️</div>
+                        Network Architecture
+                    </div>
+                    <svg class="architecture-svg" viewBox="0 0 500 400">
+                        <!-- Environment -->
+                        <rect x="200" y="10" width="100" height="50" rx="8" fill="#10b981" class="network-box" data-component="env"/>
+                        <text x="250" y="40" text-anchor="middle" fill="white" font-size="12" font-weight="bold">Environment</text>
+
+                        <!-- Replay Buffer -->
+                        <rect x="350" y="100" width="120" height="60" rx="8" fill="#f59e0b" class="network-box" data-component="buffer"/>
+                        <text x="410" y="125" text-anchor="middle" fill="white" font-size="11" font-weight="bold">Replay Buffer</text>
+                        <text x="410" y="145" text-anchor="middle" fill="white" font-size="9">(s, a, r, s', d)</text>
+
+                        <!-- Actor (Policy) -->
+                        <rect x="30" y="170" width="120" height="70" rx="8" fill="#a855f7" class="network-box" data-component="actor"/>
+                        <text x="90" y="195" text-anchor="middle" fill="white" font-size="11" font-weight="bold">Actor π_θ</text>
+                        <text x="90" y="215" text-anchor="middle" fill="white" font-size="9">Gaussian Policy</text>
+                        <text x="90" y="230" text-anchor="middle" fill="white" font-size="9">μ(s), σ(s)</text>
+
+                        <!-- Critic 1 -->
+                        <rect x="190" y="170" width="100" height="70" rx="8" fill="#3b82f6" class="network-box" data-component="critic1"/>
+                        <text x="240" y="200" text-anchor="middle" fill="white" font-size="11" font-weight="bold">Critic Q_φ₁</text>
+                        <text x="240" y="220" text-anchor="middle" fill="white" font-size="9">Q(s, a)</text>
+
+                        <!-- Critic 2 -->
+                        <rect x="310" y="170" width="100" height="70" rx="8" fill="#3b82f6" class="network-box" data-component="critic2"/>
+                        <text x="360" y="200" text-anchor="middle" fill="white" font-size="11" font-weight="bold">Critic Q_φ₂</text>
+                        <text x="360" y="220" text-anchor="middle" fill="white" font-size="9">Q(s, a)</text>
+
+                        <!-- Target Critic 1 -->
+                        <rect x="190" y="290" width="100" height="50" rx="8" fill="#1e40af" stroke="#3b82f6" stroke-width="2" stroke-dasharray="4" class="network-box" data-component="target1"/>
+                        <text x="240" y="315" text-anchor="middle" fill="white" font-size="10">Target Q_φ̄₁</text>
+
+                        <!-- Target Critic 2 -->
+                        <rect x="310" y="290" width="100" height="50" rx="8" fill="#1e40af" stroke="#3b82f6" stroke-width="2" stroke-dasharray="4" class="network-box" data-component="target2"/>
+                        <text x="360" y="315" text-anchor="middle" fill="white" font-size="10">Target Q_φ̄₂</text>
+
+                        <!-- Alpha (Temperature) -->
+                        <rect x="30" y="290" width="100" height="50" rx="8" fill="#ec4899" class="network-box" data-component="alpha"/>
+                        <text x="80" y="315" text-anchor="middle" fill="white" font-size="11" font-weight="bold">α (Temperature)</text>
+
+                        <!-- Flow Arrows -->
+                        <!-- Environment to Buffer -->
+                        <path d="M 300 35 Q 400 35 410 100" stroke="#10b981" stroke-width="2" fill="none" marker-end="url(#arrowGreen)" class="flow-arrow"/>
+
+                        <!-- Actor to Environment -->
+                        <path d="M 90 170 Q 90 90 200 35" stroke="#a855f7" stroke-width="2" fill="none" marker-end="url(#arrowPurple)" class="flow-arrow"/>
+                        <text x="100" y="110" fill="#a855f7" font-size="9">action a</text>
+
+                        <!-- Buffer to Critics -->
+                        <path d="M 350 130 L 290 170" stroke="#f59e0b" stroke-width="2" fill="none" marker-end="url(#arrowOrange)"/>
+                        <path d="M 410 160 L 360 170" stroke="#f59e0b" stroke-width="2" fill="none" marker-end="url(#arrowOrange)"/>
+
+                        <!-- Buffer to Actor -->
+                        <path d="M 350 130 Q 200 130 150 175" stroke="#f59e0b" stroke-width="2" fill="none" marker-end="url(#arrowOrange)"/>
+
+                        <!-- Critics to Targets (soft update) -->
+                        <path d="M 240 240 L 240 290" stroke="#3b82f6" stroke-width="2" fill="none" marker-end="url(#arrowBlue)" stroke-dasharray="4"/>
+                        <path d="M 360 240 L 360 290" stroke="#3b82f6" stroke-width="2" fill="none" marker-end="url(#arrowBlue)" stroke-dasharray="4"/>
+                        <text x="270" y="270" fill="#3b82f6" font-size="8">τ soft update</text>
+
+                        <!-- Alpha to Actor -->
+                        <path d="M 90 290 L 90 240" stroke="#ec4899" stroke-width="2" fill="none" marker-end="url(#arrowPink)"/>
+
+                        <!-- Arrow Markers -->
+                        <defs>
+                            <marker id="arrowGreen" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#10b981"/>
+                            </marker>
+                            <marker id="arrowPurple" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#a855f7"/>
+                            </marker>
+                            <marker id="arrowOrange" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#f59e0b"/>
+                            </marker>
+                            <marker id="arrowBlue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#3b82f6"/>
+                            </marker>
+                            <marker id="arrowPink" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#ec4899"/>
+                            </marker>
+                        </defs>
+                    </svg>
+
+                    <div class="info-panel" id="component-info" style="display: none;">
+                    </div>
+                </div>
+
+                <!-- Algorithm Steps -->
+                <div class="card">
+                    <div class="card-title">
+                        <div class="icon" style="background: linear-gradient(135deg, #a855f7, #7c3aed);">📋</div>
+                        Algorithm Steps
+                    </div>
+                    <p style="font-size: 0.8rem; color: #888; margin-bottom: 12px;">Learning loop (per update). Acting + collecting transitions happens outside this loop.</p>
+                    <div class="algorithm-steps">
+                        <div class="step" data-step="1">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <h4>Sample from Replay Buffer</h4>
+                                <p>Draw mini-batch of transitions (s, a, r, s', d)</p>
+                            </div>
+                        </div>
+                        <div class="step" data-step="2">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <h4>Compute Target Q-value</h4>
+                                <p>Sample ã' ~ π(·|s'), evaluate targets, subtract entropy</p>
+                            </div>
+                        </div>
+                        <div class="step" data-step="3">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <h4>Update Critics</h4>
+                                <p>Train independently via MSE to soft Bellman target</p>
+                            </div>
+                        </div>
+                        <div class="step" data-step="4">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <h4>Update Actor</h4>
+                                <p>Sample ã ~ π(·|s), maximize Q − α·log π</p>
+                            </div>
+                        </div>
+                        <div class="step" data-step="5">
+                            <div class="step-number">5</div>
+                            <div class="step-content">
+                                <h4>Update Temperature α</h4>
+                                <p>Adjust entropy coefficient automatically</p>
+                            </div>
+                        </div>
+                        <div class="step" data-step="6">
+                            <div class="step-number">6</div>
+                            <div class="step-content">
+                                <h4>Soft Update Targets</h4>
+                                <p>φ̄ ← τφ + (1-τ)φ̄</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loss Functions -->
+            <div class="main-grid">
+                <div class="card">
+                    <div class="card-title">
+                        <div class="icon" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">📐</div>
+                        Loss Functions
+                    </div>
+                    <div class="loss-equations">
+                        <div class="loss-item" data-loss="critic">
+                            <h4><span class="loss-dot" style="background: #3b82f6;"></span>Critic Loss (Soft Bellman)</h4>
+                            <div class="formula">
+                                \( J_Q(\phi) = \mathbb{E}_{(s,a,r,s') \sim \mathcal{D}} \left[ \frac{1}{2} \left( Q_\phi(s,a) - y \right)^2 \right] \)
+                            </div>
+                            <div class="formula">
+                                \( y = r + \gamma (1-d) \left( \min_{j=1,2} Q_{\bar{\phi}_j}(s', \tilde{a}') - \alpha \log \pi_\theta(\tilde{a}'|s') \right) \)
+                            </div>
+                            <p style="font-size: 0.8rem; color: #888; margin-top: 8px;">Critics are trained independently (separate parameters + optimizer states)</p>
+                        </div>
+                        <div class="loss-item" data-loss="actor">
+                            <h4><span class="loss-dot" style="background: #a855f7;"></span>Actor Loss</h4>
+                            <div class="formula">
+                                \( J_\pi(\theta) = \mathbb{E}_{s \sim \mathcal{D}, \tilde{a} \sim \pi_\theta} \left[ \alpha \log \pi_\theta(\tilde{a}|s) - \min_{j=1,2} Q_{\phi_j}(s, \tilde{a}) \right] \)
+                            </div>
+                        </div>
+                        <div class="loss-item" data-loss="alpha">
+                            <h4><span class="loss-dot" style="background: #ec4899;"></span>Temperature Loss</h4>
+                            <div class="formula">
+                                \( J(\alpha) = \mathbb{E}_{\tilde{a} \sim \pi_\theta} \left[ -\alpha \left( \log \pi_\theta(\tilde{a}|s) + \bar{\mathcal{H}} \right) \right] \)
+                            </div>
+                            <p style="font-size: 0.8rem; color: #888; margin-top: 8px;">where \( \bar{\mathcal{H}} \) is the target entropy (typically \( -\dim(\mathcal{A}) \))</p>
+                        </div>
+                    </div>
+                    <div class="info-panel" style="margin-top: 15px;">
+                        <h4>📖 Notation Guide</h4>
+                        <p style="margin-bottom: 8px;">
+                            <strong style="color: #00d9ff;">Prime (')</strong> — next timestep: \(s'\) = next state, \(a'\) = next action
+                        </p>
+                        <p style="margin-bottom: 8px;">
+                            <strong style="color: #a855f7;">Tilde (~)</strong> — freshly sampled from current policy: \(\tilde{a} \sim \pi_\theta(\cdot|s)\)
+                        </p>
+                        <p style="font-size: 0.85rem; color: #888;">
+                            The stored action \(a\) is from the replay buffer (old policy), while \(\tilde{a}'\) is sampled from the current policy to compute the bootstrap target.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Entropy Visualization -->
+                <div class="card">
+                    <div class="card-title">
+                        <div class="icon" style="background: linear-gradient(135deg, #ec4899, #be185d);">🎲</div>
+                        Entropy & Exploration
+                    </div>
+                    <div class="entropy-viz">
+                        <div class="entropy-slider-container">
+                            <label>Temperature α:</label>
+                            <input type="range" class="entropy-slider" id="alphaSlider" min="0.01" max="1" step="0.01" value="0.2">
+                            <span class="entropy-value" id="alphaValue">0.20</span>
+                        </div>
+                        <canvas class="distribution-canvas" id="policyCanvas"></canvas>
+                        <p style="font-size: 0.85rem; color: #888; text-align: center;">
+                            Higher α → More exploration (wider distribution)<br>
+                            Lower α → More exploitation (peaked distribution)
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Replay Buffer Visualization -->
+            <div class="card">
+                <div class="card-title">
+                    <div class="icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">💾</div>
+                    Experience Replay Buffer
+                </div>
+                <div class="replay-buffer-viz" id="replayBuffer"></div>
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background: #10b981;"></div>
+                        <span>Recent experiences</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background: #3b82f6;"></div>
+                        <span>Older experiences</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background: #f59e0b; box-shadow: 0 0 8px #f59e0b;"></div>
+                        <span>Sampled for training</span>
+                    </div>
+                </div>
+                <div class="controls">
+                    <button class="btn btn-primary" id="addExperience">
+                        ➕ Add Experience
+                    </button>
+                    <button class="btn btn-secondary" id="sampleBatch">
+                        🎯 Sample Batch
+                    </button>
+                    <button class="btn btn-secondary" id="clearBuffer">
+                        🗑️ Clear Buffer
+                    </button>
+                </div>
+            </div>
+
+            <!-- Paper Lineage -->
+            <div class="card" style="margin-top: 20px; margin-bottom: 20px;">
+                <div class="card-title">
+                    <div class="icon" style="background: linear-gradient(135deg, #6366f1, #4f46e5);">🌳</div>
+                    Paper Lineage
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div>
+                        <h4 style="font-size: 0.9rem; color: #f59e0b; margin-bottom: 12px;">Builds On</h4>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #f59e0b;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">DDPG</div>
+                                <div style="font-size: 0.75rem; color: #888;">Lillicrap et al., 2015 &mdash; Continuous control with deep RL; deterministic actor-critic that SAC extends with stochastic policies</div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #f59e0b;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">TD3</div>
+                                <div style="font-size: 0.75rem; color: #888;">Fujimoto et al., 2018 &mdash; Twin critics + delayed policy updates; SAC adopts twin Q-networks to address overestimation</div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #f59e0b;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">Soft Q-Learning</div>
+                                <div style="font-size: 0.75rem; color: #888;">Haarnoja et al., 2017 &mdash; Maximum entropy framework for RL; direct predecessor using energy-based policies</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 style="font-size: 0.9rem; color: #10b981; margin-bottom: 12px;">Built Upon By</h4>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #10b981;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">CQL</div>
+                                <div style="font-size: 0.75rem; color: #888;">Kumar et al., 2020 &mdash; Adds conservative regularizer to SAC for offline RL</div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #10b981;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">REDQ</div>
+                                <div style="font-size: 0.75rem; color: #888;">Chen et al., 2021 &mdash; Ensemble of Q-functions with random subset selection; improves SAC's sample efficiency</div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #10b981;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">DrQ / DrQ-v2</div>
+                                <div style="font-size: 0.75rem; color: #888;">Kostrikov et al., 2020/2021 &mdash; SAC + data augmentation for vision-based RL; state-of-the-art on pixel-based continuous control</div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #10b981;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">SAC-N / EDAC</div>
+                                <div style="font-size: 0.75rem; color: #888;">An et al., 2021 &mdash; SAC with N critics and penalized Q-ensemble for offline RL without explicit conservatism</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Key Features -->
+            <div class="key-features">
+                <div class="feature">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">🔄</div>
+                    <h4>Twin Q-Networks</h4>
+                    <p>Uses minimum of two Q-values to mitigate overestimation bias (clipped double Q-learning)</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #a855f7, #7c3aed);">📊</div>
+                    <h4>Stochastic Policy</h4>
+                    <p>Gaussian policy with reparameterization trick: a = tanh(μ + σ·ε), ε ~ N(0,1)</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #ec4899, #be185d);">⚖️</div>
+                    <h4>Auto Temperature</h4>
+                    <p>Automatically tunes α to maintain target entropy, balancing exploration and exploitation</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="../js/sidebar.js"></script>
+    <script>
+        // Component info data
+        const componentInfo = {
+            env: {
+                title: 'Environment',
+                desc: 'The agent interacts with the environment, receiving states and rewards while executing actions. SAC is designed for continuous action spaces (e.g., robotics, locomotion).'
+            },
+            buffer: {
+                title: 'Replay Buffer',
+                desc: 'Stores transitions (s, a, r, s\', done) for off-policy learning. Random sampling breaks temporal correlations and improves sample efficiency.'
+            },
+            actor: {
+                title: 'Actor Network (Policy)',
+                desc: 'Outputs a Gaussian distribution over actions: μ(s) and σ(s). Actions are sampled via reparameterization: a = tanh(μ + σ·ε). The squashing ensures bounded actions.'
+            },
+            critic1: {
+                title: 'Critic Q₁',
+                desc: 'First Q-network estimating Q(s,a). Takes state-action pairs and outputs value estimates. Trained to minimize soft Bellman residual.'
+            },
+            critic2: {
+                title: 'Critic Q₂',
+                desc: 'Second Q-network for double Q-learning. Using min(Q₁, Q₂) reduces overestimation bias that plagues standard actor-critic methods.'
+            },
+            target1: {
+                title: 'Target Network Q̄₁',
+                desc: 'Slowly-updated copy of Q₁ used for stable target computation. Updated via Polyak averaging: φ̄ ← τφ + (1-τ)φ̄ with τ ≈ 0.005.'
+            },
+            target2: {
+                title: 'Target Network Q̄₂',
+                desc: 'Slowly-updated copy of Q₂. Target networks prevent the moving target problem during training.'
+            },
+            alpha: {
+                title: 'Temperature α',
+                desc: 'Entropy coefficient controlling exploration. Higher α encourages random exploration; lower α focuses on exploitation. Can be automatically tuned to maintain target entropy H̄ = -dim(A).'
+            }
+        };
+
+        // Architecture interaction
+        document.querySelectorAll('.network-box').forEach(box => {
+            box.addEventListener('click', function() {
+                document.querySelectorAll('.network-box').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+
+                const component = this.dataset.component;
+                const info = componentInfo[component];
+                const panel = document.getElementById('component-info');
+                panel.style.display = 'block';
+                panel.innerHTML = `
+                    <h4>${info.title}</h4>
+                    <p>${info.desc}</p>
+                `;
+            });
+        });
+
+        // Step interaction
+        const stepDetails = {
+            1: 'Uniformly sample a mini-batch B of N transitions from the replay buffer D. This is the only source of data for learning (off-policy).',
+            2: 'Sample fresh action ã\' ~ π(·|s\') from current policy, evaluate target critics on (s\', ã\'), compute soft Bellman target: y = r + γ(1-d)[min Q̄(s\',ã\') - α log π(ã\'|s\')]',
+            3: 'Train both critics independently by minimizing MSE to target: J_Q = ½(Q(s,a) - y)². Independence comes from separate parameters and optimizer noise.',
+            4: 'Sample ã ~ π(·|s) from current policy, plug into current critics. Minimize: α log π(ã|s) - min(Q₁,Q₂)(s,ã). This is the policy improvement step.',
+            5: 'Update α by minimizing: J(α) = -α · E[log π(ã|s) + H̄]. Keeps entropy near target H̄ = -dim(A). Optional but standard in modern SAC.',
+            6: 'Soft update targets: φ̄ᵢ ← τφᵢ + (1-τ)φ̄ᵢ for i ∈ {1,2}. Stabilises bootstrapping by slowly tracking online networks.'
+        };
+
+        document.querySelectorAll('.step').forEach(step => {
+            step.addEventListener('click', function() {
+                document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+                this.classList.add('active');
+                const num = this.dataset.step;
+                this.querySelector('p').textContent = stepDetails[num];
+            });
+        });
+
+        // Loss item interaction
+        document.querySelectorAll('.loss-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.loss-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Entropy visualization
+        const alphaSlider = document.getElementById('alphaSlider');
+        const alphaValue = document.getElementById('alphaValue');
+        const canvas = document.getElementById('policyCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * window.devicePixelRatio;
+            canvas.height = rect.height * window.devicePixelRatio;
+            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+        }
+
+        function drawDistribution(alpha) {
+            const rect = canvas.getBoundingClientRect();
+            const width = rect.width;
+            const height = rect.height;
+
+            ctx.clearRect(0, 0, width, height);
+
+            // Draw axes
+            ctx.strokeStyle = '#444';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(40, height - 30);
+            ctx.lineTo(width - 20, height - 30);
+            ctx.moveTo(40, height - 30);
+            ctx.lineTo(40, 20);
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#888';
+            ctx.font = '11px sans-serif';
+            ctx.fillText('Action', width/2 - 20, height - 10);
+            ctx.save();
+            ctx.translate(15, height/2);
+            ctx.rotate(-Math.PI/2);
+            ctx.fillText('π(a|s)', -20, 0);
+            ctx.restore();
+
+            // Draw Gaussian with variance based on alpha
+            const sigma = 0.1 + alpha * 0.8; // Scale sigma with alpha
+            const mu = 0;
+
+            ctx.beginPath();
+            ctx.strokeStyle = '#a855f7';
+            ctx.lineWidth = 3;
+
+            const plotWidth = width - 80;
+            const plotHeight = height - 60;
+            const xOffset = 50;
+            const yOffset = 20;
+
+            for (let i = 0; i <= plotWidth; i++) {
+                const x = (i / plotWidth - 0.5) * 4; // -2 to 2
+                const y = Math.exp(-0.5 * Math.pow((x - mu) / sigma, 2)) / (sigma * Math.sqrt(2 * Math.PI));
+                const maxY = 1 / (sigma * Math.sqrt(2 * Math.PI));
+
+                const canvasX = xOffset + i;
+                const canvasY = height - 30 - (y / maxY) * plotHeight * 0.9;
+
+                if (i === 0) {
+                    ctx.moveTo(canvasX, canvasY);
+                } else {
+                    ctx.lineTo(canvasX, canvasY);
+                }
+            }
+            ctx.stroke();
+
+            // Fill under curve
+            ctx.lineTo(xOffset + plotWidth, height - 30);
+            ctx.lineTo(xOffset, height - 30);
+            ctx.closePath();
+            ctx.fillStyle = 'rgba(168, 85, 247, 0.2)';
+            ctx.fill();
+
+            // Draw entropy value
+            const entropy = 0.5 * Math.log(2 * Math.PI * Math.E * sigma * sigma);
+            ctx.fillStyle = '#00d9ff';
+            ctx.font = 'bold 12px sans-serif';
+            ctx.fillText('H(π) ≈ ' + entropy.toFixed(2), width - 90, 35);
+            ctx.fillStyle = '#888';
+            ctx.font = '10px sans-serif';
+            ctx.fillText('σ = ' + sigma.toFixed(2), width - 90, 50);
+        }
+
+        alphaSlider.addEventListener('input', function() {
+            alphaValue.textContent = parseFloat(this.value).toFixed(2);
+            drawDistribution(parseFloat(this.value));
+        });
+
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+            drawDistribution(parseFloat(alphaSlider.value));
+        });
+
+        // Initial draw
+        setTimeout(() => {
+            resizeCanvas();
+            drawDistribution(0.2);
+        }, 100);
+
+        // Replay Buffer Visualization
+        const bufferContainer = document.getElementById('replayBuffer');
+        let experiences = [];
+        const maxExperiences = 150;
+
+        function renderBuffer() {
+            bufferContainer.innerHTML = '';
+            experiences.forEach((exp, i) => {
+                const div = document.createElement('div');
+                div.className = 'experience' + (exp.new ? ' new' : '') + (exp.sampled ? ' sampled' : '');
+
+                // Color gradient based on age
+                const age = (experiences.length - i) / experiences.length;
+                const r = Math.round(16 + (59 - 16) * age);
+                const g = Math.round(185 + (130 - 185) * age);
+                const b = Math.round(129 + (246 - 129) * age);
+                div.style.background = `rgb(${r}, ${g}, ${b})`;
+
+                if (exp.sampled) {
+                    div.style.background = '#f59e0b';
+                }
+
+                bufferContainer.appendChild(div);
+            });
+        }
+
+        document.getElementById('addExperience').addEventListener('click', () => {
+            // Clear sampled flags
+            experiences.forEach(e => {
+                e.new = false;
+                e.sampled = false;
+            });
+
+            // Add new experience
+            if (experiences.length >= maxExperiences) {
+                experiences.shift();
+            }
+            experiences.push({ new: true, sampled: false });
+            renderBuffer();
+        });
+
+        document.getElementById('sampleBatch').addEventListener('click', () => {
+            if (experiences.length < 8) {
+                alert('Need at least 8 experiences to sample a batch!');
+                return;
+            }
+
+            // Clear previous sampling
+            experiences.forEach(e => {
+                e.new = false;
+                e.sampled = false;
+            });
+
+            // Randomly sample 8 experiences
+            const indices = new Set();
+            while (indices.size < 8) {
+                indices.add(Math.floor(Math.random() * experiences.length));
+            }
+            indices.forEach(i => experiences[i].sampled = true);
+
+            renderBuffer();
+        });
+
+        document.getElementById('clearBuffer').addEventListener('click', () => {
+            experiences = [];
+            renderBuffer();
+        });
+
+        // Initialize with some experiences
+        for (let i = 0; i < 60; i++) {
+            experiences.push({ new: false, sampled: false });
+        }
+        renderBuffer();
+    </script>
+</body>
+</html>

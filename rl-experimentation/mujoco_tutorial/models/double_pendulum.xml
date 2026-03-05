@@ -1,0 +1,68 @@
+<!--
+  Double Pendulum - Chaotic Dynamics
+  
+  Two pendulum segments chained together. This system exhibits chaotic behavior:
+  tiny changes in initial conditions lead to vastly different trajectories.
+  
+  Key MJCF concepts demonstrated:
+  - Multi-body kinematic chains
+  - Body-within-body nesting (kinematic tree)
+  - Multiple joints and actuators
+  - How MuJoCo handles coupled dynamics automatically
+-->
+<mujoco model="double_pendulum">
+  <compiler angle="radian" coordinate="local"/>
+  
+  <option gravity="0 0 -9.81" timestep="0.001">
+    <flag contact="disable"/>
+  </option>
+  
+  <default>
+    <joint damping="0.02"/>
+    <geom rgba="0.3 0.6 0.9 1.0"/>
+  </default>
+  
+  <visual>
+    <headlight ambient="0.3 0.3 0.3"/>
+  </visual>
+  
+  <worldbody>
+    <light pos="0 -1 3" dir="0 0.2 -1"/>
+    <geom type="plane" size="2 2 0.01" rgba="0.9 0.9 0.9 1" pos="0 0 -1.8"/>
+    
+    <!-- Pivot point -->
+    <geom type="sphere" size="0.05" rgba="0.8 0.2 0.2 1"/>
+    
+    <!-- First pendulum link -->
+    <body name="link1" pos="0 0 0">
+      <joint name="joint1" type="hinge" axis="0 1 0"/>
+      <geom name="link1_geom" type="capsule" size="0.03" fromto="0 0 0 0 0 -0.5" mass="1.0"/>
+      
+      <!-- Connection point visual -->
+      <geom type="sphere" size="0.04" pos="0 0 -0.5" rgba="0.2 0.8 0.2 1"/>
+      
+      <!-- Second pendulum link (child of first) -->
+      <body name="link2" pos="0 0 -0.5">
+        <joint name="joint2" type="hinge" axis="0 1 0"/>
+        <geom name="link2_geom" type="capsule" size="0.025" fromto="0 0 0 0 0 -0.4" mass="0.8"
+              rgba="0.9 0.6 0.1 1"/>
+        
+        <!-- Tip mass -->
+        <geom name="tip" type="sphere" size="0.06" pos="0 0 -0.4" mass="1.5"
+              rgba="0.9 0.2 0.2 1"/>
+      </body>
+    </body>
+  </worldbody>
+  
+  <actuator>
+    <motor name="motor1" joint="joint1" gear="1" ctrllimited="true" ctrlrange="-5 5"/>
+    <motor name="motor2" joint="joint2" gear="1" ctrllimited="true" ctrlrange="-3 3"/>
+  </actuator>
+  
+  <sensor>
+    <jointpos name="joint1_pos" joint="joint1"/>
+    <jointvel name="joint1_vel" joint="joint1"/>
+    <jointpos name="joint2_pos" joint="joint2"/>
+    <jointvel name="joint2_vel" joint="joint2"/>
+  </sensor>
+</mujoco>

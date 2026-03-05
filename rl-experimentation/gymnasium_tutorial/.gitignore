@@ -1,0 +1,39 @@
+# Trained models
+*.zip
+ppo_*
+
+# Videos
+*.mp4
+*.avi
+*.gif
+
+# Images
+*.png
+*.jpg
+!performance_comparison.png
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Training logs
+logs/
+tensorboard/
+*.log
+
+# Temporary files
+*.tmp
+*.swp
+*~

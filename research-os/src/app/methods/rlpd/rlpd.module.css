@@ -1,0 +1,406 @@
+/* ===== Page Title ===== */
+.title {
+  text-align: center;
+  font-size: 2.2rem;
+  margin-bottom: 8px;
+  background: linear-gradient(90deg, #10b981, #f59e0b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.subtitle {
+  text-align: center;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+  font-size: 1rem;
+}
+
+.linkRow {
+  text-align: center;
+  margin-bottom: 20px;
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+}
+
+.paperLink {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.85rem;
+  transition: color 0.2s;
+}
+
+.paperLink:hover {
+  color: var(--text-primary);
+}
+
+/* ===== Pipeline SVG ===== */
+.pipelineSvg {
+  width: 100%;
+  height: 320px;
+}
+
+.pipelineStage {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.pipelineStage:hover {
+  filter: brightness(1.2);
+}
+
+.pipelineStageActive {
+  filter: drop-shadow(0 0 15px currentColor);
+}
+
+/* ===== Canvas ===== */
+.vizCanvas {
+  width: 100%;
+  height: 340px;
+  display: block;
+}
+
+.vizCanvasTall {
+  width: 100%;
+  height: 420px;
+  display: block;
+}
+
+/* ===== Slider ===== */
+.sliderContainer {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin: 15px 0;
+}
+
+.sliderContainer label {
+  font-size: 0.9rem;
+  min-width: 140px;
+}
+
+.slider {
+  flex: 1;
+  -webkit-appearance: none;
+  height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #10b981, #f59e0b);
+  outline: none;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.sliderValue {
+  font-family: monospace;
+  font-size: 1rem;
+  color: #10b981;
+  min-width: 50px;
+}
+
+/* ===== Metrics Row ===== */
+.metricsRow {
+  display: flex;
+  justify-content: space-around;
+  padding: 15px;
+  background: var(--bg-hover);
+  border-radius: 10px;
+  margin-top: 10px;
+}
+
+.metric {
+  text-align: center;
+}
+
+.metricValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-family: monospace;
+}
+
+.metricLabel {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+/* ===== Toggle Buttons ===== */
+.toggleBtns {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.toggleBtn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.toggleBtnActive {
+  composes: toggleBtn;
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.toggleBtn:hover {
+  background: var(--bg-elevated);
+}
+
+/* ===== Comparison Table ===== */
+.comparisonTable {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.85rem;
+}
+
+.comparisonTable th {
+  background: var(--bg-hover);
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-default);
+}
+
+.comparisonTable th:first-child {
+  border-radius: 8px 0 0 0;
+}
+
+.comparisonTable th:last-child {
+  border-radius: 0 8px 0 0;
+}
+
+.comparisonTable td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+}
+
+.comparisonTable tr:last-child td:first-child {
+  border-radius: 0 0 0 8px;
+}
+
+.comparisonTable tr:last-child td:last-child {
+  border-radius: 0 0 8px 0;
+}
+
+.comparisonTable tr:hover td {
+  background: var(--bg-hover);
+}
+
+.cellGreen {
+  color: #10b981;
+  font-weight: 600;
+}
+
+.cellRed {
+  color: #ef4444;
+}
+
+.cellAmber {
+  color: #f59e0b;
+}
+
+/* ===== Benchmark Bars ===== */
+.comparisonContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.comparisonRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.comparisonLabel {
+  font-size: 0.85rem;
+  min-width: 110px;
+}
+
+.comparisonBarTrack {
+  flex: 1;
+  height: 24px;
+  background: var(--bg-hover);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.comparisonBarFill {
+  height: 100%;
+  border-radius: 12px;
+  transition: width 0.5s ease;
+}
+
+.comparisonValue {
+  font-family: monospace;
+  font-size: 0.85rem;
+  min-width: 60px;
+  text-align: right;
+}
+
+/* ===== Annotation ===== */
+.annotationCallout {
+  background: rgba(16, 185, 129, 0.08);
+  border-left: 3px solid #10b981;
+  border-radius: 0 8px 8px 0;
+  padding: 12px 16px;
+  margin: 12px 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.annotationCallout strong {
+  color: #10b981;
+}
+
+/* ===== Algorithm / Pseudocode ===== */
+.pseudocode {
+  background: var(--bg-hover);
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  padding: 20px;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 0.82rem;
+  line-height: 1.7;
+  color: var(--text-primary);
+  overflow-x: auto;
+}
+
+.pseudocode .keyword {
+  color: var(--accent-secondary);
+  font-weight: 600;
+}
+
+.pseudocode .comment {
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.pseudocode .highlight {
+  color: #10b981;
+  font-weight: 600;
+}
+
+.pseudocode .param {
+  color: #f59e0b;
+}
+
+.pseudocode .func {
+  color: #3b82f6;
+}
+
+/* ===== Model Components ===== */
+.modelEquations {
+  display: grid;
+  gap: 15px;
+}
+
+.modelItem {
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  padding: 15px;
+  transition: all 0.3s ease;
+}
+
+.modelItemHeader {
+  font-size: 0.95rem;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modelDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.modelItemNote {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-top: 8px;
+}
+
+/* ===== Note text ===== */
+.vizNote {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-top: 10px;
+}
+
+/* ===== Domain Info ===== */
+.domainInfo {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+/* ===== Env Choices Table ===== */
+.envChoicesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.envChoice {
+  background: var(--bg-hover);
+  border-radius: 10px;
+  padding: 14px;
+  border: 1px solid var(--border-default);
+}
+
+.envChoiceTitle {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text-heading);
+}
+
+.envChoiceDetail {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.envChoiceDetail span {
+  display: block;
+  margin-bottom: 3px;
+}
+
+.envChoiceHighlight {
+  color: #10b981;
+  font-weight: 600;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 1000px) {
+  .envChoicesGrid {
+    grid-template-columns: 1fr;
+  }
+}

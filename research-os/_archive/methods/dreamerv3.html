@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <title>DreamerV3 - ML Method Visualizations</title>
+    <link rel="stylesheet" href="../css/sidebar.css">
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+            }
+        };
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js" async></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #e8e8e8;
+        }
+
+        .main-content {
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.2rem;
+            margin-bottom: 8px;
+            background: linear-gradient(90deg, #00d9ff, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        /* Core Ideas */
+        .key-ideas {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .idea {
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .idea:hover {
+            background: rgba(0,0,0,0.4);
+        }
+
+        .idea.active {
+            border-color: #00d9ff;
+            background: rgba(0, 217, 255, 0.1);
+        }
+
+        .idea-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+
+        .idea h4 {
+            font-size: 1rem;
+            margin-bottom: 8px;
+        }
+
+        .idea p {
+            font-size: 0.8rem;
+            color: #888;
+            line-height: 1.4;
+        }
+
+        .info-panel {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 15px;
+            min-height: 100px;
+        }
+
+        .info-panel h4 {
+            color: #00d9ff;
+            margin-bottom: 8px;
+        }
+
+        .info-panel p {
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: #aaa;
+        }
+
+        .formula {
+            background: rgba(168, 85, 247, 0.1);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            margin: 10px 0;
+            font-size: 1rem;
+            text-align: center;
+            color: #e0e0e0;
+        }
+
+        /* Pipeline SVG */
+        .pipeline-svg {
+            width: 100%;
+            height: 380px;
+        }
+
+        .pipeline-stage {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .pipeline-stage:hover {
+            filter: brightness(1.2);
+        }
+
+        .pipeline-stage.active {
+            filter: drop-shadow(0 0 15px currentColor);
+        }
+
+        .flow-arrow {
+            stroke-dasharray: 8 4;
+            animation: flowDash 1s linear infinite;
+        }
+
+        @keyframes flowDash {
+            to { stroke-dashoffset: -12; }
+        }
+
+        /* Model Components */
+        .model-equations {
+            display: grid;
+            gap: 15px;
+        }
+
+        .model-item {
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .model-item:hover {
+            background: rgba(0,0,0,0.4);
+        }
+
+        .model-item.active {
+            border-color: #a855f7;
+        }
+
+        .model-item h4 {
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .model-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        /* Canvas */
+        .canvas-container {
+            position: relative;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        .symlog-canvas {
+            width: 100%;
+            height: 280px;
+        }
+
+        /* Slider */
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .slider-container label {
+            font-size: 0.9rem;
+            min-width: 120px;
+        }
+
+        .slider {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 8px;
+            border-radius: 4px;
+            background: linear-gradient(90deg, #3b82f6, #a855f7);
+            outline: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #fff;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        .slider-value {
+            font-family: monospace;
+            font-size: 1rem;
+            color: #00d9ff;
+            min-width: 50px;
+        }
+
+        /* Comparison Bars */
+        .comparison-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .comparison-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .comparison-label {
+            font-size: 0.85rem;
+            min-width: 100px;
+        }
+
+        .comparison-bar-track {
+            flex: 1;
+            height: 24px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .comparison-bar-fill {
+            height: 100%;
+            border-radius: 12px;
+            transition: width 0.5s ease;
+        }
+
+        .comparison-value {
+            font-family: monospace;
+            font-size: 0.85rem;
+            min-width: 60px;
+            text-align: right;
+        }
+
+        /* Key Features */
+        .key-features {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .feature {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .feature-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .feature h4 {
+            font-size: 0.95rem;
+            margin-bottom: 5px;
+        }
+
+        .feature p {
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        /* Toggle buttons */
+        .toggle-btns {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .toggle-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(0,0,0,0.3);
+            color: #aaa;
+        }
+
+        .toggle-btn.active {
+            border-color: #00d9ff;
+            background: rgba(0, 217, 255, 0.1);
+            color: #00d9ff;
+        }
+
+        .toggle-btn:hover {
+            background: rgba(0,0,0,0.5);
+        }
+
+        /* Metrics row */
+        .metrics-row {
+            display: flex;
+            justify-content: space-around;
+            padding: 15px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+
+        .metric {
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            font-family: monospace;
+        }
+
+        .metric-label {
+            font-size: 0.75rem;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        @media (max-width: 1000px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            .key-ideas {
+                grid-template-columns: 1fr;
+            }
+            .key-features {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding-top: 70px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Menu Button -->
+    <button class="mobile-menu-btn" aria-label="Toggle menu">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+    </button>
+
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <button class="sidebar-toggle" aria-label="Toggle sidebar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+        </button>
+
+        <div class="sidebar-header">
+            <div class="sidebar-logo">📊</div>
+            <div class="sidebar-title">
+                <h1>ML Methods</h1>
+                <span>Interactive Visualizations</span>
+            </div>
+        </div>
+
+        <div class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Overview</div>
+                <ul class="nav-items">
+                    <li class="nav-item">
+                        <a href="../index.html" class="nav-link" data-tooltip="Home">
+                            <div class="nav-icon other">🏠</div>
+                            <div class="nav-text">
+                                <span>Home</span>
+                                <span>All methods overview</span>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Standard RL</div>
+                <ul class="nav-items">
+                    <li class="nav-item">
+                        <a href="sac.html" class="nav-link" data-tooltip="SAC">
+                            <div class="nav-icon rl">🎯</div>
+                            <div class="nav-text">
+                                <span>SAC</span>
+                                <span>Soft Actor-Critic</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="rlhf.html" class="nav-link" data-tooltip="RLHF">
+                            <div class="nav-icon rl">👤</div>
+                            <div class="nav-text">
+                                <span>RLHF</span>
+                                <span>RL from Human Feedback</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="cql.html" class="nav-link" data-tooltip="CQL">
+                            <div class="nav-icon rl">🛡️</div>
+                            <div class="nav-text">
+                                <span>CQL</span>
+                                <span>Conservative Q-Learning</span>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">World Models</div>
+                <ul class="nav-items">
+                    <li class="nav-item">
+                        <a href="world-models.html" class="nav-link" data-tooltip="World Models">
+                            <div class="nav-icon wm">🧠</div>
+                            <div class="nav-text">
+                                <span>World Models</span>
+                                <span>Ha & Schmidhuber</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="planet.html" class="nav-link" data-tooltip="PlaNet">
+                            <div class="nav-icon wm">🪐</div>
+                            <div class="nav-text">
+                                <span>PlaNet</span>
+                                <span>Latent Dynamics Planning</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="dreamer.html" class="nav-link" data-tooltip="Dreamer">
+                            <div class="nav-icon wm">💭</div>
+                            <div class="nav-text">
+                                <span>Dreamer</span>
+                                <span>Latent Imagination</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="dreamerv2.html" class="nav-link" data-tooltip="DreamerV2">
+                            <div class="nav-icon wm">🎲</div>
+                            <div class="nav-text">
+                                <span>DreamerV2</span>
+                                <span>Discrete World Models</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="dreamerv3.html" class="nav-link" data-tooltip="DreamerV3">
+                            <div class="nav-icon wm">🌐</div>
+                            <div class="nav-text">
+                                <span>DreamerV3</span>
+                                <span>Diverse Domains</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="vjepa.html" class="nav-link" data-tooltip="V-JEPA">
+                            <div class="nav-icon wm">🎬</div>
+                            <div class="nav-text">
+                                <span>V-JEPA</span>
+                                <span>Feature Prediction</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="vjepa2.html" class="nav-link" data-tooltip="V-JEPA 2">
+                            <div class="nav-icon wm">🤖</div>
+                            <div class="nav-text">
+                                <span>V-JEPA 2</span>
+                                <span>Understanding & Planning</span>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">Robotics Concepts</div>
+                <ul class="nav-items">
+                    <li class="nav-item">
+                        <a href="robot-controllers.html" class="nav-link" data-tooltip="Controllers">
+                            <div class="nav-icon" style="background: linear-gradient(135deg, #f59e0b, #ef4444);">🦾</div>
+                            <div class="nav-text">
+                                <span>Controllers</span>
+                                <span>Impedance, Stiffness & Contact</span>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+            <span>Press <kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">Ctrl+B</kbd> to toggle</span>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <h1>DreamerV3</h1>
+            <p class="subtitle">Mastering Diverse Domains through World Models &mdash; Hafner, Pasukonis, Ba, Lillicrap &middot; 2023</p>
+            <div style="text-align: center; margin-bottom: 20px;">
+                <a href="https://danijar.com/dreamerv3" target="_blank" style="color: #888; text-decoration: none; font-size: 0.85rem; transition: color 0.2s;">
+                    <span style="margin-right: 5px;">🔗</span> danijar.com/dreamerv3
+                </a>
+            </div>
+
+            <!-- Three Core Ideas -->
+            <div class="card" style="margin-bottom: 20px;">
+                <div class="card-title">
+                    <div class="icon" style="background: linear-gradient(135deg, #00d9ff, #0099cc);">💡</div>
+                    Core Ideas
+                </div>
+                <div class="key-ideas">
+                    <div class="idea" data-idea="1">
+                        <div class="idea-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">📊</div>
+                        <h4>Symlog Predictions</h4>
+                        <p>Transform targets with symlog(x) = sign(x)&middot;ln(|x|+1) to handle vastly different reward scales without domain-specific tuning</p>
+                    </div>
+                    <div class="idea" data-idea="2">
+                        <div class="idea-icon" style="background: linear-gradient(135deg, #a855f7, #7c3aed);">🔧</div>
+                        <h4>Fixed Hyperparameters</h4>
+                        <p>Single configuration works across 150+ tasks in 8 diverse domains &mdash; no tuning needed for new problems</p>
+                    </div>
+                    <div class="idea" data-idea="3">
+                        <div class="idea-icon" style="background: linear-gradient(135deg, #10b981, #059669);">📐</div>
+                        <h4>Return Normalization &amp; Free Bits</h4>
+                        <p>Percentile-based return normalization (5th-95th) for scale-invariant actor loss; free bits clip KL below 1 nat to prevent collapse</p>
+                    </div>
+                </div>
+                <div class="info-panel" id="idea-info" style="display: none;">
+                </div>
+            </div>
+
+            <div class="main-grid">
+                <!-- World Model Components -->
+                <div class="card">
+                    <div class="card-title">
+                        <div class="icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">🧩</div>
+                        World Model Components (RSSM V3)
+                    </div>
+                    <div class="model-equations">
+                        <div class="model-item" data-model="sequence">
+                            <h4><span class="model-dot" style="background: #3b82f6;"></span>Sequence Model</h4>
+                            <div class="formula">
+                                \( h_t = f_\phi(h_{t-1}, z_{t-1}, a_{t-1}) \)
+                            </div>
+                            <p style="font-size: 0.8rem; color: #888; margin-top: 8px;">Deterministic recurrent backbone (GRU) that maintains temporal context across steps</p>
+                        </div>
+                        <div class="model-item" data-model="encoder">
+                            <h4><span class="model-dot" style="background: #10b981;"></span>Encoder</h4>
+                            <div class="formula">
+                                \( z_t \sim q_\phi(z_t \mid h_t, x_t) \)
+                            </div>
+                            <p style="font-size: 0.8rem; color: #888; margin-top: 8px;">Posterior over discrete categorical latents given recurrent state and observation</p>
+                        </div>
+                        <div class="model-item" data-model="dynamics">
+                            <h4><span class="model-dot" style="background: #a855f7;"></span>Dynamics Predictor</h4>
+                            <div class="formula">
+                                \( \hat{z}_t \sim p_\phi(\hat{z}_t \mid h_t) \)
+                            </div>
+                            <p style="font-size: 0.8rem; color: #888; margin-top: 8px;">Prior that predicts latent state without observation &mdash; enables imagination</p>
+                        </div>
+                        <div class="model-item" data-model="reward">
+                            <h4><span class="model-dot" style="background: #ef4444;"></span>Reward Predictor</h4>
+                            <div class="formula">
+                                \( \hat{r}_t \sim p_\phi(\hat{r}_t \mid h_t, z_t) \) &nbsp; <span style="font-size: 0.8rem; color: #f59e0b;">[symlog squared loss]</span>
+                            </div>
+                            <p style="font-size: 0.8rem; color: #888; margin-top: 8px;">Predicts rewards in symlog space for scale-invariant learning across domains</p>
+                        </div>
+                        <div class="model-item" data-model="continue">
+                            <h4><span class="model-dot" style="background: #f59e0b;"></span>Continue Predictor</h4>
+                            <div class="formula">
+                                \( \hat{c}_t \sim p_\phi(\hat{c}_t \mid h_t, z_t) \) &nbsp; <span style="font-size: 0.8rem; color: #888;">[Bernoulli]</span>
+                            </div>
+                            <p style="font-size: 0.8rem; color: #888; margin-top: 8px;">Predicts episode continuation probability for proper discounting</p>
+                        </div>
+                        <div class="model-item" data-model="decoder">
+                            <h4><span class="model-dot" style="background: #00d9ff;"></span>Decoder</h4>
+                            <div class="formula">
+                                \( \hat{x}_t \sim p_\phi(\hat{x}_t \mid h_t, z_t) \) &nbsp; <span style="font-size: 0.8rem; color: #f59e0b;">[symlog squared loss]</span>
+                            </div>
+                            <p style="font-size: 0.8rem; color: #888; margin-top: 8px;">Reconstructs observations in symlog space &mdash; provides learning signal for the latent space</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DreamerV3 Architecture SVG -->
+                <div class="card">
+                    <div class="card-title">
+                        <div class="icon" style="background: linear-gradient(135deg, #10b981, #059669);">🏗️</div>
+                        DreamerV3 Architecture
+                    </div>
+                    <svg class="pipeline-svg" viewBox="0 0 500 380">
+                        <!-- World Model Section -->
+                        <text x="130" y="15" text-anchor="middle" fill="#f59e0b" font-size="10" font-weight="bold">World Model (symlog heads)</text>
+
+                        <!-- RSSM -->
+                        <rect x="20" y="25" width="90" height="50" rx="8" fill="rgba(245,158,11,0.3)" stroke="#f59e0b" stroke-width="2" class="pipeline-stage" data-component="rssm"/>
+                        <text x="65" y="45" text-anchor="middle" fill="#f59e0b" font-size="9" font-weight="bold">RSSM</text>
+                        <text x="65" y="57" text-anchor="middle" fill="#888" font-size="7">h_t, z_t (categorical)</text>
+
+                        <!-- Symlog Heads -->
+                        <rect x="130" y="25" width="75" height="22" rx="6" fill="rgba(239,68,68,0.2)" stroke="#ef4444" stroke-width="1.5" class="pipeline-stage" data-component="reward_head"/>
+                        <text x="167" y="40" text-anchor="middle" fill="#ef4444" font-size="8" font-weight="bold">Reward (symlog)</text>
+
+                        <rect x="130" y="52" width="75" height="22" rx="6" fill="rgba(0,217,255,0.2)" stroke="#00d9ff" stroke-width="1.5" class="pipeline-stage" data-component="decoder_head"/>
+                        <text x="167" y="67" text-anchor="middle" fill="#00d9ff" font-size="8" font-weight="bold">Decoder (symlog)</text>
+
+                        <rect x="215" y="25" width="75" height="22" rx="6" fill="rgba(245,158,11,0.2)" stroke="#f59e0b" stroke-width="1.5" class="pipeline-stage" data-component="continue_head"/>
+                        <text x="252" y="40" text-anchor="middle" fill="#f59e0b" font-size="8" font-weight="bold">Continue (Bern.)</text>
+
+                        <!-- Arrows RSSM to heads -->
+                        <path d="M 110 40 L 128 40" stroke="#ef4444" stroke-width="1.5" fill="none" marker-end="url(#arrowRed)"/>
+                        <path d="M 110 55 L 128 60" stroke="#00d9ff" stroke-width="1.5" fill="none" marker-end="url(#arrowCyan)"/>
+                        <path d="M 110 38 L 213 36" stroke="#f59e0b" stroke-width="1.5" fill="none" marker-end="url(#arrowOrange)"/>
+
+                        <!-- Three Losses -->
+                        <text x="250" y="95" text-anchor="middle" fill="#888" font-size="9" font-weight="bold">Three Separate Losses</text>
+
+                        <rect x="20" y="105" width="130" height="35" rx="8" fill="rgba(16,185,129,0.15)" stroke="#10b981" stroke-width="1.5" class="pipeline-stage" data-component="loss_pred"/>
+                        <text x="85" y="118" text-anchor="middle" fill="#10b981" font-size="8" font-weight="bold">L_pred (&beta;=1)</text>
+                        <text x="85" y="130" text-anchor="middle" fill="#888" font-size="7">Reconstruction + Reward + Continue</text>
+
+                        <rect x="160" y="105" width="130" height="35" rx="8" fill="rgba(168,85,247,0.15)" stroke="#a855f7" stroke-width="1.5" class="pipeline-stage" data-component="loss_dyn"/>
+                        <text x="225" y="118" text-anchor="middle" fill="#a855f7" font-size="8" font-weight="bold">L_dyn (&beta;=1)</text>
+                        <text x="225" y="130" text-anchor="middle" fill="#888" font-size="7">max(1, KL[sg(post)||prior])</text>
+
+                        <rect x="300" y="105" width="130" height="35" rx="8" fill="rgba(59,130,246,0.15)" stroke="#3b82f6" stroke-width="1.5" class="pipeline-stage" data-component="loss_rep"/>
+                        <text x="365" y="118" text-anchor="middle" fill="#3b82f6" font-size="8" font-weight="bold">L_rep (&beta;=0.1)</text>
+                        <text x="365" y="130" text-anchor="middle" fill="#888" font-size="7">max(1, KL[post||sg(prior)])</text>
+
+                        <!-- Free Bits indicator -->
+                        <rect x="170" y="145" width="250" height="22" rx="6" fill="rgba(245,158,11,0.1)" stroke="#f59e0b" stroke-width="1" stroke-dasharray="4"/>
+                        <text x="295" y="159" text-anchor="middle" fill="#f59e0b" font-size="8">Free Bits: KL clipped below 1 nat</text>
+
+                        <!-- Behavior Learning Section -->
+                        <text x="250" y="185" text-anchor="middle" fill="#a855f7" font-size="10" font-weight="bold">Behavior Learning in Imagination</text>
+
+                        <!-- Imagined Trajectories -->
+                        <ellipse cx="130" cy="215" rx="100" ry="28" fill="rgba(168,85,247,0.15)" stroke="#a855f7" stroke-width="2" stroke-dasharray="4" class="pipeline-stage" data-component="imagination"/>
+                        <text x="130" y="212" text-anchor="middle" fill="#a855f7" font-size="9" font-weight="bold">Imagined Trajectories</text>
+                        <text x="130" y="225" text-anchor="middle" fill="#888" font-size="7">Latent rollouts H=15 steps</text>
+
+                        <!-- Actor -->
+                        <rect x="260" y="195" width="100" height="45" rx="8" fill="#10b981" class="pipeline-stage" data-component="actor"/>
+                        <text x="310" y="213" text-anchor="middle" fill="white" font-size="9" font-weight="bold">Actor</text>
+                        <text x="310" y="228" text-anchor="middle" fill="white" font-size="7">&pi;_&theta;(a_t | s_t)</text>
+
+                        <!-- Critic -->
+                        <rect x="380" y="195" width="100" height="45" rx="8" fill="rgba(168,85,247,0.3)" stroke="#a855f7" stroke-width="2" class="pipeline-stage" data-component="critic"/>
+                        <text x="430" y="213" text-anchor="middle" fill="#a855f7" font-size="9" font-weight="bold">Critic (twohot)</text>
+                        <text x="430" y="228" text-anchor="middle" fill="#888" font-size="7">v_&psi;(s_t) over symexp bins</text>
+
+                        <!-- Arrows -->
+                        <path d="M 230 215 L 258 215" stroke="#10b981" stroke-width="2" fill="none" marker-end="url(#arrowGreen)" class="flow-arrow"/>
+                        <path d="M 360 217 L 378 217" stroke="#a855f7" stroke-width="2" fill="none" marker-end="url(#arrowPurple)"/>
+
+                        <!-- Return Normalization -->
+                        <rect x="260" y="255" width="220" height="35" rx="8" fill="rgba(0,217,255,0.15)" stroke="#00d9ff" stroke-width="2" class="pipeline-stage" data-component="return_norm"/>
+                        <text x="370" y="270" text-anchor="middle" fill="#00d9ff" font-size="8" font-weight="bold">Return Normalization</text>
+                        <text x="370" y="282" text-anchor="middle" fill="#888" font-size="7">S = EMA(Per(R^&lambda;,95) - Per(R^&lambda;,5))</text>
+
+                        <path d="M 310 240 L 330 253" stroke="#00d9ff" stroke-width="1.5" fill="none" marker-end="url(#arrowCyan)"/>
+                        <path d="M 430 240 L 410 253" stroke="#00d9ff" stroke-width="1.5" fill="none" marker-end="url(#arrowCyan)"/>
+
+                        <!-- Environment Loop -->
+                        <text x="80" y="275" text-anchor="middle" fill="#00d9ff" font-size="10" font-weight="bold">Environment</text>
+
+                        <rect x="20" y="285" width="120" height="45" rx="8" fill="rgba(0,217,255,0.2)" stroke="#00d9ff" stroke-width="2" class="pipeline-stage" data-component="env"/>
+                        <text x="80" y="303" text-anchor="middle" fill="#00d9ff" font-size="9" font-weight="bold">8 Domains</text>
+                        <text x="80" y="318" text-anchor="middle" fill="#888" font-size="7">150+ tasks, same config</text>
+
+                        <!-- Scaling -->
+                        <rect x="260" y="305" width="220" height="35" rx="8" fill="rgba(168,85,247,0.1)" stroke="#a855f7" stroke-width="1" class="pipeline-stage" data-component="scaling"/>
+                        <text x="370" y="318" text-anchor="middle" fill="#a855f7" font-size="8" font-weight="bold">Model Scaling: 12M &rarr; 400M params</text>
+                        <text x="370" y="330" text-anchor="middle" fill="#888" font-size="7">Larger models = better + less data</text>
+
+                        <!-- Loop arrows -->
+                        <path d="M 140 307 Q 200 307 258 270" stroke="#10b981" stroke-width="2" fill="none" marker-end="url(#arrowGreen)" stroke-dasharray="6"/>
+                        <text x="200" y="300" fill="#888" font-size="7">actions</text>
+
+                        <path d="M 60 285 Q 55 265 55 248" stroke="#f59e0b" stroke-width="2" fill="none" marker-end="url(#arrowOrange)" stroke-dasharray="6"/>
+                        <text x="30" y="268" fill="#888" font-size="7">data</text>
+
+                        <!-- Training Objectives Summary -->
+                        <rect x="20" y="345" width="460" height="28" rx="8" fill="rgba(168,85,247,0.1)" stroke="#a855f7" stroke-width="1"/>
+                        <text x="250" y="363" text-anchor="middle" fill="#a855f7" font-size="9" font-weight="bold">L(&phi;) = &beta;_pred&middot;L_pred + &beta;_dyn&middot;L_dyn + &beta;_rep&middot;L_rep &nbsp;&nbsp;|&nbsp;&nbsp; Actor: REINFORCE + return norm &nbsp;&nbsp;|&nbsp;&nbsp; Critic: twohot + symexp</text>
+
+                        <!-- Arrow Markers -->
+                        <defs>
+                            <marker id="arrowCyan" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#00d9ff"/>
+                            </marker>
+                            <marker id="arrowBlue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#3b82f6"/>
+                            </marker>
+                            <marker id="arrowOrange" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#f59e0b"/>
+                            </marker>
+                            <marker id="arrowGreen" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#10b981"/>
+                            </marker>
+                            <marker id="arrowPurple" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#a855f7"/>
+                            </marker>
+                            <marker id="arrowGray" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#888"/>
+                            </marker>
+                            <marker id="arrowRed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#ef4444"/>
+                            </marker>
+                        </defs>
+                    </svg>
+
+                    <div class="info-panel" id="component-info" style="display: none;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Symlog Transform + Multi-Domain Benchmark -->
+            <div class="main-grid">
+                <!-- Interactive Symlog Transform -->
+                <div class="card">
+                    <div class="card-title">
+                        <div class="icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">📊</div>
+                        Symlog Transform
+                    </div>
+                    <div class="slider-container">
+                        <label>Input x:</label>
+                        <input type="range" class="slider" id="symlogSlider" min="-1000" max="1000" step="1" value="100">
+                        <span class="slider-value" id="symlogInputValue">100</span>
+                    </div>
+                    <div class="canvas-container">
+                        <canvas class="symlog-canvas" id="symlogCanvas"></canvas>
+                    </div>
+                    <div class="metrics-row">
+                        <div class="metric">
+                            <div class="metric-value" id="metricRawX" style="color: #888;">100</div>
+                            <div class="metric-label">Raw x</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value" id="metricSymlogX" style="color: #3b82f6;">4.62</div>
+                            <div class="metric-label">symlog(x)</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value" id="metricCompression" style="color: #10b981;">21.6x</div>
+                            <div class="metric-label">Compression</div>
+                        </div>
+                    </div>
+                    <p style="font-size: 0.85rem; color: #888; text-align: center; margin-top: 10px;">
+                        symlog(x) = sign(x)&middot;ln(|x|+1) compresses large values while preserving sign and approximating identity near zero.
+                    </p>
+                </div>
+
+                <!-- Multi-Domain Benchmark -->
+                <div class="card">
+                    <div class="card-title">
+                        <div class="icon" style="background: linear-gradient(135deg, #a855f7, #7c3aed);">🏆</div>
+                        Multi-Domain Benchmark
+                    </div>
+                    <div class="comparison-container">
+                        <div class="toggle-btns" id="domainBtns">
+                            <button class="toggle-btn active" data-domain="atari">Atari</button>
+                            <button class="toggle-btn" data-domain="procgen">ProcGen</button>
+                            <button class="toggle-btn" data-domain="dmlab">DMLab</button>
+                            <button class="toggle-btn" data-domain="minecraft">Minecraft</button>
+                            <button class="toggle-btn" data-domain="atari100k">Atari100k</button>
+                            <button class="toggle-btn" data-domain="proprio">Proprio</button>
+                            <button class="toggle-btn" data-domain="visual">Visual</button>
+                            <button class="toggle-btn" data-domain="bsuite">BSuite</button>
+                        </div>
+                        <div id="domainInfo" style="font-size: 0.8rem; color: #888; text-align: center; margin-bottom: 8px;"></div>
+                        <div id="benchmarkBars"></div>
+                        <p style="font-size: 0.8rem; color: #888; margin-top: 10px; text-align: center;">
+                            Same hyperparameters across all 8 domains. DreamerV3 matches or exceeds domain-specialized expert algorithms.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Training Objectives -->
+            <div class="card" style="margin-bottom: 20px;">
+                <div class="card-title">
+                    <div class="icon" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">📐</div>
+                    Training Objectives
+                </div>
+                <div class="model-equations">
+                    <div class="model-item" data-loss="world">
+                        <h4><span class="model-dot" style="background: #f59e0b;"></span>World Model (Three Separate Losses)</h4>
+                        <div class="formula">
+                            \( \mathcal{L}(\phi) = \mathbb{E}\left[\sum_t \beta_{\text{pred}} \cdot \mathcal{L}_{\text{pred}} + \beta_{\text{dyn}} \cdot \mathcal{L}_{\text{dyn}} + \beta_{\text{rep}} \cdot \mathcal{L}_{\text{rep}}\right] \)
+                        </div>
+                        <div class="formula" style="font-size: 0.85rem;">
+                            \( \mathcal{L}_{\text{pred}} = -\ln p(x_t | z_t, h_t) - \ln p(r_t | z_t, h_t) - \ln p(c_t | z_t, h_t) \)
+                        </div>
+                        <div class="formula" style="font-size: 0.85rem;">
+                            \( \mathcal{L}_{\text{dyn}} = \max\!\big(1,\; \text{KL}[\,\text{sg}(q(z_t|h_t,x_t)) \,\|\, p(z_t|h_t)\,]\big) \) &nbsp; &larr; free bits
+                        </div>
+                        <div class="formula" style="font-size: 0.85rem;">
+                            \( \mathcal{L}_{\text{rep}} = \max\!\big(1,\; \text{KL}[\,q(z_t|h_t,x_t) \,\|\, \text{sg}(p(z_t|h_t))\,]\big) \) &nbsp; &larr; free bits
+                        </div>
+                        <p style="font-size: 0.8rem; color: #888; margin-top: 8px;">&beta;<sub>pred</sub>=1, &beta;<sub>dyn</sub>=1, &beta;<sub>rep</sub>=0.1. Free bits (max with 1 nat) prevent KL from collapsing while focusing capacity on prediction loss.</p>
+                    </div>
+                    <div class="model-item" data-loss="critic">
+                        <h4><span class="model-dot" style="background: #a855f7;"></span>Critic (Distributional with Twohot)</h4>
+                        <div class="formula">
+                            \( \mathcal{L}(\psi) = -\sum_t \ln\, p_\psi\!\left(R^\lambda_t \,\big|\, s_t\right) \)
+                        </div>
+                        <p style="font-size: 0.8rem; color: #888; margin-top: 8px;">Critic outputs a softmax distribution over exponentially-spaced symexp bins. Twohot encoding places probability mass on two adjacent bins. This decouples gradient scale from target magnitude.</p>
+                    </div>
+                    <div class="model-item" data-loss="actor">
+                        <h4><span class="model-dot" style="background: #10b981;"></span>Actor (REINFORCE with Return Normalization)</h4>
+                        <div class="formula">
+                            \( \mathcal{L}(\theta) = -\sum_t \text{sg}\!\left(\frac{R^\lambda_t - v_\psi(s_t)}{\max(1, S)}\right) \cdot \ln \pi_\theta(a_t | s_t) + \eta \cdot H[\pi_\theta(a_t | s_t)] \)
+                        </div>
+                        <div class="formula" style="font-size: 0.85rem;">
+                            \( S = \text{EMA}\!\left(\text{Per}(R^\lambda, 95) - \text{Per}(R^\lambda, 5),\; 0.99\right) \)
+                        </div>
+                        <p style="font-size: 0.8rem; color: #888; margin-top: 8px;">Advantages normalized by 5th-95th percentile range with floor max(1, S) to avoid amplifying noise. Entropy bonus &eta; encourages exploration.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Paper Lineage -->
+            <div class="card" style="margin-bottom: 20px;">
+                <div class="card-title">
+                    <div class="icon" style="background: linear-gradient(135deg, #6366f1, #4f46e5);">🌳</div>
+                    Paper Lineage
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div>
+                        <h4 style="font-size: 0.9rem; color: #f59e0b; margin-bottom: 12px;">Builds On</h4>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #f59e0b;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">DreamerV2</div>
+                                <div style="font-size: 0.75rem; color: #888;">Hafner et al., 2021 &mdash; Discrete categoricals and KL balancing. V3 adds robustness techniques for domain generality.</div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #f59e0b;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">DreamerV1</div>
+                                <div style="font-size: 0.75rem; color: #888;">Hafner et al., 2019 &mdash; Original latent imagination framework with Gaussian latents and dynamics backprop.</div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #f59e0b;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">Symlog Family</div>
+                                <div style="font-size: 0.75rem; color: #888;">Bi-symmetric logarithmic transforms for handling wide value ranges in neural network predictions.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 style="font-size: 0.9rem; color: #10b981; margin-bottom: 12px;">Built Upon By</h4>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #10b981;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">DayDreamer</div>
+                                <div style="font-size: 0.75rem; color: #888;">Wu et al., 2022 &mdash; Real robot learning with the Dreamer framework.</div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #10b981;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">TD-MPC2</div>
+                                <div style="font-size: 0.75rem; color: #888;">Hansen et al., 2024 &mdash; Combines world models with model-predictive control, uses similar multi-domain evaluation.</div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #10b981;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">DIAMOND</div>
+                                <div style="font-size: 0.75rem; color: #888;">Alonso et al., 2024 &mdash; Diffusion world model for Atari, building on Dreamer's latent imagination framework.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Key Features -->
+            <div class="key-features">
+                <div class="feature">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">💎</div>
+                    <h4>Minecraft Diamonds</h4>
+                    <p>First algorithm to collect diamonds in Minecraft from scratch &mdash; no human data, no curricula</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #a855f7, #7c3aed);">🌍</div>
+                    <h4>8 Domains, 150+ Tasks</h4>
+                    <p>Single configuration outperforms domain-specialized expert algorithms across all benchmarks</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #10b981, #059669);">📈</div>
+                    <h4>Predictable Scaling</h4>
+                    <p>Larger models = better performance + less data needed. 12M to 400M parameters scale robustly</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="../js/sidebar.js"></script>
+    <script>
+        // ==================== Key Ideas Interaction ====================
+        const ideaInfo = {
+            1: {
+                title: 'Symlog Predictions: Taming Reward Scale',
+                desc: 'Predicting rewards and returns across domains is challenging because scales vary by orders of magnitude. Squared loss on large targets causes divergence; absolute/Huber losses stagnate; normalizing by running stats introduces non-stationarity. Symlog is a simple solution: symlog(x) = sign(x)\u00b7ln(|x|+1), with inverse symexp(x) = sign(x)\u00b7(exp(|x|)-1). It compresses large values while preserving the sign and approximating identity near zero. Applied to decoder targets, reward predictions, and critic predictions. Combined with twohot encoding over exponentially-spaced bins for the critic, this decouples gradient scale from target magnitude.'
+            },
+            2: {
+                title: 'Fixed Hyperparameters: One Config to Rule Them All',
+                desc: 'Previous RL algorithms require extensive hyperparameter tuning for each new domain. DreamerV3 uses the SAME hyperparameters across: Atari (57 tasks, 200M steps), ProcGen (16 tasks), DMLab (30 tasks), Minecraft (1 task, 100M steps), Atari100k (26 tasks), Proprio Control (18 tasks), Visual Control (20 tasks), and BSuite (23 tasks). This is achieved through robustness techniques: symlog predictions handle different reward scales, free bits prevent KL collapse, return normalization with percentile range makes the actor loss scale-invariant, and separate prediction/dynamics/representation losses with fixed weights (\u03b2_pred=1, \u03b2_dyn=1, \u03b2_rep=0.1).'
+            },
+            3: {
+                title: 'Return Normalization & Free Bits: Robustness by Design',
+                desc: 'Two critical robustness techniques: (1) Return Normalization: Instead of normalizing advantages by standard deviation (which fails for sparse rewards near zero), normalize returns by the range S = EMA(Per(R\u03bb, 95) - Per(R\u03bb, 5), 0.99), with a floor of max(1, S) to avoid amplifying noise. Actor loss: sg((R\u03bb - v(s)) / max(1, S)) \u00b7 log \u03c0(a|s). (2) Free Bits: Clip dynamics and representation KL losses below 1 nat: L_dyn = max(1, KL[sg(posterior) || prior]), L_rep = max(1, KL[posterior || sg(prior)]). This prevents the world model from wasting capacity on already-learned transitions while focusing on the prediction loss. Together these eliminate the need for per-domain tuning.'
+            }
+        };
+
+        document.querySelectorAll('.idea').forEach(idea => {
+            idea.addEventListener('click', function() {
+                document.querySelectorAll('.idea').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                const num = this.dataset.idea;
+                const info = ideaInfo[num];
+                const panel = document.getElementById('idea-info');
+                panel.style.display = 'block';
+                panel.innerHTML = `
+                    <h4>${info.title}</h4>
+                    <p>${info.desc}</p>
+                `;
+            });
+        });
+
+        // ==================== Architecture Interaction ====================
+        const componentInfo = {
+            rssm: {
+                title: 'Recurrent State Space Model (RSSM)',
+                desc: 'The world model combines a deterministic recurrent path (GRU) with stochastic categorical latent variables (32 categoricals with 32 classes each). The RSSM encodes observations into compact latent states and predicts future states without observations. In V3, all prediction heads use symlog-transformed targets for scale invariance.'
+            },
+            reward_head: {
+                title: 'Reward Prediction Head (Symlog)',
+                desc: 'Predicts rewards using symlog squared loss: ||symlog(r) - symlog(r\u0302)||\u00b2. This compresses large rewards logarithmically while preserving small rewards linearly, allowing the same loss function to work across domains with vastly different reward scales (e.g., Atari scores in thousands vs. control rewards in [0,1]).'
+            },
+            decoder_head: {
+                title: 'Decoder Head (Symlog)',
+                desc: 'Reconstructs observations using symlog squared loss on pixel values. The symlog transform prevents the decoder from dominating the gradient when pixel values are large, balancing the learning signal across different observation modalities.'
+            },
+            continue_head: {
+                title: 'Continue Prediction Head',
+                desc: 'Binary classifier predicting episode continuation probability using Bernoulli loss. Used during imagination to properly discount returns at episode boundaries, replacing the need for explicit done signals.'
+            },
+            loss_pred: {
+                title: 'Prediction Loss (L_pred)',
+                desc: 'Sum of reconstruction, reward, and continue losses: L_pred = -ln p(x_t|z_t,h_t) - ln p(r_t|z_t,h_t) - ln p(c_t|z_t,h_t). Weight \u03b2_pred = 1. This is the main learning signal that drives the world model to produce useful latent representations.'
+            },
+            loss_dyn: {
+                title: 'Dynamics Loss (L_dyn) with Free Bits',
+                desc: 'L_dyn = max(1, KL[sg(posterior) || prior]). The stop-gradient on the posterior means this loss only trains the prior (dynamics predictor) to match the posterior. The free bits mechanism (max with 1 nat) prevents the KL from being pushed to zero, which would collapse the latent space. Weight \u03b2_dyn = 1.'
+            },
+            loss_rep: {
+                title: 'Representation Loss (L_rep) with Free Bits',
+                desc: 'L_rep = max(1, KL[posterior || sg(prior)]). The stop-gradient on the prior means this loss only trains the encoder to produce posteriors close to the prior. Weight \u03b2_rep = 0.1 (lower to prioritize prediction). Free bits prevent wasting model capacity on already-learned transitions.'
+            },
+            imagination: {
+                title: 'Imagined Trajectories',
+                desc: 'Starting from encoded real states, the model unrolls the dynamics predictor for H=15 steps using the current actor policy, generating batches of imagined state-action-reward sequences entirely in the latent space. These trajectories are used to compute \u03bb-returns for training both the actor and critic.'
+            },
+            actor: {
+                title: 'Actor with Return Normalization',
+                desc: 'The actor uses REINFORCE with normalized advantages: L(\u03b8) = -sg((R\u03bb - v(s)) / max(1, S)) \u00b7 log \u03c0(a|s) + \u03b7\u00b7H[\u03c0]. The normalization by the 5th-95th percentile range S makes the loss scale-invariant across domains. The entropy bonus \u03b7 encourages exploration. For continuous actions, a tanh-Gaussian is used; for discrete, a categorical.'
+            },
+            critic: {
+                title: 'Distributional Critic with Twohot',
+                desc: 'Instead of regressing a scalar value, the critic outputs a categorical distribution over exponentially-spaced bins in symexp space. The target \u03bb-return is encoded as a twohot vector (probability spread across two adjacent bins). This distributional approach, combined with symlog/symexp transforms, makes the critic robust to different value scales without any domain-specific tuning.'
+            },
+            return_norm: {
+                title: 'Return Normalization',
+                desc: 'Instead of normalizing advantages by standard deviation (which fails for sparse rewards), DreamerV3 normalizes by the 5th-95th percentile range: S = EMA(Per(R\u03bb, 95) - Per(R\u03bb, 5), 0.99). The floor max(1, S) prevents amplifying noise when all returns are similar. This makes the actor loss scale-invariant: the same learning rate works whether rewards are 0.01 or 10,000.'
+            },
+            env: {
+                title: '8 Diverse Domains',
+                desc: 'DreamerV3 is evaluated on 150+ tasks across 8 domains with a single set of hyperparameters: Atari (57 games), ProcGen (16 procedural games), DMLab (30 3D tasks), Minecraft (diamond collection), Atari100k (26 games, 100k steps), Proprio Control (18 tasks), Visual Control (20 tasks), and BSuite (23 diagnostic tasks). This unprecedented breadth demonstrates true generality.'
+            },
+            scaling: {
+                title: 'Predictable Model Scaling',
+                desc: 'DreamerV3 exhibits predictable scaling behavior: larger models (12M to 400M parameters) consistently achieve better performance and require less data to reach the same level. This is analogous to scaling laws observed in language models, suggesting that world model-based RL can benefit from simply increasing compute.'
+            }
+        };
+
+        document.querySelectorAll('.pipeline-stage').forEach(stage => {
+            stage.addEventListener('click', function() {
+                document.querySelectorAll('.pipeline-stage').forEach(s => s.classList.remove('active'));
+                this.classList.add('active');
+                const component = this.dataset.component;
+                if (component && componentInfo[component]) {
+                    const info = componentInfo[component];
+                    const panel = document.getElementById('component-info');
+                    panel.style.display = 'block';
+                    panel.innerHTML = `
+                        <h4>${info.title}</h4>
+                        <p>${info.desc}</p>
+                    `;
+                }
+            });
+        });
+
+        // ==================== Model Item Interaction ====================
+        document.querySelectorAll('.model-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.model-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // ==================== Symlog Transform Canvas ====================
+        const symlogCanvas = document.getElementById('symlogCanvas');
+        const symlogCtx = symlogCanvas.getContext('2d');
+        const symlogSlider = document.getElementById('symlogSlider');
+
+        function symlog(x) {
+            return Math.sign(x) * Math.log(Math.abs(x) + 1);
+        }
+
+        function drawSymlogViz() {
+            const dpr = window.devicePixelRatio || 1;
+            const rect = symlogCanvas.getBoundingClientRect();
+            const w = rect.width, h = rect.height;
+            symlogCanvas.width = w * dpr;
+            symlogCanvas.height = h * dpr;
+            symlogCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+            const pad = { left: 60, right: 20, top: 20, bottom: 40 };
+            const pw = w - pad.left - pad.right;
+            const ph = h - pad.top - pad.bottom;
+
+            const xMin = -1000, xMax = 1000;
+            const yMin = -8, yMax = 8;
+
+            function toCanvasX(val) {
+                return pad.left + ((val - xMin) / (xMax - xMin)) * pw;
+            }
+            function toCanvasY(val) {
+                return h - pad.bottom - ((val - yMin) / (yMax - yMin)) * ph;
+            }
+
+            // Clear
+            symlogCtx.clearRect(0, 0, w, h);
+
+            // Axes
+            symlogCtx.strokeStyle = '#444';
+            symlogCtx.lineWidth = 1;
+            symlogCtx.beginPath();
+            symlogCtx.moveTo(pad.left, pad.top);
+            symlogCtx.lineTo(pad.left, h - pad.bottom);
+            symlogCtx.lineTo(w - pad.right, h - pad.bottom);
+            symlogCtx.stroke();
+
+            // Zero lines
+            symlogCtx.strokeStyle = 'rgba(255,255,255,0.1)';
+            symlogCtx.beginPath();
+            symlogCtx.moveTo(toCanvasX(0), pad.top);
+            symlogCtx.lineTo(toCanvasX(0), h - pad.bottom);
+            symlogCtx.stroke();
+            symlogCtx.beginPath();
+            symlogCtx.moveTo(pad.left, toCanvasY(0));
+            symlogCtx.lineTo(w - pad.right, toCanvasY(0));
+            symlogCtx.stroke();
+
+            // Axis labels
+            symlogCtx.fillStyle = '#888';
+            symlogCtx.font = '11px sans-serif';
+            symlogCtx.textAlign = 'center';
+            symlogCtx.fillText('Input x', w / 2, h - 8);
+
+            symlogCtx.save();
+            symlogCtx.translate(15, h / 2);
+            symlogCtx.rotate(-Math.PI / 2);
+            symlogCtx.fillText('Output', 0, 0);
+            symlogCtx.restore();
+
+            // Y axis labels
+            symlogCtx.textAlign = 'right';
+            symlogCtx.font = '10px sans-serif';
+            for (let y = -8; y <= 8; y += 2) {
+                const cy = toCanvasY(y);
+                symlogCtx.fillStyle = '#555';
+                symlogCtx.fillText(y.toString(), pad.left - 8, cy + 4);
+                symlogCtx.strokeStyle = 'rgba(255,255,255,0.03)';
+                symlogCtx.beginPath();
+                symlogCtx.moveTo(pad.left, cy);
+                symlogCtx.lineTo(w - pad.right, cy);
+                symlogCtx.stroke();
+            }
+
+            // X axis labels
+            symlogCtx.textAlign = 'center';
+            for (let x = -1000; x <= 1000; x += 500) {
+                if (x === 0) continue;
+                const cx = toCanvasX(x);
+                symlogCtx.fillStyle = '#555';
+                symlogCtx.fillText(x.toString(), cx, h - pad.bottom + 15);
+            }
+            symlogCtx.fillText('0', toCanvasX(0), h - pad.bottom + 15);
+
+            const numPoints = 500;
+
+            // Draw identity line (gray dashed) - scaled to fit
+            symlogCtx.beginPath();
+            symlogCtx.strokeStyle = 'rgba(136,136,136,0.4)';
+            symlogCtx.lineWidth = 1.5;
+            symlogCtx.setLineDash([6, 4]);
+            for (let i = 0; i <= numPoints; i++) {
+                const x = xMin + (i / numPoints) * (xMax - xMin);
+                const y = x / 125; // scale identity to fit in view
+                const cx = toCanvasX(x);
+                const cy = toCanvasY(Math.max(yMin, Math.min(yMax, y)));
+                i === 0 ? symlogCtx.moveTo(cx, cy) : symlogCtx.lineTo(cx, cy);
+            }
+            symlogCtx.stroke();
+            symlogCtx.setLineDash([]);
+
+            // Label for identity
+            symlogCtx.fillStyle = 'rgba(136,136,136,0.6)';
+            symlogCtx.font = '9px sans-serif';
+            symlogCtx.textAlign = 'left';
+            symlogCtx.fillText('x/125 (identity scaled)', toCanvasX(600), toCanvasY(5.2));
+
+            // Draw log(|x|+1) (red dashed)
+            symlogCtx.beginPath();
+            symlogCtx.strokeStyle = 'rgba(239,68,68,0.5)';
+            symlogCtx.lineWidth = 1.5;
+            symlogCtx.setLineDash([6, 4]);
+            for (let i = 0; i <= numPoints; i++) {
+                const x = xMin + (i / numPoints) * (xMax - xMin);
+                const y = Math.log(Math.abs(x) + 1); // always positive
+                const cx = toCanvasX(x);
+                const cy = toCanvasY(Math.max(yMin, Math.min(yMax, y)));
+                i === 0 ? symlogCtx.moveTo(cx, cy) : symlogCtx.lineTo(cx, cy);
+            }
+            symlogCtx.stroke();
+            symlogCtx.setLineDash([]);
+
+            // Label for log
+            symlogCtx.fillStyle = 'rgba(239,68,68,0.7)';
+            symlogCtx.font = '9px sans-serif';
+            symlogCtx.fillText('ln(|x|+1)', toCanvasX(650), toCanvasY(7.2));
+
+            // Draw symlog (blue solid - main curve)
+            symlogCtx.beginPath();
+            symlogCtx.strokeStyle = '#3b82f6';
+            symlogCtx.lineWidth = 2.5;
+            for (let i = 0; i <= numPoints; i++) {
+                const x = xMin + (i / numPoints) * (xMax - xMin);
+                const y = symlog(x);
+                const cx = toCanvasX(x);
+                const cy = toCanvasY(Math.max(yMin, Math.min(yMax, y)));
+                i === 0 ? symlogCtx.moveTo(cx, cy) : symlogCtx.lineTo(cx, cy);
+            }
+            symlogCtx.stroke();
+
+            // Label for symlog
+            symlogCtx.fillStyle = '#3b82f6';
+            symlogCtx.font = '10px sans-serif';
+            symlogCtx.fontWeight = 'bold';
+            symlogCtx.fillText('symlog(x)', toCanvasX(650), toCanvasY(6.5) + 30);
+
+            // Current input marker
+            const xVal = parseFloat(symlogSlider.value);
+            const yVal = symlog(xVal);
+            const dotCx = toCanvasX(xVal);
+            const dotCy = toCanvasY(Math.max(yMin, Math.min(yMax, yVal)));
+
+            // Vertical dashed line from x axis
+            symlogCtx.strokeStyle = 'rgba(255,255,255,0.3)';
+            symlogCtx.lineWidth = 1;
+            symlogCtx.setLineDash([4, 4]);
+            symlogCtx.beginPath();
+            symlogCtx.moveTo(dotCx, toCanvasY(0));
+            symlogCtx.lineTo(dotCx, dotCy);
+            symlogCtx.stroke();
+            // Horizontal dashed line to y axis
+            symlogCtx.beginPath();
+            symlogCtx.moveTo(pad.left, dotCy);
+            symlogCtx.lineTo(dotCx, dotCy);
+            symlogCtx.stroke();
+            symlogCtx.setLineDash([]);
+
+            // Dot
+            symlogCtx.beginPath();
+            symlogCtx.arc(dotCx, dotCy, 6, 0, 2 * Math.PI);
+            symlogCtx.fillStyle = '#3b82f6';
+            symlogCtx.fill();
+            symlogCtx.strokeStyle = '#fff';
+            symlogCtx.lineWidth = 2;
+            symlogCtx.stroke();
+
+            // Update metrics
+            document.getElementById('symlogInputValue').textContent = xVal;
+            document.getElementById('metricRawX').textContent = xVal;
+            document.getElementById('metricSymlogX').textContent = yVal.toFixed(2);
+            const compression = Math.abs(xVal) > 1 ? (Math.abs(xVal) / Math.abs(yVal)).toFixed(1) + 'x' : '~1x';
+            document.getElementById('metricCompression').textContent = compression;
+        }
+
+        symlogSlider.addEventListener('input', drawSymlogViz);
+
+        // ==================== Multi-Domain Benchmark ====================
+        const domainData = {
+            atari: {
+                info: 'Atari (57 tasks, 200M steps)',
+                methods: { 'DreamerV3': 900, 'MuZero': 800, 'PPO': 300 },
+                maxVal: 1000
+            },
+            procgen: {
+                info: 'ProcGen (16 tasks)',
+                methods: { 'DreamerV3': 55, 'PPG': 55, 'PPO': 50 },
+                maxVal: 70
+            },
+            dmlab: {
+                info: 'DMLab (30 tasks)',
+                methods: { 'DreamerV3': 65, 'R2D2+': 55, 'IMPALA': 50 },
+                maxVal: 80
+            },
+            minecraft: {
+                info: 'Minecraft (1 task)',
+                methods: { 'DreamerV3': 9, 'IMPALA': 6, 'PPO': 0 },
+                maxVal: 10,
+                labels: { 'DreamerV3': 'Diamond', 'IMPALA': 'Iron Pickaxe', 'PPO': 'Nothing' }
+            },
+            atari100k: {
+                info: 'Atari100k (26 tasks, 100k steps)',
+                methods: { 'DreamerV3': 120, 'EfficientZero': 130, 'PPO': 50 },
+                maxVal: 150
+            },
+            proprio: {
+                info: 'Proprio Control (18 tasks)',
+                methods: { 'DreamerV3': 850, 'D4PG': 700, 'PPO': 500 },
+                maxVal: 1000
+            },
+            visual: {
+                info: 'Visual Control (20 tasks)',
+                methods: { 'DreamerV3': 900, 'DrQ-v2': 750, 'PPO': 500 },
+                maxVal: 1000
+            },
+            bsuite: {
+                info: 'BSuite (23 tasks)',
+                methods: { 'DreamerV3': 65, 'BootDQN': 55, 'PPO': 45 },
+                maxVal: 80
+            }
+        };
+
+        const methodColors = {
+            'DreamerV3': '#a855f7',
+            'MuZero': '#3b82f6',
+            'PPO': '#888',
+            'PPG': '#3b82f6',
+            'R2D2+': '#3b82f6',
+            'IMPALA': '#3b82f6',
+            'EfficientZero': '#3b82f6',
+            'D4PG': '#3b82f6',
+            'DrQ-v2': '#3b82f6',
+            'BootDQN': '#3b82f6'
+        };
+
+        function renderDomainBenchmark(domainKey) {
+            const data = domainData[domainKey];
+            const container = document.getElementById('benchmarkBars');
+            const infoDiv = document.getElementById('domainInfo');
+            infoDiv.textContent = data.info;
+            container.innerHTML = '';
+
+            for (const [method, score] of Object.entries(data.methods)) {
+                const pct = Math.max(score, 0) / data.maxVal * 100;
+                const color = methodColors[method] || '#888';
+                const isDreamer = method === 'DreamerV3';
+                const extraLabel = data.labels && data.labels[method] ? ` (${data.labels[method]})` : '';
+                const row = document.createElement('div');
+                row.className = 'comparison-row';
+                row.innerHTML = `
+                    <span class="comparison-label" style="color: ${color}; font-weight: ${isDreamer ? '700' : '400'};">${method}</span>
+                    <div class="comparison-bar-track">
+                        <div class="comparison-bar-fill" style="width: ${pct}%; background: ${color}; opacity: ${isDreamer ? 1 : 0.7};"></div>
+                    </div>
+                    <span class="comparison-value" style="color: ${color};">${score}${extraLabel}</span>
+                `;
+                container.appendChild(row);
+            }
+        }
+
+        document.getElementById('domainBtns').addEventListener('click', function(e) {
+            const btn = e.target.closest('.toggle-btn');
+            if (!btn) return;
+            document.querySelectorAll('#domainBtns .toggle-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderDomainBenchmark(btn.dataset.domain);
+        });
+
+        // ==================== Initialize ====================
+        window.addEventListener('resize', drawSymlogViz);
+
+        setTimeout(() => {
+            drawSymlogViz();
+            renderDomainBenchmark('atari');
+        }, 100);
+    </script>
+</body>
+</html>

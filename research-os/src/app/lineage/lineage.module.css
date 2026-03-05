@@ -1,0 +1,240 @@
+/* ─── Page wrapper ─── */
+.page {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.page h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-heading);
+  letter-spacing: -0.02em;
+  margin-bottom: 6px;
+}
+
+.subtitle {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin-bottom: 32px;
+}
+
+/* ─── Graph container ─── */
+.graphWrapper {
+  position: relative;
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  background: var(--bg-surface);
+  overflow: hidden;
+}
+
+.svgCanvas {
+  display: block;
+  width: 100%;
+  cursor: grab;
+}
+
+.svgCanvas:active {
+  cursor: grabbing;
+}
+
+/* ─── Nodes ─── */
+.nodeGroup {
+  cursor: default;
+  transition: opacity 0.2s ease;
+}
+
+.nodeGroup.onSite {
+  cursor: pointer;
+}
+
+.nodeRect {
+  rx: 6;
+  ry: 6;
+  stroke-width: 1.5;
+  transition: stroke-width 0.15s ease, filter 0.15s ease;
+}
+
+.nodeGroup.onSite .nodeRect {
+  stroke-width: 2;
+}
+
+.nodeGroup.offSite .nodeRect {
+  stroke-dasharray: 5 3;
+  fill: transparent !important;
+}
+
+.nodeGroup:hover .nodeRect {
+  stroke-width: 2.5;
+  filter: brightness(1.1);
+}
+
+.nodeLabel {
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-sans, 'Inter', system-ui, sans-serif);
+  pointer-events: none;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.nodeYear {
+  font-size: 9px;
+  font-weight: 400;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  pointer-events: none;
+  text-anchor: middle;
+  dominant-baseline: central;
+  fill: var(--text-tertiary);
+}
+
+/* ─── Edges ─── */
+.edgePath {
+  fill: none;
+  stroke-width: 1.2;
+  stroke: var(--text-tertiary);
+  transition: opacity 0.2s ease, stroke 0.2s ease;
+}
+
+.arrowMarker {
+  fill: var(--text-tertiary);
+}
+
+/* ─── Hover dimming ─── */
+.dimmed {
+  opacity: 0.12;
+}
+
+.highlighted .edgePath {
+  stroke: var(--accent-primary);
+  stroke-width: 2;
+}
+
+.highlighted .arrowMarker {
+  fill: var(--accent-primary);
+}
+
+/* ─── Tooltip ─── */
+.tooltip {
+  position: absolute;
+  pointer-events: none;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  padding: 10px 14px;
+  max-width: 260px;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: opacity 0.12s ease;
+}
+
+.tooltip.hidden {
+  opacity: 0;
+}
+
+.tooltipTitle {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-heading);
+  margin-bottom: 2px;
+}
+
+.tooltipMeta {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.tooltipOneLiner {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  margin-bottom: 4px;
+}
+
+.tooltipHint {
+  font-size: 0.7rem;
+  color: var(--accent-primary);
+  font-weight: 500;
+}
+
+/* ─── Legend ─── */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border-default);
+  background: var(--bg-surface);
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legendSwatch {
+  width: 20px;
+  height: 12px;
+  border-radius: 3px;
+  border: 1.5px solid;
+  flex-shrink: 0;
+}
+
+.legendSwatchDashed {
+  border-style: dashed;
+  background: transparent;
+}
+
+.legendArrow {
+  width: 24px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
+/* ─── Zoom controls ─── */
+.controls {
+  position: absolute;
+  bottom: 50px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.controlBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid var(--border-default);
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 600;
+  font-family: var(--font-mono, monospace);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.controlBtn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 768px) {
+  .page h1 {
+    font-size: 1.5rem;
+  }
+
+  .legend {
+    gap: 12px;
+    padding: 10px 14px;
+    font-size: 0.72rem;
+  }
+}

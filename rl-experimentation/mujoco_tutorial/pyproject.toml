@@ -1,0 +1,21 @@
+[project]
+name = "mujoco-tutorial"
+version = "0.1.0"
+description = "Mini tutorial: MuJoCo fundamentals through RL agent training"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "gymnasium[mujoco]>=1.2.3",
+    "imageio>=2.37.2",
+    "matplotlib>=3.10.8",
+    "mediapy>=1.2.6",
+    "mujoco>=3.4.0",
+    "numpy>=2.4.2",
+    "stable-baselines3>=2.7.1",
+]
+
+[dependency-groups]
+dev = [
+    "ipykernel>=7.2.0",
+    "jupyter>=1.1.1",
+]

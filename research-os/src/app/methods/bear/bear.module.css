@@ -1,0 +1,283 @@
+/* ===== Page Header ===== */
+.subtitle {
+  text-align: center;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+  font-size: 1rem;
+}
+
+.githubLink {
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.githubLink a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.85rem;
+  transition: color 0.2s;
+}
+
+.githubLink a:hover {
+  color: var(--accent-primary);
+}
+
+/* ===== Architecture ===== */
+.archSubtitle {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  margin-bottom: 20px;
+}
+
+.networkGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.networkCard {
+  border: 1px solid;
+  border-radius: 10px;
+  padding: 14px;
+  background: var(--bg-hover);
+}
+
+.networkCardTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.networkCardType {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.networkCardBody {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.targetNote {
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin-top: 10px;
+  font-style: italic;
+}
+
+.lossGrid {
+  display: grid;
+  gap: 12px;
+}
+
+.lossCard {
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  padding: 16px;
+  background: var(--bg-hover);
+}
+
+.lossCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.lossStep {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.lossCardTitle {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.lossCardBody {
+  font-size: 0.85rem;
+}
+
+.lossNote {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin-top: 6px;
+}
+
+/* ===== Formula Note ===== */
+.formulaNote {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-top: 6px;
+}
+
+/* ===== Paper Lineage ===== */
+.lineageGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.lineageColumn h4 {
+  font-size: 0.9rem;
+  margin-bottom: 12px;
+}
+
+.lineageList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lineageItem {
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.lineageItemBuildsOn {
+  border-left: 3px solid #f59e0b;
+}
+
+.lineageItemBuiltUpon {
+  border-left: 3px solid #10b981;
+}
+
+.lineageItemTitle {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.lineageItemDesc {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+/* ===== Algorithm / Pseudocode ===== */
+.pseudocode {
+  background: var(--bg-hover);
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  padding: 20px;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 0.82rem;
+  line-height: 1.7;
+  color: var(--text-primary);
+  overflow-x: auto;
+}
+
+.pseudocode .keyword {
+  color: var(--accent-secondary);
+  font-weight: 600;
+}
+
+.pseudocode .comment {
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.pseudocode .highlight {
+  color: #10b981;
+  font-weight: 600;
+}
+
+.pseudocode .param {
+  color: #f59e0b;
+}
+
+.pseudocode .func {
+  color: #3b82f6;
+}
+
+/* ===== MMD Visualization ===== */
+.mmdIntro {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  margin-bottom: 12px;
+}
+
+.mmdCanvas {
+  width: 100%;
+  height: 260px;
+}
+
+.mmdControls {
+  max-width: 320px;
+  margin: 10px auto 16px;
+}
+
+.mmdTerms {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.mmdTerm {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  padding: 6px 14px;
+  min-width: 70px;
+}
+
+.mmdTermTotal {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.mmdTermLabel {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  margin-bottom: 2px;
+}
+
+.mmdTermValue {
+  font-size: 1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.mmdTermOp {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  font-weight: 300;
+}
+
+.mmdNote {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 1000px) {
+  .networkGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .lineageGrid {
+    grid-template-columns: 1fr;
+  }
+}

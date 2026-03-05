@@ -1,0 +1,749 @@
+/* ===== Page Title ===== */
+.title {
+  text-align: center;
+  font-size: 2.2rem;
+  margin-bottom: 8px;
+  color: var(--text-primary, #e2e4e9);
+}
+
+.subtitle {
+  text-align: center;
+  color: #888;
+  margin-bottom: 30px;
+  font-size: 1rem;
+}
+
+/* ===== Grid Layout ===== */
+.mainGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+/* ===== Card ===== */
+.card {
+  background: var(--card-bg, rgba(255, 255, 255, 0.05));
+  border-radius: var(--card-radius, 12px);
+  padding: 20px;
+  border: 1px solid var(--card-border, rgba(255, 255, 255, 0.1));
+}
+
+.cardMb {
+  composes: card;
+  margin-bottom: 20px;
+}
+
+.cardTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+/* ===== Formula ===== */
+.formula {
+  background: rgba(139, 126, 200, 0.08);
+  border: 1px solid rgba(139, 126, 200, 0.2);
+  border-radius: 8px;
+  padding: 12px;
+  margin: 10px 0;
+  font-size: 1rem;
+  text-align: center;
+  color: var(--text-primary, #e2e4e9);
+}
+
+/* ===== Controller Type Cards ===== */
+.ctrlTypes {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.ctrlType {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  text-align: center;
+}
+
+.ctrlType:hover {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.ctrlTypeActive {
+  composes: ctrlType;
+  border-color: var(--cat-robotics, #c4884d);
+  background: rgba(196, 136, 77, 0.1);
+}
+
+.ctrlTypeIcon {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  margin: 0 auto 10px;
+}
+
+.ctrlTypeH4 {
+  font-size: 0.9rem;
+  margin-bottom: 4px;
+}
+
+.ctrlTypeP {
+  font-size: 0.75rem;
+  color: #888;
+  line-height: 1.3;
+}
+
+/* ===== Info Panel ===== */
+.infoPanel {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  padding: 15px;
+  margin-top: 15px;
+  min-height: 80px;
+}
+
+.infoPanelH4 {
+  color: var(--cat-robotics, #c4884d);
+  margin-bottom: 8px;
+}
+
+.infoPanelP {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: #aaa;
+}
+
+/* ===== Impedance Sim Canvas ===== */
+.simCanvasContainer {
+  position: relative;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.simCanvas {
+  width: 100%;
+  height: 300px;
+  display: block;
+}
+
+/* ===== Slider Row ===== */
+.sliderRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 0;
+}
+
+.sliderRow label {
+  font-size: 0.85rem;
+  min-width: 90px;
+  color: #ccc;
+}
+
+.sliderRow input[type="range"] {
+  flex: 1;
+  -webkit-appearance: none;
+  height: 6px;
+  border-radius: 3px;
+  outline: none;
+}
+
+.sliderRow input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.sliderK input[type="range"] {
+  background: linear-gradient(90deg, #10b981, #ef4444);
+}
+
+.sliderD input[type="range"] {
+  background: linear-gradient(90deg, #3b82f6, var(--accent-secondary, #8b7ec8));
+}
+
+.sliderVal {
+  font-family: monospace;
+  font-size: 0.9rem;
+  min-width: 50px;
+  text-align: right;
+}
+
+/* ===== Stiffness Spectrum ===== */
+.spectrumBar {
+  position: relative;
+  height: 50px;
+  border-radius: 12px;
+  margin: 15px 0;
+  overflow: visible;
+}
+
+.spectrumGradient {
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  background: linear-gradient(90deg, #10b981 0%, var(--cat-robotics, #c4884d) 50%, #ef4444 100%);
+}
+
+.spectrumLabels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+}
+
+.spectrumLabels span {
+  font-size: 0.8rem;
+  color: #888;
+}
+
+.spectrumMarker {
+  position: absolute;
+  top: -8px;
+  width: 4px;
+  height: 66px;
+  background: white;
+  border-radius: 2px;
+  transition: left 0.4s ease;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.spectrumMarker::after {
+  content: attr(data-label);
+  position: absolute;
+  top: -22px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.7rem;
+  color: #fff;
+  white-space: nowrap;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* ===== Tradeoff Grid ===== */
+.tradeoffGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.tradeoffCard {
+  border-radius: 10px;
+  padding: 14px;
+}
+
+.tradeoffCard h4 {
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tradeoffCard ul {
+  list-style: none;
+  font-size: 0.8rem;
+  color: #aaa;
+  line-height: 1.6;
+}
+
+.tradeoffCard ul li::before {
+  content: '\2022\0020';
+  font-weight: bold;
+}
+
+/* ===== Intuition Row ===== */
+.intuitionRow {
+  display: flex;
+  gap: 20px;
+  margin: 15px 0;
+}
+
+.intuitionItem {
+  flex: 1;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  padding: 20px 15px;
+}
+
+.intuitionItem canvas {
+  width: 100%;
+  height: 120px;
+  display: block;
+}
+
+.intuitionItemH4 {
+  font-size: 0.9rem;
+  margin: 10px 0 4px;
+}
+
+.intuitionItemP {
+  font-size: 0.78rem;
+  color: #888;
+}
+
+/* ===== SERL Factors ===== */
+.serlFactors {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.serlFactor {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.serlFactor:hover {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.serlFactorActive {
+  composes: serlFactor;
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.serlFactorIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  margin: 0 auto 10px;
+}
+
+.serlFactorH4 {
+  font-size: 0.85rem;
+  margin-bottom: 4px;
+}
+
+.serlFactorP {
+  font-size: 0.75rem;
+  color: #888;
+  line-height: 1.3;
+}
+
+/* ===== Key Features ===== */
+.keyFeatures {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.feature {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  padding: 15px;
+  text-align: center;
+}
+
+.featureIcon {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  margin: 0 auto 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.featureH4 {
+  font-size: 0.95rem;
+  margin-bottom: 5px;
+}
+
+.featureP {
+  font-size: 0.8rem;
+  color: #888;
+}
+
+/* ===== Pipeline SVG ===== */
+.pipelineSvg {
+  width: 100%;
+  height: 220px;
+}
+
+.flowArrow {
+  stroke-dasharray: 8 4;
+  animation: flowDash 1s linear infinite;
+}
+
+@keyframes flowDash {
+  to {
+    stroke-dashoffset: -12;
+  }
+}
+
+/* ===== Inline Helpers ===== */
+.descText {
+  font-size: 0.88rem;
+  color: #aaa;
+  line-height: 1.6;
+  margin-bottom: 18px;
+}
+
+.captionCenter {
+  font-size: 0.82rem;
+  color: #666;
+  text-align: center;
+  margin-top: 4px;
+}
+
+.impedanceDesc {
+  font-size: 0.85rem;
+  color: #aaa;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.equationBox {
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.equationCenter {
+  text-align: center;
+  font-size: 1.1rem;
+  color: #e0e0e0;
+  line-height: 2;
+}
+
+.paramGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.paramCard {
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.paramCardK {
+  composes: paramCard;
+  background: rgba(16, 185, 129, 0.1);
+  border-left: 3px solid #10b981;
+}
+
+.paramCardD {
+  composes: paramCard;
+  background: rgba(59, 130, 246, 0.1);
+  border-left: 3px solid #3b82f6;
+}
+
+.paramCardM {
+  composes: paramCard;
+  background: rgba(139, 126, 200, 0.1);
+  border-left: 3px solid var(--accent-secondary, #8b7ec8);
+}
+
+.paramLabel {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.paramDesc {
+  font-size: 0.75rem;
+  color: #888;
+  margin-top: 4px;
+}
+
+/* ===== Sim Metrics Row ===== */
+.metricsRow {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 12px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+}
+
+.metricItem {
+  text-align: center;
+}
+
+.metricValue {
+  font-size: 1.2rem;
+  font-weight: 700;
+  font-family: monospace;
+}
+
+.metricLabel {
+  font-size: 0.72rem;
+  color: #888;
+}
+
+.metricValueSmall {
+  font-size: 1.1rem;
+  font-weight: 700;
+  font-family: monospace;
+}
+
+/* ===== Stiffness Tradeoff section ===== */
+.tradeoffDesc {
+  font-size: 0.85rem;
+  color: #aaa;
+  margin-bottom: 12px;
+}
+
+.tradeoffCaption {
+  font-size: 0.82rem;
+  color: #666;
+  text-align: center;
+  margin-top: 12px;
+}
+
+/* ===== Sim description ===== */
+.simDesc {
+  font-size: 0.82rem;
+  color: #888;
+  margin-bottom: 12px;
+}
+
+/* ===== SERL section ===== */
+.serlHierarchySvg {
+  width: 100%;
+  height: 180px;
+  margin-bottom: 15px;
+}
+
+.serlSubGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 0;
+}
+
+.serlPanel {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.serlPanelH4 {
+  font-size: 0.9rem;
+  margin-bottom: 10px;
+}
+
+.serlEquationBox {
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 10px;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.serlEquationBoxPink {
+  composes: serlEquationBox;
+  border-color: rgba(236, 72, 153, 0.2);
+}
+
+.serlEquationCenter {
+  text-align: center;
+  font-size: 1rem;
+  color: #e0e0e0;
+  line-height: 2;
+}
+
+.serlPanelDesc {
+  font-size: 0.78rem;
+  color: #888;
+  margin-top: 8px;
+  line-height: 1.5;
+}
+
+.serlPanelBodyDesc {
+  font-size: 0.82rem;
+  color: #aaa;
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+
+/* ===== Delta Clamp Section ===== */
+.clampSection {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 15px;
+}
+
+.clampH4 {
+  font-size: 0.9rem;
+  color: #e8e8e8;
+  margin-bottom: 10px;
+}
+
+.clampDesc {
+  font-size: 0.8rem;
+  color: #888;
+  margin-bottom: 10px;
+}
+
+.sliderDelta input[type="range"] {
+  -webkit-appearance: none;
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #10b981, #ec4899);
+  outline: none;
+}
+
+.clampCanvasWrap {
+  position: relative;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.clampCanvas {
+  width: 100%;
+  height: 200px;
+  display: block;
+}
+
+/* ===== SERL Cares ===== */
+.serlCaresDesc {
+  font-size: 0.85rem;
+  color: #aaa;
+  line-height: 1.6;
+  margin-bottom: 15px;
+}
+
+/* ===== SERL info panel custom colors ===== */
+.serlInfoPanel {
+  composes: infoPanel;
+}
+
+.serlInfoH4 {
+  color: #ef4444;
+  margin-bottom: 8px;
+}
+
+/* ===== Idea Number Badge ===== */
+.ideaNum {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: var(--font-mono, monospace);
+  background: var(--bg-elevated, #1c1f2e);
+  border: 1px solid var(--border-default, rgba(255, 255, 255, 0.08));
+  color: var(--text-secondary, #8b8fa3);
+  flex-shrink: 0;
+}
+
+/* ===== Paper Lineage ===== */
+.lineageGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.lineageColumn h4 {
+  font-size: 0.9rem;
+  margin-bottom: 12px;
+}
+
+.lineageList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lineageItem {
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.lineageItemBuildsOn {
+  border-left: 3px solid #f59e0b;
+}
+
+.lineageItemBuiltUpon {
+  border-left: 3px solid #10b981;
+}
+
+.lineageItemTitle {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.lineageItemDesc {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 1000px) {
+  .mainGrid {
+    grid-template-columns: 1fr;
+  }
+  .ctrlTypes {
+    grid-template-columns: 1fr;
+  }
+  .serlFactors {
+    grid-template-columns: 1fr;
+  }
+  .keyFeatures {
+    grid-template-columns: 1fr;
+  }
+  .tradeoffGrid {
+    grid-template-columns: 1fr;
+  }
+  .intuitionRow {
+    flex-direction: column;
+  }
+  .paramGrid {
+    grid-template-columns: 1fr;
+  }
+  .serlSubGrid {
+    grid-template-columns: 1fr;
+  }
+  .lineageGrid {
+    grid-template-columns: 1fr;
+  }
+}

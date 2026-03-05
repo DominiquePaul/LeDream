@@ -1,0 +1,238 @@
+/* ===== PPO Page Styles ===== */
+
+.githubLink {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.githubLink a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.85rem;
+  transition: color 0.2s;
+}
+
+.githubLink a:hover {
+  color: var(--text-primary);
+}
+
+/* Architecture SVG */
+.architectureSvg {
+  width: 100%;
+  height: 420px;
+}
+
+.networkBox {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.networkBox:hover {
+  filter: brightness(1.2);
+}
+
+.networkBoxActive {
+  filter: drop-shadow(0 0 15px currentColor);
+}
+
+.flowArrow {
+  stroke-dasharray: 8 4;
+  animation: flowDash 1s linear infinite;
+}
+
+@keyframes flowDash {
+  to {
+    stroke-dashoffset: -12;
+  }
+}
+
+/* Info Panel */
+.infoPanel {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
+  padding: 15px;
+  margin-top: 15px;
+  min-height: 120px;
+}
+
+.infoPanel h4 {
+  color: var(--accent-primary);
+  margin-bottom: 8px;
+}
+
+.infoPanel p {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+/* Loss Equations */
+.lossEquations {
+  display: grid;
+  gap: 15px;
+}
+
+.lossItem {
+  background: var(--bg-elevated);
+  border-radius: 10px;
+  padding: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.lossItem:hover {
+  border-color: var(--border-default);
+}
+
+.lossItemActive {
+  border-color: var(--accent-secondary);
+}
+
+.lossItem h4 {
+  font-size: 0.95rem;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lossDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+/* Notation Guide panel */
+.notationPanel {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
+  padding: 15px;
+  margin-top: 15px;
+}
+
+.notationPanel h4 {
+  color: var(--accent-primary);
+  margin-bottom: 8px;
+}
+
+.notationPanel p {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+/* Clipping / GAE Visualization */
+.entropyViz {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.entropySliderContainer {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.entropySliderContainer label {
+  font-size: 0.9rem;
+  min-width: 120px;
+}
+
+.entropySlider {
+  flex: 1;
+  -webkit-appearance: none;
+  height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary)) !important;
+  outline: none;
+}
+
+.entropySlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.entropyValue {
+  font-family: var(--font-mono, monospace);
+  font-size: 1rem;
+  color: var(--accent-primary);
+  min-width: 50px;
+}
+
+.distributionCanvas {
+  width: 100%;
+  height: 200px;
+  background: var(--bg-elevated);
+  border-radius: 10px;
+}
+
+/* Paper Lineage */
+.lineageGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.lineageSectionTitle {
+  font-size: 0.9rem;
+  margin-bottom: 12px;
+}
+
+.lineageItems {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lineageItem {
+  background: var(--bg-elevated);
+  border-radius: 8px;
+  padding: 10px;
+  border-left: 3px solid;
+}
+
+.lineageItem h5 {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.lineageItem p {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.stepsHint {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+.lossHint {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-top: 8px;
+}
+
+.entropyHint {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 1000px) {
+  .lineageGrid {
+    grid-template-columns: 1fr;
+  }
+}

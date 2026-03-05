@@ -1,0 +1,543 @@
+/* ===== FAST — Clean Visualization Style ===== */
+
+.title {
+  text-align: center;
+  font-size: 2.2rem;
+  margin-bottom: 8px;
+  color: var(--text-primary, #e2e4e9);
+}
+
+.subtitle {
+  text-align: center;
+  color: #888;
+  margin-bottom: 10px;
+  font-size: 1rem;
+}
+
+.linkRow {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.paperLink {
+  color: #888;
+  text-decoration: none;
+  font-size: 0.85rem;
+  transition: color 0.2s;
+}
+
+.paperLink:hover {
+  color: #aaa;
+}
+
+.linkIcon {
+  margin-right: 5px;
+}
+
+/* ===== Step Badge ===== */
+.stepBadge {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(196, 136, 77, 0.2);
+  color: var(--cat-robotics, #c4884d);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* ===== Visualization Card ===== */
+.card {
+  background: var(--card-bg, rgba(255, 255, 255, 0.03));
+  border-radius: var(--card-radius, 12px);
+  padding: 24px;
+  border: 1px solid var(--card-border, rgba(255, 255, 255, 0.08));
+  margin-bottom: 20px;
+}
+
+.cardTitle {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #e8e8e8;
+}
+
+.cardTitleIcon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.cardDescription {
+  font-size: 0.85rem;
+  color: #777;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+/* ===== Signal Grid (Action Chunk) ===== */
+.signalSection {
+  margin-bottom: 16px;
+}
+
+.signalLabel {
+  font-size: 0.75rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.signalGrid {
+  display: flex;
+  gap: 2px;
+  flex-wrap: wrap;
+}
+
+.signalCell {
+  width: 44px;
+  height: 32px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 0.65rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.signalCellHighlight {
+  composes: signalCell;
+  box-shadow: 0 0 0 1px rgba(196, 136, 77, 0.4);
+}
+
+/* ===== Matrix Display ===== */
+.matrixContainer {
+  overflow-x: auto;
+  padding: 4px 0;
+}
+
+.matrixWrapper {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: fit-content;
+}
+
+.matrixRow {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+}
+
+.matrixRowLabel {
+  font-size: 0.65rem;
+  color: #555;
+  width: 32px;
+  text-align: right;
+  padding-right: 6px;
+  flex-shrink: 0;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+.matrixCell {
+  width: 40px;
+  height: 28px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 0.6rem;
+  font-weight: 500;
+  transition: all 0.4s ease;
+}
+
+.matrixCellZero {
+  composes: matrixCell;
+  background: rgba(255, 255, 255, 0.02);
+  color: rgba(255, 255, 255, 0.12);
+}
+
+.matrixCellNonZero {
+  composes: matrixCell;
+  background: rgba(196, 136, 77, 0.15);
+  color: var(--cat-robotics, #c4884d);
+  font-weight: 600;
+}
+
+.matrixColumnLabels {
+  display: flex;
+  gap: 2px;
+  padding-left: 38px;
+  margin-bottom: 4px;
+}
+
+.matrixColumnLabel {
+  width: 40px;
+  text-align: center;
+  font-size: 0.6rem;
+  color: #555;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+/* ===== Flattened Sequence ===== */
+.flatSequence {
+  display: flex;
+  gap: 2px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.flatToken {
+  min-width: 36px;
+  height: 28px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 0.6rem;
+  font-weight: 500;
+  padding: 0 4px;
+  transition: all 0.4s ease;
+}
+
+.flatTokenZero {
+  composes: flatToken;
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.15);
+}
+
+.flatTokenNonZero {
+  composes: flatToken;
+  background: rgba(196, 136, 77, 0.12);
+  color: var(--cat-robotics, #c4884d);
+}
+
+.flatEllipsis {
+  color: #555;
+  font-size: 0.75rem;
+  padding: 0 4px;
+}
+
+/* ===== BPE Tokens ===== */
+.bpeTokens {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.bpeToken {
+  height: 32px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0 12px;
+  background: rgba(196, 136, 77, 0.15);
+  color: var(--cat-robotics, #c4884d);
+  border: 1px solid rgba(196, 136, 77, 0.25);
+}
+
+/* ===== Controls ===== */
+.controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.controlGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.controlLabel {
+  font-size: 0.75rem;
+  color: #666;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.controlValue {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  color: var(--cat-robotics, #c4884d);
+  font-weight: 600;
+}
+
+.controlSlider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.1);
+  outline: none;
+}
+
+.controlSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--cat-robotics, #c4884d);
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(196, 136, 77, 0.4);
+}
+
+.controlSlider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--cat-robotics, #c4884d);
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 0 8px rgba(196, 136, 77, 0.4);
+}
+
+/* ===== Stats Bar ===== */
+.statsBar {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  margin-top: 16px;
+}
+
+.stat {
+  text-align: center;
+}
+
+.statValue {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.statLabel {
+  font-size: 0.65rem;
+  color: #666;
+  margin-top: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ===== DCT Basis Visualization ===== */
+.basisGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.basisCard {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 10px;
+  text-align: center;
+}
+
+.basisCanvas {
+  width: 100%;
+  height: 48px;
+  display: block;
+  border-radius: 4px;
+}
+
+.basisLabel {
+  font-size: 0.65rem;
+  color: #666;
+  margin-top: 4px;
+}
+
+.basisWeight {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+/* ===== Comparison Bar ===== */
+.comparisonBar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.comparisonRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.comparisonLabel {
+  font-size: 0.8rem;
+  min-width: 90px;
+  color: #888;
+}
+
+.comparisonBarTrack {
+  flex: 1;
+  height: 20px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.comparisonBarFill {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.5s ease;
+}
+
+.comparisonValue {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 0.75rem;
+  min-width: 50px;
+  text-align: right;
+  color: #888;
+}
+
+/* ===== Info Panel ===== */
+.infoPanel {
+  background: rgba(196, 136, 77, 0.04);
+  border: 1px solid rgba(196, 136, 77, 0.12);
+  border-radius: 10px;
+  padding: 16px;
+  margin-top: 16px;
+}
+
+.infoPanelTitle {
+  color: var(--cat-robotics, #c4884d);
+  font-size: 0.9rem;
+  margin-bottom: 6px;
+}
+
+.infoPanelDesc {
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: #888;
+}
+
+/* ===== Signal Canvas ===== */
+.signalCanvasWrap {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+.signalCanvas {
+  width: 100%;
+  height: 140px;
+  display: block;
+}
+
+/* ===== Frequency Canvas ===== */
+.freqCanvasWrap {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+.freqCanvas {
+  width: 100%;
+  height: 140px;
+  display: block;
+}
+
+/* ===== Randomize Button ===== */
+.randomBtn {
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid rgba(196, 136, 77, 0.3);
+  background: rgba(196, 136, 77, 0.08);
+  color: var(--cat-robotics, #c4884d);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.randomBtn:hover {
+  background: rgba(196, 136, 77, 0.15);
+}
+
+/* ===== Paper Lineage ===== */
+.lineageGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.lineageColumn h4 {
+  font-size: 0.9rem;
+  margin-bottom: 12px;
+}
+
+.lineageList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lineageItem {
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.lineageItemBuildsOn {
+  border-left: 3px solid #f59e0b;
+}
+
+.lineageItemBuiltUpon {
+  border-left: 3px solid #10b981;
+}
+
+.lineageItemTitle {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.lineageItemDesc {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .controls {
+    grid-template-columns: 1fr;
+  }
+
+  .statsBar {
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .lineageGrid {
+    grid-template-columns: 1fr;
+  }
+}

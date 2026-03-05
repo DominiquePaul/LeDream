@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <title>ML Method Visualizations</title>
+    <link rel="stylesheet" href="css/sidebar.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #e8e8e8;
+        }
+
+        .main-content {
+            padding: 40px;
+            min-height: 100vh;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 60px 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            background: linear-gradient(90deg, #00d9ff, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: #888;
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+
+        .methods-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .method-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .method-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(0, 217, 255, 0.3);
+            box-shadow: 0 10px 40px rgba(0, 217, 255, 0.1);
+        }
+
+        .method-card-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .method-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .method-icon.rl {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .method-icon.dl {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        }
+
+        .method-icon.nlp {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+
+        .method-icon.wm {
+            background: linear-gradient(135deg, #6366f1, #4338ca);
+        }
+
+        .method-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 5px;
+        }
+
+        .method-card .category {
+            font-size: 0.75rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .method-card p {
+            font-size: 0.9rem;
+            color: #aaa;
+            line-height: 1.5;
+        }
+
+        .method-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .tag {
+            background: rgba(168, 85, 247, 0.2);
+            color: #a855f7;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: #888;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 25px;
+            padding-left: 20px;
+            border-left: 4px solid #00d9ff;
+            color: #e8e8e8;
+        }
+
+        .category-section {
+            margin-bottom: 50px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 50px;
+            margin: 40px 0;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, #00d9ff, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #888;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .stats {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .main-content {
+                padding: 20px;
+                padding-top: 70px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Menu Button -->
+    <button class="mobile-menu-btn" aria-label="Toggle menu">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+    </button>
+
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <button class="sidebar-toggle" aria-label="Toggle sidebar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+        </button>
+
+        <div class="sidebar-header">
+            <div class="sidebar-logo">📊</div>
+            <div class="sidebar-title">
+                <h1>ML Methods</h1>
+                <span>Interactive Visualizations</span>
+            </div>
+        </div>
+
+        <div class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Overview</div>
+                <ul class="nav-items">
+                    <li class="nav-item">
+                        <a href="index.html" class="nav-link active" data-tooltip="Home">
+                            <div class="nav-icon other">🏠</div>
+                            <div class="nav-text">
+                                <span>Home</span>
+                                <span>All methods overview</span>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Standard RL</div>
+                <ul class="nav-items">
+                    <li class="nav-item">
+                        <a href="methods/sac.html" class="nav-link" data-tooltip="SAC">
+                            <div class="nav-icon rl">🎯</div>
+                            <div class="nav-text">
+                                <span>SAC</span>
+                                <span>Soft Actor-Critic</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="methods/rlhf.html" class="nav-link" data-tooltip="RLHF">
+                            <div class="nav-icon rl">👤</div>
+                            <div class="nav-text">
+                                <span>RLHF</span>
+                                <span>RL from Human Feedback</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="methods/cql.html" class="nav-link" data-tooltip="CQL">
+                            <div class="nav-icon rl">🛡️</div>
+                            <div class="nav-text">
+                                <span>CQL</span>
+                                <span>Conservative Q-Learning</span>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">World Models</div>
+                <ul class="nav-items">
+                    <li class="nav-item">
+                        <a href="methods/world-models.html" class="nav-link" data-tooltip="World Models">
+                            <div class="nav-icon wm">🧠</div>
+                            <div class="nav-text">
+                                <span>World Models</span>
+                                <span>Ha & Schmidhuber</span>
+                            </div>
+                            <span class="nav-badge">New</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="methods/planet.html" class="nav-link" data-tooltip="PlaNet">
+                            <div class="nav-icon wm">🪐</div>
+                            <div class="nav-text">
+                                <span>PlaNet</span>
+                                <span>Latent Dynamics Planning</span>
+                            </div>
+                            <span class="nav-badge">New</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="methods/dreamer.html" class="nav-link" data-tooltip="Dreamer">
+                            <div class="nav-icon wm">💭</div>
+                            <div class="nav-text">
+                                <span>Dreamer</span>
+                                <span>Latent Imagination</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="methods/dreamerv2.html" class="nav-link" data-tooltip="DreamerV2">
+                            <div class="nav-icon wm">🎲</div>
+                            <div class="nav-text">
+                                <span>DreamerV2</span>
+                                <span>Discrete World Models</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="methods/dreamerv3.html" class="nav-link" data-tooltip="DreamerV3">
+                            <div class="nav-icon wm">🌐</div>
+                            <div class="nav-text">
+                                <span>DreamerV3</span>
+                                <span>Diverse Domains</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="methods/vjepa.html" class="nav-link" data-tooltip="V-JEPA">
+                            <div class="nav-icon wm">🎬</div>
+                            <div class="nav-text">
+                                <span>V-JEPA</span>
+                                <span>Feature Prediction</span>
+                            </div>
+                            <span class="nav-badge">New</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="methods/vjepa2.html" class="nav-link" data-tooltip="V-JEPA 2">
+                            <div class="nav-icon wm">🤖</div>
+                            <div class="nav-text">
+                                <span>V-JEPA 2</span>
+                                <span>Understanding & Planning</span>
+                            </div>
+                            <span class="nav-badge">New</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">Robotics Concepts</div>
+                <ul class="nav-items">
+                    <li class="nav-item">
+                        <a href="methods/robot-controllers.html" class="nav-link" data-tooltip="Controllers">
+                            <div class="nav-icon" style="background: linear-gradient(135deg, #f59e0b, #ef4444);">🦾</div>
+                            <div class="nav-text">
+                                <span>Controllers</span>
+                                <span>Impedance, Stiffness & Contact</span>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+            <span>Press <kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">Ctrl+B</kbd> to toggle</span>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="hero">
+            <h1>ML Method Visualizations</h1>
+            <p>Interactive visualizations to help understand machine learning algorithms and methods from research papers. Click on any method to explore its architecture, key concepts, and step-by-step explanations.</p>
+
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-value">11</div>
+                    <div class="stat-label">Methods</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">3</div>
+                    <div class="stat-label">Categories</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">∞</div>
+                    <div class="stat-label">Learning</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Standard RL Section -->
+        <div class="category-section">
+            <h2 class="section-title">Standard RL</h2>
+            <div class="methods-grid">
+                <a href="methods/sac.html" class="method-card">
+                    <div class="method-card-header">
+                        <div class="method-icon rl">🎯</div>
+                        <div>
+                            <h3>Soft Actor-Critic (SAC)</h3>
+                            <span class="category">Standard RL</span>
+                        </div>
+                    </div>
+                    <p>Maximum entropy reinforcement learning algorithm with automatic temperature tuning. Uses twin Q-networks, stochastic policy, and off-policy learning for sample-efficient continuous control.</p>
+                    <div class="method-tags">
+                        <span class="tag">Off-Policy</span>
+                        <span class="tag">Continuous Control</span>
+                        <span class="tag">Entropy</span>
+                    </div>
+                </a>
+
+                <a href="methods/rlhf.html" class="method-card">
+                    <div class="method-card-header">
+                        <div class="method-icon rl">👤</div>
+                        <div>
+                            <h3>RLHF</h3>
+                            <span class="category">Standard RL</span>
+                        </div>
+                    </div>
+                    <p>Reinforcement Learning from Human Feedback aligns language models with human preferences through reward modeling and PPO optimization with KL constraints.</p>
+                    <div class="method-tags">
+                        <span class="tag">Alignment</span>
+                        <span class="tag">LLMs</span>
+                        <span class="tag">PPO</span>
+                    </div>
+                </a>
+
+                <a href="methods/cql.html" class="method-card">
+                    <div class="method-card-header">
+                        <div class="method-icon rl">🛡️</div>
+                        <div>
+                            <h3>Conservative Q-Learning (CQL)</h3>
+                            <span class="category">Standard RL</span>
+                        </div>
+                    </div>
+                    <p>Offline RL algorithm that learns conservative Q-functions providing lower bounds on true values, preventing overestimation from out-of-distribution actions in static datasets.</p>
+                    <div class="method-tags">
+                        <span class="tag">Offline RL</span>
+                        <span class="tag">Conservative</span>
+                        <span class="tag">D4RL</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- World Models Section -->
+        <div class="category-section">
+            <h2 class="section-title">World Models</h2>
+            <div class="methods-grid">
+                <a href="methods/world-models.html" class="method-card">
+                    <div class="method-card-header">
+                        <div class="method-icon wm">🧠</div>
+                        <div>
+                            <h3>World Models</h3>
+                            <span class="category">World Models</span>
+                        </div>
+                    </div>
+                    <p>Learns a compressed spatial (VAE) and temporal (MDN-RNN) representation of the environment, then trains a tiny controller (867 params) entirely inside dreams using evolutionary optimization (CMA-ES).</p>
+                    <div class="method-tags">
+                        <span class="tag">VAE + MDN-RNN</span>
+                        <span class="tag">Dream Training</span>
+                        <span class="tag">CMA-ES</span>
+                    </div>
+                </a>
+
+                <a href="methods/planet.html" class="method-card">
+                    <div class="method-card-header">
+                        <div class="method-icon wm">🪐</div>
+                        <div>
+                            <h3>PlaNet</h3>
+                            <span class="category">World Models</span>
+                        </div>
+                    </div>
+                    <p>Introduces the RSSM (Recurrent State Space Model) and learns to plan entirely in latent space using online CEM optimization, achieving 200x data efficiency over model-free methods.</p>
+                    <div class="method-tags">
+                        <span class="tag">RSSM</span>
+                        <span class="tag">CEM Planning</span>
+                        <span class="tag">Latent Overshooting</span>
+                    </div>
+                </a>
+
+                <a href="methods/dreamer.html" class="method-card">
+                    <div class="method-card-header">
+                        <div class="method-icon wm">💭</div>
+                        <div>
+                            <h3>Dreamer</h3>
+                            <span class="category">World Models</span>
+                        </div>
+                    </div>
+                    <p>Model-based RL agent that learns long-horizon behaviors from images purely by latent imagination, using a world model and actor-critic trained by backpropagating through learned dynamics.</p>
+                    <div class="method-tags">
+                        <span class="tag">RSSM</span>
+                        <span class="tag">Latent Imagination</span>
+                        <span class="tag">Visual Control</span>
+                    </div>
+                </a>
+
+                <a href="methods/dreamerv2.html" class="method-card">
+                    <div class="method-card-header">
+                        <div class="method-icon wm">🎲</div>
+                        <div>
+                            <h3>DreamerV2</h3>
+                            <span class="category">World Models</span>
+                        </div>
+                    </div>
+                    <p>First agent to achieve human-level Atari by learning behaviors inside a world model with discrete categorical latents, KL balancing, and mixed Reinforce + straight-through actor gradients.</p>
+                    <div class="method-tags">
+                        <span class="tag">Discrete Latents</span>
+                        <span class="tag">KL Balancing</span>
+                        <span class="tag">Atari</span>
+                    </div>
+                </a>
+
+                <a href="methods/dreamerv3.html" class="method-card">
+                    <div class="method-card-header">
+                        <div class="method-icon wm">🌐</div>
+                        <div>
+                            <h3>DreamerV3</h3>
+                            <span class="category">World Models</span>
+                        </div>
+                    </div>
+                    <p>General algorithm that masters 150+ tasks across 8 diverse domains with fixed hyperparameters using symlog predictions, return normalization, and free bits. First to collect diamonds in Minecraft from scratch.</p>
+                    <div class="method-tags">
+                        <span class="tag">Symlog</span>
+                        <span class="tag">Fixed Hyperparams</span>
+                        <span class="tag">Minecraft</span>
+                    </div>
+                </a>
+
+                <a href="methods/vjepa.html" class="method-card">
+                    <div class="method-card-header">
+                        <div class="method-icon wm">🎬</div>
+                        <div>
+                            <h3>V-JEPA</h3>
+                            <span class="category">World Models</span>
+                        </div>
+                    </div>
+                    <p>Self-supervised video model that predicts feature representations (not pixels) of masked spatiotemporal regions using a Joint-Embedding Predictive Architecture with ~90% masking.</p>
+                    <div class="method-tags">
+                        <span class="tag">Feature Prediction</span>
+                        <span class="tag">JEPA</span>
+                        <span class="tag">Multi-Block Masking</span>
+                    </div>
+                </a>
+
+                <a href="methods/vjepa2.html" class="method-card">
+                    <div class="method-card-header">
+                        <div class="method-icon wm">🤖</div>
+                        <div>
+                            <h3>V-JEPA 2</h3>
+                            <span class="category">World Models</span>
+                        </div>
+                    </div>
+                    <p>Scales V-JEPA to 1B parameters on 22M videos for state-of-the-art video understanding, then adds an action-conditioned world model (62h robot data) for zero-shot manipulation via energy-based planning.</p>
+                    <div class="method-tags">
+                        <span class="tag">Scaling SSL</span>
+                        <span class="tag">Action-Conditioned</span>
+                        <span class="tag">Robot Planning</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Robotics Concepts Section -->
+        <div class="category-section">
+            <h2 class="section-title">Robotics Concepts</h2>
+            <div class="methods-grid">
+                <a href="methods/robot-controllers.html" class="method-card">
+                    <div class="method-card-header">
+                        <div class="method-icon" style="background: linear-gradient(135deg, #f59e0b, #ef4444);">🦾</div>
+                        <div>
+                            <h3>Robot Controllers</h3>
+                            <span class="category">Robotics Concepts</span>
+                        </div>
+                    </div>
+                    <p>Low-level control laws for manipulation: position, velocity, torque, and impedance control. Interactive visualizations of stiffness tuning, contact forces, and why controller choice dominates RL performance.</p>
+                    <div class="method-tags">
+                        <span class="tag">Impedance Control</span>
+                        <span class="tag">Stiffness</span>
+                        <span class="tag">SERL</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/sidebar.js"></script>
+</body>
+</html>

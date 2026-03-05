@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <title>World Models - ML Method Visualizations</title>
+    <link rel="stylesheet" href="../css/sidebar.css">
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+            }
+        };
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js" async></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #e8e8e8;
+        }
+
+        .main-content {
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.2rem;
+            margin-bottom: 8px;
+            background: linear-gradient(90deg, #00d9ff, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+            font-size: 1rem;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        /* Core Ideas */
+        .key-ideas {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .idea {
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .idea:hover {
+            background: rgba(0,0,0,0.4);
+        }
+
+        .idea.active {
+            border-color: #00d9ff;
+            background: rgba(0, 217, 255, 0.1);
+        }
+
+        .idea-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+
+        .idea h4 {
+            font-size: 1rem;
+            margin-bottom: 8px;
+        }
+
+        .idea p {
+            font-size: 0.8rem;
+            color: #888;
+            line-height: 1.4;
+        }
+
+        .info-panel {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 15px;
+            min-height: 100px;
+        }
+
+        .info-panel h4 {
+            color: #00d9ff;
+            margin-bottom: 8px;
+        }
+
+        .info-panel p {
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: #aaa;
+        }
+
+        .formula {
+            background: rgba(168, 85, 247, 0.1);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            margin: 10px 0;
+            font-size: 1rem;
+            text-align: center;
+            color: #e0e0e0;
+        }
+
+        /* Pipeline SVG */
+        .pipeline-svg {
+            width: 100%;
+            height: 380px;
+        }
+
+        .pipeline-stage {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .pipeline-stage:hover {
+            filter: brightness(1.2);
+        }
+
+        .pipeline-stage.active {
+            filter: drop-shadow(0 0 15px currentColor);
+        }
+
+        .flow-arrow {
+            stroke-dasharray: 8 4;
+            animation: flowDash 1s linear infinite;
+        }
+
+        @keyframes flowDash {
+            to { stroke-dashoffset: -12; }
+        }
+
+        /* Model Components */
+        .model-equations {
+            display: grid;
+            gap: 15px;
+        }
+
+        .model-item {
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .model-item:hover {
+            background: rgba(0,0,0,0.4);
+        }
+
+        .model-item.active {
+            border-color: #a855f7;
+        }
+
+        .model-item h4 {
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .model-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        /* Imagination Canvas */
+        .imagination-canvas {
+            width: 100%;
+            height: 280px;
+        }
+
+        .canvas-container {
+            position: relative;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        /* Slider */
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .slider-container label {
+            font-size: 0.9rem;
+            min-width: 120px;
+        }
+
+        .slider {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 8px;
+            border-radius: 4px;
+            background: linear-gradient(90deg, #3b82f6, #a855f7);
+            outline: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #fff;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        .slider-value {
+            font-family: monospace;
+            font-size: 1rem;
+            color: #00d9ff;
+            min-width: 50px;
+        }
+
+        /* Comparison Bars */
+        .comparison-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .comparison-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .comparison-label {
+            font-size: 0.85rem;
+            min-width: 100px;
+        }
+
+        .comparison-bar-track {
+            flex: 1;
+            height: 24px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .comparison-bar-fill {
+            height: 100%;
+            border-radius: 12px;
+            transition: width 0.5s ease;
+        }
+
+        .comparison-value {
+            font-family: monospace;
+            font-size: 0.85rem;
+            min-width: 60px;
+            text-align: right;
+        }
+
+        /* Key Features */
+        .key-features {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .feature {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .feature-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .feature h4 {
+            font-size: 0.95rem;
+            margin-bottom: 5px;
+        }
+
+        .feature p {
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        /* Value estimation canvas */
+        .value-canvas {
+            width: 100%;
+            height: 250px;
+        }
+
+        /* Toggle buttons */
+        .toggle-btns {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+
+        .toggle-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(0,0,0,0.3);
+            color: #aaa;
+        }
+
+        .toggle-btn.active {
+            border-color: #00d9ff;
+            background: rgba(0, 217, 255, 0.1);
+            color: #00d9ff;
+        }
+
+        .toggle-btn:hover {
+            background: rgba(0,0,0,0.5);
+        }
+
+        /* Metrics row */
+        .metrics-row {
+            display: flex;
+            justify-content: space-around;
+            padding: 15px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+
+        .metric {
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            font-family: monospace;
+        }
+
+        .metric-label {
+            font-size: 0.75rem;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        @media (max-width: 1000px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            .key-ideas {
+                grid-template-columns: 1fr;
+            }
+            .key-features {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding-top: 70px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Menu Button -->
+    <button class="mobile-menu-btn" aria-label="Toggle menu">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+    </button>
+
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <button class="sidebar-toggle" aria-label="Toggle sidebar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+        </button>
+
+        <div class="sidebar-header">
+            <div class="sidebar-logo">📊</div>
+            <div class="sidebar-title">
+                <h1>ML Methods</h1>
+                <span>Interactive Visualizations</span>
+            </div>
+        </div>
+
+        <div class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Overview</div>
+                <ul class="nav-items">
+                    <li class="nav-item">
+                        <a href="../index.html" class="nav-link" data-tooltip="Home">
+                            <div class="nav-icon other">🏠</div>
+                            <div class="nav-text">
+                                <span>Home</span>
+                                <span>All methods overview</span>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Standard RL</div>
+                <ul class="nav-items">
+                    <li class="nav-item">
+                        <a href="sac.html" class="nav-link" data-tooltip="SAC">
+                            <div class="nav-icon rl">🎯</div>
+                            <div class="nav-text">
+                                <span>SAC</span>
+                                <span>Soft Actor-Critic</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="rlhf.html" class="nav-link" data-tooltip="RLHF">
+                            <div class="nav-icon rl">👤</div>
+                            <div class="nav-text">
+                                <span>RLHF</span>
+                                <span>RL from Human Feedback</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="cql.html" class="nav-link" data-tooltip="CQL">
+                            <div class="nav-icon rl">🛡️</div>
+                            <div class="nav-text">
+                                <span>CQL</span>
+                                <span>Conservative Q-Learning</span>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">World Models</div>
+                <ul class="nav-items">
+                    <li class="nav-item">
+                        <a href="world-models.html" class="nav-link active" data-tooltip="World Models">
+                            <div class="nav-icon wm">🧠</div>
+                            <div class="nav-text">
+                                <span>World Models</span>
+                                <span>Ha &amp; Schmidhuber</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="planet.html" class="nav-link" data-tooltip="PlaNet">
+                            <div class="nav-icon wm">🪐</div>
+                            <div class="nav-text">
+                                <span>PlaNet</span>
+                                <span>Latent Dynamics Planning</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="dreamer.html" class="nav-link" data-tooltip="Dreamer">
+                            <div class="nav-icon wm">💭</div>
+                            <div class="nav-text">
+                                <span>Dreamer</span>
+                                <span>Latent Imagination</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="dreamerv2.html" class="nav-link" data-tooltip="DreamerV2">
+                            <div class="nav-icon wm">🎲</div>
+                            <div class="nav-text">
+                                <span>DreamerV2</span>
+                                <span>Discrete World Models</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="dreamerv3.html" class="nav-link" data-tooltip="DreamerV3">
+                            <div class="nav-icon wm">🌐</div>
+                            <div class="nav-text">
+                                <span>DreamerV3</span>
+                                <span>Diverse Domains</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="vjepa.html" class="nav-link" data-tooltip="V-JEPA">
+                            <div class="nav-icon wm">🎬</div>
+                            <div class="nav-text">
+                                <span>V-JEPA</span>
+                                <span>Feature Prediction</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="vjepa2.html" class="nav-link" data-tooltip="V-JEPA 2">
+                            <div class="nav-icon wm">🤖</div>
+                            <div class="nav-text">
+                                <span>V-JEPA 2</span>
+                                <span>Understanding &amp; Planning</span>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">Robotics Concepts</div>
+                <ul class="nav-items">
+                    <li class="nav-item">
+                        <a href="robot-controllers.html" class="nav-link" data-tooltip="Controllers">
+                            <div class="nav-icon" style="background: linear-gradient(135deg, #f59e0b, #ef4444);">🦾</div>
+                            <div class="nav-text">
+                                <span>Controllers</span>
+                                <span>Impedance, Stiffness & Contact</span>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+            <span>Press <kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">Ctrl+B</kbd> to toggle</span>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <h1>World Models</h1>
+            <p class="subtitle">Recurrent World Models Facilitate Policy Evolution &mdash; Ha &amp; Schmidhuber, 2018</p>
+            <div style="text-align: center; margin-bottom: 20px;">
+                <a href="https://worldmodels.github.io" target="_blank" style="color: #888; text-decoration: none; font-size: 0.85rem; transition: color 0.2s;">
+                    <span style="margin-right: 5px;">🔗</span> worldmodels.github.io
+                </a>
+            </div>
+
+            <!-- Three Core Ideas -->
+            <div class="card" style="margin-bottom: 20px;">
+                <div class="card-title">
+                    <div class="icon" style="background: linear-gradient(135deg, #00d9ff, #0099cc);">💡</div>
+                    Core Ideas
+                </div>
+                <div class="key-ideas">
+                    <div class="idea" data-idea="1">
+                        <div class="idea-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">👁️</div>
+                        <h4>Vision-Memory-Controller (V-M-C)</h4>
+                        <p>Decompose the agent into V (VAE compresses frames to z), M (MDN-RNN predicts dynamics), and C (tiny linear controller)</p>
+                    </div>
+                    <div class="idea" data-idea="2">
+                        <div class="idea-icon" style="background: linear-gradient(135deg, #a855f7, #7c3aed);">💭</div>
+                        <h4>Dream Training</h4>
+                        <p>Train the controller entirely in hallucinated environments generated by V+M &mdash; no real environment interaction during policy optimization</p>
+                    </div>
+                    <div class="idea" data-idea="3">
+                        <div class="idea-icon" style="background: linear-gradient(135deg, #10b981, #059669);">🧬</div>
+                        <h4>CMA-ES Optimization</h4>
+                        <p>Evolve the controller's 867 parameters using Covariance Matrix Adaptation Evolution Strategy &mdash; no gradient-based RL for the policy</p>
+                    </div>
+                </div>
+                <div class="info-panel" id="idea-info" style="display: none;">
+                </div>
+            </div>
+
+            <div class="main-grid">
+                <!-- Model Components -->
+                <div class="card">
+                    <div class="card-title">
+                        <div class="icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">🧩</div>
+                        Model Components (V-M-C)
+                    </div>
+                    <div class="model-equations">
+                        <div class="model-item" data-model="vae">
+                            <h4><span class="model-dot" style="background: #10b981;"></span>V Model (VAE)</h4>
+                            <div class="formula">
+                                \( z \sim \text{Encoder}(x) \)
+                            </div>
+                            <p style="font-size: 0.8rem; color: #888; margin-top: 8px;">Convolutional encoder/decoder compresses 64&times;64 frames to latent z (32-dim for CarRacing, 64-dim for VizDoom)</p>
+                        </div>
+                        <div class="model-item" data-model="mdnrnn">
+                            <h4><span class="model-dot" style="background: #3b82f6;"></span>M Model (MDN-RNN)</h4>
+                            <div class="formula">
+                                \( P(z_{t+1}) = \sum_{i} \pi_i \, \mathcal{N}(\mu_i, \sigma_i) \)
+                            </div>
+                            <p style="font-size: 0.8rem; color: #888; margin-top: 8px;">LSTM-256 + Mixture Density Network output. Predicts P(z<sub>t+1</sub> | a<sub>t</sub>, z<sub>t</sub>, h<sub>t</sub>) as mixture of K Gaussians. Temperature &tau; controls sampling.</p>
+                        </div>
+                        <div class="model-item" data-model="controller">
+                            <h4><span class="model-dot" style="background: #f59e0b;"></span>C Model (Controller)</h4>
+                            <div class="formula">
+                                \( a_t = W_c [z_t ; h_t] + b_c \)
+                            </div>
+                            <p style="font-size: 0.8rem; color: #888; margin-top: 8px;">Single linear layer. Only 867 parameters (CarRacing). Optimized by CMA-ES, not gradients.</p>
+                        </div>
+                        <div class="model-item" data-model="dream">
+                            <h4><span class="model-dot" style="background: #a855f7;"></span>Dream Environment</h4>
+                            <div class="formula">
+                                \( z_{t+1} \sim \text{MDN-RNN}(a_t, z_t, h_t; \tau) \)
+                            </div>
+                            <p style="font-size: 0.8rem; color: #888; margin-top: 8px;">M replaces the real environment. Generates z<sub>t+1</sub> by sampling from MDN. &tau;&gt;1 makes dreams harder/more stochastic.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Architecture SVG -->
+                <div class="card">
+                    <div class="card-title">
+                        <div class="icon" style="background: linear-gradient(135deg, #10b981, #059669);">🏗️</div>
+                        V-M-C Architecture
+                    </div>
+                    <svg class="pipeline-svg" viewBox="0 0 500 380">
+                        <!-- Real Mode Pipeline -->
+                        <text x="250" y="18" text-anchor="middle" fill="#f59e0b" font-size="11" font-weight="bold">Real Environment Mode</text>
+
+                        <!-- Observation Image -->
+                        <rect x="15" y="35" width="70" height="55" rx="8" fill="rgba(255,255,255,0.1)" stroke="#888" stroke-width="1.5" class="pipeline-stage" data-component="obs"/>
+                        <text x="50" y="55" text-anchor="middle" fill="#888" font-size="9" font-weight="bold">Image</text>
+                        <text x="50" y="68" text-anchor="middle" fill="#666" font-size="8">64x64 obs</text>
+
+                        <!-- V (VAE) -->
+                        <rect x="115" y="35" width="80" height="55" rx="8" fill="rgba(16,185,129,0.3)" stroke="#10b981" stroke-width="2" class="pipeline-stage" data-component="vmodel"/>
+                        <text x="155" y="55" text-anchor="middle" fill="#10b981" font-size="10" font-weight="bold">V (VAE)</text>
+                        <text x="155" y="68" text-anchor="middle" fill="#888" font-size="8">Encoder</text>
+
+                        <!-- Arrow Obs to V -->
+                        <path d="M 85 62 L 113 62" stroke="#10b981" stroke-width="2" fill="none" marker-end="url(#arrowGreen)" class="flow-arrow"/>
+
+                        <!-- z_t label -->
+                        <text x="218" y="52" fill="#10b981" font-size="9" font-weight="bold">z_t</text>
+
+                        <!-- M (MDN-RNN) -->
+                        <rect x="235" y="35" width="100" height="55" rx="8" fill="rgba(59,130,246,0.3)" stroke="#3b82f6" stroke-width="2" class="pipeline-stage" data-component="mmodel"/>
+                        <text x="285" y="52" text-anchor="middle" fill="#3b82f6" font-size="10" font-weight="bold">M (MDN-RNN)</text>
+                        <text x="285" y="68" text-anchor="middle" fill="#888" font-size="8">LSTM-256</text>
+
+                        <!-- Recurrent arrow on M -->
+                        <path d="M 335 50 Q 355 30 335 42" stroke="#3b82f6" stroke-width="1.5" fill="none" marker-end="url(#arrowBlue)"/>
+                        <text x="352" y="38" fill="#3b82f6" font-size="7">h_t</text>
+
+                        <!-- Arrow V to M -->
+                        <path d="M 195 62 L 233 62" stroke="#3b82f6" stroke-width="2" fill="none" marker-end="url(#arrowBlue)" class="flow-arrow"/>
+
+                        <!-- P(z_t+1) label -->
+                        <text x="355" y="75" fill="#3b82f6" font-size="8">P(z<tspan baseline-shift="sub" font-size="6">t+1</tspan>)</text>
+
+                        <!-- C (Controller) -->
+                        <rect x="380" y="35" width="90" height="55" rx="8" fill="rgba(245,158,11,0.3)" stroke="#f59e0b" stroke-width="2" class="pipeline-stage" data-component="cmodel"/>
+                        <text x="425" y="52" text-anchor="middle" fill="#f59e0b" font-size="10" font-weight="bold">C (Controller)</text>
+                        <text x="425" y="68" text-anchor="middle" fill="#888" font-size="8">Linear, 867p</text>
+
+                        <!-- Arrow M to C -->
+                        <path d="M 335 62 L 378 62" stroke="#f59e0b" stroke-width="2" fill="none" marker-end="url(#arrowOrange)" class="flow-arrow"/>
+
+                        <!-- Action output -->
+                        <text x="425" y="108" text-anchor="middle" fill="#f59e0b" font-size="9" font-weight="bold">a_t (action)</text>
+                        <path d="M 425 90 L 425 100" stroke="#f59e0b" stroke-width="2" fill="none" marker-end="url(#arrowOrange)"/>
+
+                        <!-- Feedback arrow from action back to M -->
+                        <path d="M 400 108 Q 340 120 285 92" stroke="#888" stroke-width="1.5" fill="none" marker-end="url(#arrowGray)" stroke-dasharray="4"/>
+                        <text x="345" y="118" fill="#888" font-size="7">feedback</text>
+
+                        <!-- Divider -->
+                        <line x1="20" y1="145" x2="480" y2="145" stroke="rgba(255,255,255,0.15)" stroke-width="1" stroke-dasharray="6"/>
+
+                        <!-- Dream Mode -->
+                        <text x="250" y="168" text-anchor="middle" fill="#a855f7" font-size="11" font-weight="bold">Dream Mode (Training C inside M)</text>
+
+                        <!-- Dashed dream boundary -->
+                        <rect x="60" y="180" width="380" height="90" rx="12" fill="rgba(168,85,247,0.08)" stroke="#a855f7" stroke-width="2" stroke-dasharray="6" class="pipeline-stage" data-component="dreamenv"/>
+                        <text x="250" y="195" text-anchor="middle" fill="#a855f7" font-size="8" font-style="italic">Hallucinated Environment</text>
+
+                        <!-- M in Dream -->
+                        <rect x="90" y="210" width="100" height="45" rx="8" fill="rgba(59,130,246,0.3)" stroke="#3b82f6" stroke-width="2" class="pipeline-stage" data-component="mmodel_dream"/>
+                        <text x="140" y="228" text-anchor="middle" fill="#3b82f6" font-size="9" font-weight="bold">M (MDN-RNN)</text>
+                        <text x="140" y="243" text-anchor="middle" fill="#888" font-size="8">replaces env</text>
+
+                        <!-- C in Dream -->
+                        <rect x="260" y="210" width="100" height="45" rx="8" fill="rgba(245,158,11,0.3)" stroke="#f59e0b" stroke-width="2" class="pipeline-stage" data-component="cmodel_dream"/>
+                        <text x="310" y="228" text-anchor="middle" fill="#f59e0b" font-size="9" font-weight="bold">C (Controller)</text>
+                        <text x="310" y="243" text-anchor="middle" fill="#888" font-size="8">CMA-ES</text>
+
+                        <!-- Closed loop arrows M -> C -> M -->
+                        <path d="M 190 225 L 258 225" stroke="#10b981" stroke-width="2" fill="none" marker-end="url(#arrowGreen)" class="flow-arrow"/>
+                        <text x="224" y="220" fill="#10b981" font-size="8">z_t, h_t</text>
+
+                        <path d="M 310 255 Q 310 275 225 275 Q 140 275 140 257" stroke="#f59e0b" stroke-width="2" fill="none" marker-end="url(#arrowOrange)" class="flow-arrow"/>
+                        <text x="225" y="285" text-anchor="middle" fill="#f59e0b" font-size="8">a_t</text>
+
+                        <!-- V removed label -->
+                        <text x="40" y="240" fill="#ef4444" font-size="8" font-weight="bold">V removed</text>
+                        <text x="40" y="252" fill="#888" font-size="7">(no images)</text>
+
+                        <!-- CMA-ES section -->
+                        <text x="250" y="315" text-anchor="middle" fill="#888" font-size="10" font-weight="bold">CMA-ES Optimization Loop</text>
+
+                        <rect x="40" y="325" width="120" height="35" rx="8" fill="rgba(16,185,129,0.15)" stroke="#10b981" stroke-width="1.5" class="pipeline-stage" data-component="population"/>
+                        <text x="100" y="346" text-anchor="middle" fill="#10b981" font-size="9" font-weight="bold">Population of C</text>
+
+                        <rect x="190" y="325" width="120" height="35" rx="8" fill="rgba(168,85,247,0.15)" stroke="#a855f7" stroke-width="1.5" class="pipeline-stage" data-component="evaluate"/>
+                        <text x="250" y="346" text-anchor="middle" fill="#a855f7" font-size="9" font-weight="bold">Evaluate in Dreams</text>
+
+                        <rect x="340" y="325" width="120" height="35" rx="8" fill="rgba(245,158,11,0.15)" stroke="#f59e0b" stroke-width="1.5" class="pipeline-stage" data-component="evolve"/>
+                        <text x="400" y="346" text-anchor="middle" fill="#f59e0b" font-size="9" font-weight="bold">Evolve &amp; Select</text>
+
+                        <path d="M 160 342 L 188 342" stroke="#888" stroke-width="1.5" fill="none" marker-end="url(#arrowGray)"/>
+                        <path d="M 310 342 L 338 342" stroke="#888" stroke-width="1.5" fill="none" marker-end="url(#arrowGray)"/>
+
+                        <!-- Arrow Markers -->
+                        <defs>
+                            <marker id="arrowCyan" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#00d9ff"/>
+                            </marker>
+                            <marker id="arrowBlue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#3b82f6"/>
+                            </marker>
+                            <marker id="arrowOrange" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#f59e0b"/>
+                            </marker>
+                            <marker id="arrowGreen" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#10b981"/>
+                            </marker>
+                            <marker id="arrowPurple" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#a855f7"/>
+                            </marker>
+                            <marker id="arrowGray" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#888"/>
+                            </marker>
+                        </defs>
+                    </svg>
+
+                    <div class="info-panel" id="component-info" style="display: none;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dream Rollout Canvas + Benchmark Results -->
+            <div class="main-grid">
+                <!-- Interactive Dream Rollout with Temperature -->
+                <div class="card">
+                    <div class="card-title">
+                        <div class="icon" style="background: linear-gradient(135deg, #a855f7, #7c3aed);">🔮</div>
+                        Dream Rollout with Temperature
+                    </div>
+                    <div class="slider-container">
+                        <label>Temperature &tau;:</label>
+                        <input type="range" class="slider" id="tempSlider" min="1" max="20" step="1" value="10">
+                        <span class="slider-value" id="tempValue">1.0</span>
+                    </div>
+                    <div class="canvas-container">
+                        <canvas class="imagination-canvas" id="dreamCanvas"></canvas>
+                    </div>
+                    <div class="metrics-row">
+                        <div class="metric">
+                            <div class="metric-value" id="metricTemp" style="color: #a855f7;">1.0</div>
+                            <div class="metric-label">Temperature &tau;</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value" id="metricVariance" style="color: #3b82f6;">0.12</div>
+                            <div class="metric-label">Avg Variance</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value" id="metricStability" style="color: #10b981;">High</div>
+                            <div class="metric-label">Dream Stability</div>
+                        </div>
+                    </div>
+                    <p style="font-size: 0.85rem; color: #888; text-align: center; margin-top: 10px;">
+                        Higher temperature &tau; increases stochasticity in the MDN-RNN sampling, making dreams more chaotic and training harder.
+                    </p>
+                </div>
+
+                <!-- Benchmark Results -->
+                <div class="card">
+                    <div class="card-title">
+                        <div class="icon" style="background: linear-gradient(135deg, #10b981, #059669);">🏆</div>
+                        Benchmark Results
+                    </div>
+                    <div class="comparison-container">
+                        <div class="slider-container" style="margin-top: 0;">
+                            <label style="min-width: 60px;">Task:</label>
+                            <select id="taskSelect" style="flex: 1; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: #e8e8e8; padding: 8px; border-radius: 8px; font-size: 0.85rem;">
+                                <option value="carracing">CarRacing-v0</option>
+                                <option value="vizdoom">VizDoom Take Cover</option>
+                            </select>
+                        </div>
+                        <div id="benchmarkBars"></div>
+                        <p id="benchmarkNote" style="font-size: 0.8rem; color: #888; margin-top: 10px; text-align: center;">
+                            World Models achieves 906 on CarRacing-v0, surpassing all prior methods including the human gym leader (838).
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Training Objectives -->
+            <div class="card" style="margin-bottom: 20px;">
+                <div class="card-title">
+                    <div class="icon" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">📐</div>
+                    Training Objectives
+                </div>
+                <div class="model-equations">
+                    <div class="model-item" data-loss="vae">
+                        <h4><span class="model-dot" style="background: #10b981;"></span>VAE Loss (V Model)</h4>
+                        <div class="formula">
+                            $$ \mathcal{L}_{\text{VAE}} = -\mathbb{E}_{q(z|x)}[\log p(x|z)] + \text{KL}[q(z|x) \,\|\, p(z)] $$
+                        </div>
+                        <p style="font-size: 0.8rem; color: #888; margin-top: 8px;">Reconstruction loss (pixel-level) plus KL divergence regularization to shape the latent space. Trained independently on collected frames.</p>
+                    </div>
+                    <div class="model-item" data-loss="mdn">
+                        <h4><span class="model-dot" style="background: #3b82f6;"></span>MDN-RNN Loss (M Model)</h4>
+                        <div class="formula">
+                            $$ P(z_{t+1} | a_t, z_t, h_t) = \sum_i \pi_i \, \mathcal{N}(z; \mu_i, \sigma_i), \quad \mathcal{L}_{\text{MDN}} = -\log P(z_{t+1}) $$
+                        </div>
+                        <p style="font-size: 0.8rem; color: #888; margin-top: 8px;">Negative log-likelihood of the next latent vector under the mixture of Gaussians predicted by the MDN. Trained on sequences of (z, a) pairs.</p>
+                    </div>
+                    <div class="model-item" data-loss="cmaes">
+                        <h4><span class="model-dot" style="background: #f59e0b;"></span>Controller Objective (CMA-ES)</h4>
+                        <div class="formula">
+                            $$ \max \; \mathbb{E}\left[\sum_t r_t\right] \quad \text{where} \quad a_t = W_c [z_t ; h_t] + b_c $$
+                        </div>
+                        <p style="font-size: 0.8rem; color: #888; margin-top: 8px;">Maximize cumulative reward by evolving the weight matrix W<sub>c</sub> and bias b<sub>c</sub>. CMA-ES maintains a distribution over parameter vectors and updates the covariance matrix based on fitness evaluations.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Paper Lineage -->
+            <div class="card" style="margin-bottom: 20px;">
+                <div class="card-title">
+                    <div class="icon" style="background: linear-gradient(135deg, #6366f1, #4f46e5);">🌳</div>
+                    Paper Lineage
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div>
+                        <h4 style="font-size: 0.9rem; color: #f59e0b; margin-bottom: 12px;">Builds On</h4>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #f59e0b;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">VAE</div>
+                                <div style="font-size: 0.75rem; color: #888;">Kingma &amp; Welling, 2014 &mdash; Variational Autoencoder provides the V model for compressing observations into a continuous latent space.</div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #f59e0b;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">MDN</div>
+                                <div style="font-size: 0.75rem; color: #888;">Bishop, 1994 &mdash; Mixture Density Networks output a mixture of Gaussians, enabling multi-modal predictions in the M model.</div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #f59e0b;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">RNN Sequence Models</div>
+                                <div style="font-size: 0.75rem; color: #888;">Graves, 2013 &mdash; Recurrent neural networks for sequence generation. The LSTM backbone used in the MDN-RNN memory module.</div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #f59e0b;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">CMA-ES</div>
+                                <div style="font-size: 0.75rem; color: #888;">Hansen, 2001 &mdash; Covariance Matrix Adaptation Evolution Strategy replaces gradient-based RL for optimizing the small controller.</div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #f59e0b;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">Learning to Think</div>
+                                <div style="font-size: 0.75rem; color: #888;">Schmidhuber, 1990&ndash;2015 &mdash; Early ideas on learning world models and using them for planning and dreaming in recurrent controllers.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 style="font-size: 0.9rem; color: #10b981; margin-bottom: 12px;">Built Upon By</h4>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #10b981;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">PlaNet</div>
+                                <div style="font-size: 0.75rem; color: #888;">Hafner et al., 2019 &mdash; Replaces VAE+MDN-RNN with RSSM and uses online planning (CEM) instead of evolution. First model-based method competitive on continuous control.</div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #10b981;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">Dreamer</div>
+                                <div style="font-size: 0.75rem; color: #888;">Hafner et al., 2020 &mdash; Builds on PlaNet with an actor-critic in latent imagination, backpropagating gradients through learned dynamics.</div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #10b981;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">GameGAN</div>
+                                <div style="font-size: 0.75rem; color: #888;">Kim et al., 2020 &mdash; Learns a generative model that can simulate entire game environments (Pac-Man) without a game engine, inspired by dream training.</div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #10b981;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">Dreaming Approaches in RL</div>
+                                <div style="font-size: 0.75rem; color: #888;">Various, 2019&ndash;present &mdash; The idea of training policies in hallucinated environments has become a core paradigm in model-based RL research.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Key Features -->
+            <div class="key-features">
+                <div class="feature">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">🔬</div>
+                    <h4>Tiny Controller</h4>
+                    <p>Only 867 parameters in the controller, optimized by evolution not gradients</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #a855f7, #7c3aed);">💭</div>
+                    <h4>Dream Training</h4>
+                    <p>Learn policies in hallucinated environments at ~100x the speed of real interaction</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #10b981, #059669);">🧩</div>
+                    <h4>Modular Design</h4>
+                    <p>V, M, C trained independently, enabling mix-and-match and modular upgrades</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="../js/sidebar.js"></script>
+    <script>
+        // ==================== Key Ideas Interaction ====================
+        const ideaInfo = {
+            1: {
+                title: 'Vision-Memory-Controller: A Cognitive Architecture',
+                desc: 'Inspired by how our brains work, the agent is split into three modules: V (Vision) is a Variational Autoencoder that compresses each 64\u00d764 frame into a small latent vector z of 32 dimensions (CarRacing) or 64 dimensions (VizDoom). M (Memory) is an MDN-RNN \u2014 an LSTM with 256 hidden units whose output parameterizes a Mixture Density Network with 5 Gaussian components. It predicts the probability distribution over the next latent state given the current state, action, and hidden memory. C (Controller) is deliberately kept tiny: a single linear mapping from [z_t; h_t] to actions, giving only 867 parameters for CarRacing. This separation means V and M can be trained with standard unsupervised learning, while only C needs to be optimized for the task reward.'
+            },
+            2: {
+                title: 'Dream Training: Learning Without Reality',
+                desc: 'The key insight is that once V and M are trained on real experience, the controller C can be trained entirely inside the "dream" of M. In dream mode, V is removed \u2014 the MDN-RNN generates latent z vectors directly, and C maps them to actions that feed back into M. This creates a closed loop (M \u2192 C \u2192 M) that simulates an entire environment in latent space. The temperature parameter \u03c4 controls sampling stochasticity: \u03c4 = 1.0 matches the real distribution, while \u03c4 > 1.0 makes dreams more unpredictable and challenging. Training with \u03c4 > 1 can produce controllers that are more robust in the real environment because they have learned to handle worst-case scenarios. This dream training runs orders of magnitude faster than real environment interaction.'
+            },
+            3: {
+                title: 'CMA-ES: Evolution Instead of Gradients',
+                desc: 'Rather than using policy gradient methods (REINFORCE, PPO, etc.), the controller is optimized using CMA-ES (Covariance Matrix Adaptation Evolution Strategy). CMA-ES maintains a multivariate Gaussian distribution over the 867-dimensional parameter space of C. Each generation: (1) sample a population of parameter vectors, (2) evaluate each by running the controller in dreams and measuring cumulative reward, (3) update the mean and covariance matrix based on the fitness ranking. This works because: the controller is so small (867 params) that evolution is tractable, CMA-ES handles non-differentiable objectives naturally, and it can be parallelized across many dream rollouts. The authors used a population size of 64 with 16 workers.'
+            }
+        };
+
+        document.querySelectorAll('.idea').forEach(idea => {
+            idea.addEventListener('click', function() {
+                document.querySelectorAll('.idea').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                const num = this.dataset.idea;
+                const info = ideaInfo[num];
+                const panel = document.getElementById('idea-info');
+                panel.style.display = 'block';
+                panel.innerHTML = `
+                    <h4>${info.title}</h4>
+                    <p>${info.desc}</p>
+                `;
+            });
+        });
+
+        // ==================== Architecture Interaction ====================
+        const componentInfo = {
+            obs: {
+                title: 'Image Observation',
+                desc: 'Raw 64\u00d764\u00d73 RGB frames from the environment (CarRacing or VizDoom). These high-dimensional observations are compressed by V into compact latent representations. In dream mode, no images are generated \u2014 the entire simulation happens in the latent space.'
+            },
+            vmodel: {
+                title: 'V Model (Variational Autoencoder)',
+                desc: 'A convolutional VAE with 4 conv layers (stride 2) in the encoder and 4 deconv layers in the decoder. Compresses 64\u00d764\u00d73 images into a latent vector z ~ N(\u03bc, \u03c3). For CarRacing, z is 32-dim; for VizDoom, 64-dim. Trained independently on collected frames using the standard VAE loss (reconstruction + KL). The encoder is used during real-time play; the decoder is only needed for visualization.'
+            },
+            mmodel: {
+                title: 'M Model (MDN-RNN)',
+                desc: 'An LSTM with 256 hidden units whose output feeds into a Mixture Density Network with K=5 Gaussian components. Given (z_t, a_t, h_t), it outputs (\u03c0_i, \u03bc_i, \u03c3_i) for i=1..K, defining P(z_{t+1}). During training, the loss is the negative log-likelihood of the actual next z. The hidden state h_t serves as the agent\'s compressed memory of the episode history. Also predicts P(done) to know when episodes end in dreams.'
+            },
+            cmodel: {
+                title: 'C Model (Linear Controller)',
+                desc: 'The simplest possible policy: a_t = W_c [z_t; h_t] + b_c. For CarRacing: z is 32-dim, h is 256-dim, action is 3-dim (steering, gas, brake), giving (32+256)\u00d73 + 3 = 867 parameters. This extreme simplicity is deliberate \u2014 it forces all the intelligence into V and M, and makes the controller small enough for evolutionary optimization. The controller maps the combined latent state and memory to continuous actions.'
+            },
+            mmodel_dream: {
+                title: 'M as Dream Environment',
+                desc: 'In dream mode, M replaces the real environment entirely. It receives actions from C and generates the next latent state by sampling from its MDN output. The temperature \u03c4 scales the standard deviations: \u03c3\' = \u03c4 \u00d7 \u03c3. At \u03c4=1.0, dreams match the training distribution. At \u03c4>1.0, dreams become more stochastic and challenging, which can lead to more robust controllers.'
+            },
+            cmodel_dream: {
+                title: 'C in Dream Training',
+                desc: 'During dream training, the controller receives z_t and h_t from M (not from real observations) and outputs actions that feed back into M. Multiple dream rollouts are run in parallel to evaluate each candidate controller. CMA-ES uses the cumulative rewards from these dream rollouts as fitness scores to evolve the controller parameters.'
+            },
+            dreamenv: {
+                title: 'Hallucinated Environment',
+                desc: 'The closed loop between M and C constitutes a complete hallucinated environment. V is not needed \u2014 everything happens in the compact latent space. This makes dream rollouts extremely fast compared to real environment steps. The agent can practice thousands of episodes in dreams before being tested in reality.'
+            },
+            population: {
+                title: 'Population of Controllers',
+                desc: 'CMA-ES maintains a population of controller parameter vectors sampled from a multivariate Gaussian N(\u03bc, \u03a3). Each generation, 64 candidate controllers are sampled, each defined by a different W_c and b_c. The population explores the 867-dimensional parameter space guided by the covariance matrix.'
+            },
+            evaluate: {
+                title: 'Evaluation in Dreams',
+                desc: 'Each candidate controller is evaluated by running it inside the dream environment (the M model) for multiple episodes. The cumulative reward across episodes serves as the fitness score. This evaluation is fast because dreams run entirely in latent space without image rendering.'
+            },
+            evolve: {
+                title: 'Evolution and Selection',
+                desc: 'After evaluation, CMA-ES ranks the candidates by fitness, updates the mean \u03bc toward the best performers, and adapts the covariance matrix \u03a3 to focus search around promising regions. Over generations, the distribution concentrates on high-performing controller parameters.'
+            }
+        };
+
+        document.querySelectorAll('.pipeline-stage').forEach(stage => {
+            stage.addEventListener('click', function() {
+                document.querySelectorAll('.pipeline-stage').forEach(s => s.classList.remove('active'));
+                this.classList.add('active');
+                const component = this.dataset.component;
+                if (component && componentInfo[component]) {
+                    const info = componentInfo[component];
+                    const panel = document.getElementById('component-info');
+                    panel.style.display = 'block';
+                    panel.innerHTML = `
+                        <h4>${info.title}</h4>
+                        <p>${info.desc}</p>
+                    `;
+                }
+            });
+        });
+
+        // ==================== Model Item Interaction ====================
+        document.querySelectorAll('.model-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.model-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // ==================== Dream Rollout Canvas ====================
+        const dreamCanvas = document.getElementById('dreamCanvas');
+        const dreamCtx = dreamCanvas.getContext('2d');
+        const tempSlider = document.getElementById('tempSlider');
+
+        // Seeded pseudo-random number generator
+        function seededRandom(seed) {
+            let s = seed;
+            return function() {
+                s = (s * 1103515245 + 12345) & 0x7fffffff;
+                return s / 0x7fffffff;
+            };
+        }
+
+        // Generate smooth latent values for a given timestep and temperature
+        function generateLatentGrid(timestep, temperature, rows, cols) {
+            const grid = [];
+            const rng = seededRandom(42 + timestep * 7);
+            const prevRng = seededRandom(42 + (timestep - 1) * 7);
+
+            for (let r = 0; r < rows; r++) {
+                const row = [];
+                for (let c = 0; c < cols; c++) {
+                    const baseVal = rng();
+                    const prevVal = prevRng();
+                    // At low temperature: smooth transition, values barely change
+                    // At high temperature: noisy, large jumps
+                    const noise = (rng() - 0.5) * temperature;
+                    const smoothing = Math.max(0.05, 1.0 - temperature * 0.4);
+                    const val = Math.max(0, Math.min(1, prevVal * smoothing + baseVal * (1 - smoothing) + noise * 0.3));
+                    row.push(val);
+                }
+                grid.push(row);
+            }
+            return grid;
+        }
+
+        // Get color for a latent value
+        function latentColor(val) {
+            // Blue to cyan to green to yellow gradient
+            const r = Math.round(val * val * 255);
+            const g = Math.round(val * 200 + 55);
+            const b = Math.round((1 - val) * 220 + 35);
+            return `rgb(${r}, ${g}, ${b})`;
+        }
+
+        function drawDreamRollout() {
+            const dpr = window.devicePixelRatio || 1;
+            const rect = dreamCanvas.getBoundingClientRect();
+            const w = rect.width, h = rect.height;
+            dreamCanvas.width = w * dpr;
+            dreamCanvas.height = h * dpr;
+            dreamCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+            const tau = parseInt(tempSlider.value) / 10;
+            const totalSteps = 20;
+            const gridRows = 4;
+            const gridCols = 8;
+            const numMixtureComponents = 5;
+
+            const pad = { left: 15, right: 15, top: 30, bottom: 70 };
+            const availW = w - pad.left - pad.right;
+            const availH = h - pad.top - pad.bottom;
+
+            // Clear
+            dreamCtx.clearRect(0, 0, w, h);
+
+            // Title
+            dreamCtx.fillStyle = '#888';
+            dreamCtx.font = '10px sans-serif';
+            dreamCtx.textAlign = 'center';
+            dreamCtx.fillText('MDN-RNN Latent Rollout (z values over 20 timesteps)', w / 2, 15);
+
+            // Draw timestep grids
+            const cellW = Math.min(20, (availW / totalSteps) - 3);
+            const cellH = Math.min(10, availH / (gridRows + 4));
+            const stepSpacing = availW / totalSteps;
+
+            for (let t = 0; t < totalSteps; t++) {
+                const grid = generateLatentGrid(t, tau, gridRows, gridCols);
+                const sx = pad.left + t * stepSpacing;
+                const sy = pad.top;
+
+                // Grid background
+                dreamCtx.fillStyle = 'rgba(0,0,0,0.3)';
+                dreamCtx.fillRect(sx, sy, cellW, cellH * gridRows);
+
+                // Draw cells
+                const cw = cellW / gridCols;
+                const ch = cellH;
+                for (let r = 0; r < gridRows; r++) {
+                    for (let c = 0; c < gridCols; c++) {
+                        dreamCtx.fillStyle = latentColor(grid[r][c]);
+                        dreamCtx.fillRect(sx + c * cw, sy + r * ch, cw - 0.5, ch - 0.5);
+                    }
+                }
+
+                // Timestep label (every 5 steps)
+                if (t % 5 === 0) {
+                    dreamCtx.fillStyle = '#666';
+                    dreamCtx.font = '8px monospace';
+                    dreamCtx.textAlign = 'center';
+                    dreamCtx.fillText('t=' + t, sx + cellW / 2, sy + cellH * gridRows + 12);
+                }
+
+                // Arrow between timesteps
+                if (t < totalSteps - 1) {
+                    const arrowX = sx + cellW + 1;
+                    const arrowY = sy + (cellH * gridRows) / 2;
+                    dreamCtx.strokeStyle = 'rgba(168,85,247,0.3)';
+                    dreamCtx.lineWidth = 1;
+                    dreamCtx.beginPath();
+                    dreamCtx.moveTo(arrowX, arrowY);
+                    dreamCtx.lineTo(arrowX + stepSpacing - cellW - 3, arrowY);
+                    dreamCtx.stroke();
+                }
+            }
+
+            // Draw Gaussian Mixture Components below
+            const mixY = h - pad.bottom + 10;
+            dreamCtx.fillStyle = '#888';
+            dreamCtx.font = '9px sans-serif';
+            dreamCtx.textAlign = 'center';
+            dreamCtx.fillText('MDN Mixture Components (5 Gaussians)', w / 2, mixY - 2);
+
+            const mixColors = ['#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#a855f7'];
+            const mixRng = seededRandom(100);
+            const componentWidth = availW / numMixtureComponents;
+
+            // Which component is "selected" based on temperature
+            const selectedComponent = Math.floor(tau * 2) % numMixtureComponents;
+
+            for (let i = 0; i < numMixtureComponents; i++) {
+                const cx = pad.left + i * componentWidth + componentWidth / 2;
+                const cy = mixY + 22;
+
+                // Circle size based on mixture weight (pi_i)
+                const weight = 0.1 + mixRng() * 0.3;
+                const radius = 8 + weight * 15;
+
+                // Sigma visualization: ring thickness proportional to sigma * tau
+                const sigma = (0.3 + mixRng() * 0.5) * tau;
+
+                dreamCtx.beginPath();
+                dreamCtx.arc(cx, cy, radius, 0, 2 * Math.PI);
+                dreamCtx.fillStyle = i === selectedComponent ? mixColors[i] : mixColors[i] + '40';
+                dreamCtx.fill();
+
+                if (i === selectedComponent) {
+                    dreamCtx.strokeStyle = '#fff';
+                    dreamCtx.lineWidth = 2;
+                    dreamCtx.stroke();
+
+                    // Show sigma ring
+                    dreamCtx.beginPath();
+                    dreamCtx.arc(cx, cy, radius + sigma * 10, 0, 2 * Math.PI);
+                    dreamCtx.strokeStyle = mixColors[i] + '60';
+                    dreamCtx.lineWidth = 1;
+                    dreamCtx.setLineDash([3, 3]);
+                    dreamCtx.stroke();
+                    dreamCtx.setLineDash([]);
+                }
+
+                // Label
+                dreamCtx.fillStyle = '#888';
+                dreamCtx.font = '8px monospace';
+                dreamCtx.fillText('\u03C0' + (i + 1), cx, cy + radius + 14);
+            }
+
+            // Highlight selected
+            dreamCtx.fillStyle = mixColors[selectedComponent];
+            dreamCtx.font = '9px sans-serif';
+            dreamCtx.textAlign = 'right';
+            dreamCtx.fillText('Selected: \u03C0' + (selectedComponent + 1), w - pad.right, mixY + 50);
+
+            // Update metrics
+            const avgVariance = (tau * 0.12).toFixed(2);
+            const stability = tau <= 0.5 ? 'High' : tau <= 1.2 ? 'Med' : 'Low';
+            const stabilityColor = stability === 'High' ? '#10b981' : stability === 'Med' ? '#f59e0b' : '#ef4444';
+
+            document.getElementById('metricTemp').textContent = tau.toFixed(1);
+            document.getElementById('metricVariance').textContent = avgVariance;
+            document.getElementById('metricStability').textContent = stability;
+            document.getElementById('metricStability').style.color = stabilityColor;
+            document.getElementById('tempValue').textContent = tau.toFixed(1);
+        }
+
+        tempSlider.addEventListener('input', drawDreamRollout);
+
+        // ==================== Benchmark Results ====================
+        const benchmarkData = {
+            'carracing': {
+                data: {
+                    'World Models': 906,
+                    'Gym Leader': 838,
+                    'A3C (cont)': 591,
+                    'A3C (disc)': 652,
+                    'DQN': 343
+                },
+                note: 'World Models achieves 906 on CarRacing-v0, surpassing all prior methods including the human gym leader (838).',
+                maxVal: 1000
+            },
+            'vizdoom': {
+                data: {
+                    'World Models': 1100,
+                    'World Models (dream)': 1060,
+                    'Baseline RNN': 850,
+                    'Random': 210
+                },
+                note: 'VizDoom Take Cover: World Models survives ~1100 timesteps on average, and dream-trained variants achieve competitive ~1060 steps.',
+                maxVal: 1200
+            }
+        };
+
+        const methodColors = {
+            'World Models': '#a855f7',
+            'World Models (dream)': '#7c3aed',
+            'Gym Leader': '#f59e0b',
+            'A3C (cont)': '#3b82f6',
+            'A3C (disc)': '#10b981',
+            'DQN': '#888',
+            'Baseline RNN': '#3b82f6',
+            'Random': '#666'
+        };
+
+        function renderBenchmark(taskName) {
+            const task = benchmarkData[taskName];
+            const maxVal = task.maxVal;
+            const container = document.getElementById('benchmarkBars');
+            container.innerHTML = '';
+
+            for (const [method, score] of Object.entries(task.data)) {
+                const row = document.createElement('div');
+                row.className = 'comparison-row';
+                const pct = Math.max(score, 0) / maxVal * 100;
+                const color = methodColors[method] || '#888';
+                const isWorldModels = method.startsWith('World Models');
+                row.innerHTML = `
+                    <span class="comparison-label" style="color: ${color}; font-weight: ${isWorldModels ? '700' : '400'};">${method}</span>
+                    <div class="comparison-bar-track">
+                        <div class="comparison-bar-fill" style="width: ${pct}%; background: ${color}; opacity: ${isWorldModels ? 1 : 0.7};"></div>
+                    </div>
+                    <span class="comparison-value" style="color: ${color};">${score}</span>
+                `;
+                container.appendChild(row);
+            }
+
+            document.getElementById('benchmarkNote').textContent = task.note;
+        }
+
+        document.getElementById('taskSelect').addEventListener('change', function() {
+            renderBenchmark(this.value);
+        });
+
+        // ==================== Initialize ====================
+        window.addEventListener('resize', drawDreamRollout);
+
+        setTimeout(() => {
+            drawDreamRollout();
+            renderBenchmark('carracing');
+        }, 100);
+    </script>
+</body>
+</html>

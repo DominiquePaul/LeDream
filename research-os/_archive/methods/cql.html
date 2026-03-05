@@ -1,0 +1,1689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <title>CQL - ML Method Visualizations</title>
+    <link rel="stylesheet" href="../css/sidebar.css">
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+            }
+        };
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js" async></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #e8e8e8;
+        }
+
+        .main-content {
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.2rem;
+            margin-bottom: 8px;
+            background: linear-gradient(90deg, #00d9ff, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+            font-size: 1rem;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        /* Core Problem Visualization */
+        .problem-viz {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .problem-diagram {
+            position: relative;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        .problem-canvas {
+            width: 100%;
+            height: 250px;
+        }
+
+        .problem-toggle {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .toggle-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(0,0,0,0.3);
+            color: #aaa;
+        }
+
+        .toggle-btn.active {
+            border-color: #00d9ff;
+            background: rgba(0, 217, 255, 0.1);
+            color: #00d9ff;
+        }
+
+        .toggle-btn:hover {
+            background: rgba(0,0,0,0.5);
+        }
+
+        /* Pipeline SVG */
+        .pipeline-svg {
+            width: 100%;
+            height: 320px;
+        }
+
+        .pipeline-stage {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .pipeline-stage:hover {
+            filter: brightness(1.2);
+        }
+
+        .pipeline-stage.active {
+            filter: drop-shadow(0 0 15px currentColor);
+        }
+
+        .flow-arrow {
+            stroke-dasharray: 8 4;
+            animation: flowDash 1s linear infinite;
+        }
+
+        @keyframes flowDash {
+            to { stroke-dashoffset: -12; }
+        }
+
+        .info-panel {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 15px;
+            min-height: 100px;
+        }
+
+        .info-panel h4 {
+            color: #00d9ff;
+            margin-bottom: 8px;
+        }
+
+        .info-panel p {
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: #aaa;
+        }
+
+        .formula {
+            background: rgba(168, 85, 247, 0.1);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            margin: 10px 0;
+            font-size: 1rem;
+            text-align: center;
+            color: #e0e0e0;
+        }
+
+        /* Key Ideas */
+        .key-ideas {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .idea {
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+        }
+
+        .idea:hover {
+            background: rgba(0,0,0,0.4);
+        }
+
+        .idea.active {
+            border-color: #00d9ff;
+            background: rgba(0, 217, 255, 0.1);
+        }
+
+        .idea-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+
+        .idea h4 {
+            font-size: 1rem;
+            margin-bottom: 8px;
+        }
+
+        .idea p {
+            font-size: 0.8rem;
+            color: #888;
+            line-height: 1.4;
+        }
+
+        /* Loss Functions */
+        .loss-equations {
+            display: grid;
+            gap: 15px;
+        }
+
+        .loss-item {
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .loss-item:hover {
+            background: rgba(0,0,0,0.4);
+        }
+
+        .loss-item.active {
+            border-color: #a855f7;
+        }
+
+        .loss-item h4 {
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .loss-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        /* Alpha Slider */
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .slider-container label {
+            font-size: 0.9rem;
+            min-width: 80px;
+        }
+
+        .slider {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 8px;
+            border-radius: 4px;
+            background: linear-gradient(90deg, #3b82f6, #a855f7);
+            outline: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #fff;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        .slider-value {
+            font-family: monospace;
+            font-size: 1rem;
+            color: #00d9ff;
+            min-width: 50px;
+        }
+
+        /* CQL Regularizer Visualization */
+        .cql-reg-viz {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .reg-canvas-container {
+            position: relative;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        .reg-canvas {
+            width: 100%;
+            height: 220px;
+        }
+
+        .reg-metrics {
+            display: flex;
+            justify-content: space-around;
+            padding: 15px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+        }
+
+        .reg-metric {
+            text-align: center;
+        }
+
+        .reg-metric-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            font-family: monospace;
+        }
+
+        .reg-metric-label {
+            font-size: 0.75rem;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        /* Gap Expanding Viz */
+        .gap-viz {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .gap-canvas-container {
+            position: relative;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        .gap-canvas {
+            width: 100%;
+            height: 200px;
+        }
+
+        /* Comparison Bars */
+        .comparison-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .comparison-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .comparison-label {
+            font-size: 0.85rem;
+            min-width: 100px;
+        }
+
+        .comparison-bar-track {
+            flex: 1;
+            height: 24px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .comparison-bar-fill {
+            height: 100%;
+            border-radius: 12px;
+            transition: width 0.5s ease;
+        }
+
+        .comparison-value {
+            font-family: monospace;
+            font-size: 0.85rem;
+            min-width: 60px;
+            text-align: right;
+        }
+
+        /* Key Features */
+        .key-features {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .feature {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .feature-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .feature h4 {
+            font-size: 0.95rem;
+            margin-bottom: 5px;
+        }
+
+        .feature p {
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        @media (max-width: 1000px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            .key-ideas {
+                grid-template-columns: 1fr;
+            }
+            .key-features {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding-top: 70px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Menu Button -->
+    <button class="mobile-menu-btn" aria-label="Toggle menu">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+    </button>
+
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <button class="sidebar-toggle" aria-label="Toggle sidebar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+        </button>
+
+        <div class="sidebar-header">
+            <div class="sidebar-logo">📊</div>
+            <div class="sidebar-title">
+                <h1>ML Methods</h1>
+                <span>Interactive Visualizations</span>
+            </div>
+        </div>
+
+        <div class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Overview</div>
+                <ul class="nav-items">
+                    <li class="nav-item">
+                        <a href="../index.html" class="nav-link" data-tooltip="Home">
+                            <div class="nav-icon other">🏠</div>
+                            <div class="nav-text">
+                                <span>Home</span>
+                                <span>All methods overview</span>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Standard RL</div>
+                <ul class="nav-items">
+                    <li class="nav-item">
+                        <a href="sac.html" class="nav-link" data-tooltip="SAC">
+                            <div class="nav-icon rl">🎯</div>
+                            <div class="nav-text">
+                                <span>SAC</span>
+                                <span>Soft Actor-Critic</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="rlhf.html" class="nav-link" data-tooltip="RLHF">
+                            <div class="nav-icon rl">👤</div>
+                            <div class="nav-text">
+                                <span>RLHF</span>
+                                <span>RL from Human Feedback</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="cql.html" class="nav-link active" data-tooltip="CQL">
+                            <div class="nav-icon rl">🛡️</div>
+                            <div class="nav-text">
+                                <span>CQL</span>
+                                <span>Conservative Q-Learning</span>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">World Models</div>
+                <ul class="nav-items">
+                    <li class="nav-item">
+                        <a href="world-models.html" class="nav-link" data-tooltip="World Models">
+                            <div class="nav-icon wm">🧠</div>
+                            <div class="nav-text">
+                                <span>World Models</span>
+                                <span>Ha & Schmidhuber</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="planet.html" class="nav-link" data-tooltip="PlaNet">
+                            <div class="nav-icon wm">🪐</div>
+                            <div class="nav-text">
+                                <span>PlaNet</span>
+                                <span>Latent Dynamics Planning</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="dreamer.html" class="nav-link" data-tooltip="Dreamer">
+                            <div class="nav-icon wm">💭</div>
+                            <div class="nav-text">
+                                <span>Dreamer</span>
+                                <span>Latent Imagination</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="dreamerv2.html" class="nav-link" data-tooltip="DreamerV2">
+                            <div class="nav-icon wm">🎲</div>
+                            <div class="nav-text">
+                                <span>DreamerV2</span>
+                                <span>Discrete World Models</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="dreamerv3.html" class="nav-link" data-tooltip="DreamerV3">
+                            <div class="nav-icon wm">🌐</div>
+                            <div class="nav-text">
+                                <span>DreamerV3</span>
+                                <span>Diverse Domains</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="vjepa.html" class="nav-link" data-tooltip="V-JEPA">
+                            <div class="nav-icon wm">🎬</div>
+                            <div class="nav-text">
+                                <span>V-JEPA</span>
+                                <span>Feature Prediction</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="vjepa2.html" class="nav-link" data-tooltip="V-JEPA 2">
+                            <div class="nav-icon wm">🤖</div>
+                            <div class="nav-text">
+                                <span>V-JEPA 2</span>
+                                <span>Understanding & Planning</span>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">Robotics Concepts</div>
+                <ul class="nav-items">
+                    <li class="nav-item">
+                        <a href="robot-controllers.html" class="nav-link" data-tooltip="Controllers">
+                            <div class="nav-icon" style="background: linear-gradient(135deg, #f59e0b, #ef4444);">🦾</div>
+                            <div class="nav-text">
+                                <span>Controllers</span>
+                                <span>Impedance, Stiffness & Contact</span>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+            <span>Press <kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">Ctrl+B</kbd> to toggle</span>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <h1>Conservative Q-Learning (CQL)</h1>
+            <p class="subtitle">Offline RL via Conservative Q-Function Estimation &mdash; Kumar et al., 2020</p>
+            <div style="text-align: center; margin-bottom: 20px;">
+                <a href="https://github.com/aviralkumar2907/CQL" target="_blank" style="color: #888; text-decoration: none; font-size: 0.85rem; transition: color 0.2s;">
+                    <span style="margin-right: 5px;">🔗</span> github.com/aviralkumar2907/CQL
+                </a>
+            </div>
+
+            <!-- Three Key Ideas -->
+            <div class="card" style="margin-bottom: 20px;">
+                <div class="card-title">
+                    <div class="icon" style="background: linear-gradient(135deg, #00d9ff, #0099cc);">💡</div>
+                    Core Ideas
+                </div>
+                <div class="key-ideas">
+                    <div class="idea" data-idea="1">
+                        <div class="idea-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);">📈</div>
+                        <h4>The Problem</h4>
+                        <p>Standard offline RL overestimates Q-values for out-of-distribution (OOD) actions, causing catastrophic policy failure</p>
+                    </div>
+                    <div class="idea" data-idea="2">
+                        <div class="idea-icon" style="background: linear-gradient(135deg, #10b981, #059669);">🛡️</div>
+                        <h4>Conservative Estimate</h4>
+                        <p>CQL learns a Q-function that lower-bounds the true value, preventing over-optimistic policy updates</p>
+                    </div>
+                    <div class="idea" data-idea="3">
+                        <div class="idea-icon" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">⚖️</div>
+                        <h4>Push Down, Pull Up</h4>
+                        <p>Minimize Q-values under the policy (push down OOD), maximize Q-values under the dataset (pull up known)</p>
+                    </div>
+                </div>
+                <div class="info-panel" id="idea-info" style="display: none;">
+                </div>
+            </div>
+
+            <div class="main-grid">
+                <!-- The Overestimation Problem -->
+                <div class="card">
+                    <div class="card-title">
+                        <div class="icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);">⚠️</div>
+                        The Overestimation Problem
+                    </div>
+                    <div class="problem-viz">
+                        <div class="problem-toggle">
+                            <button class="toggle-btn active" data-mode="standard" id="btnStandard">Standard Q-Learning</button>
+                            <button class="toggle-btn" data-mode="cql" id="btnCQL">CQL</button>
+                        </div>
+                        <div class="problem-diagram">
+                            <canvas class="problem-canvas" id="problemCanvas"></canvas>
+                        </div>
+                        <p style="font-size: 0.85rem; color: #888; text-align: center;" id="problemExplanation">
+                            Standard offline RL: Q-values for OOD actions (outside dataset) are erroneously high, causing the policy to select bad actions.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- CQL Objective -->
+                <div class="card">
+                    <div class="card-title">
+                        <div class="icon" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">📐</div>
+                        CQL Objective
+                    </div>
+
+                    <!-- Full unified objective with highlighted CQL term -->
+                    <div style="margin-bottom: 18px;">
+                        <h4 style="font-size: 0.95rem; color: #e8e8e8; margin-bottom: 10px;">Full Training Objective</h4>
+                        <p style="font-size: 0.82rem; color: #888; margin-bottom: 12px;">CQL adds a single regularizer to the standard Bellman error. The complete objective minimized at each iteration:</p>
+                        <div style="background: rgba(0,0,0,0.35); border-radius: 12px; padding: 18px 14px; border: 1px solid rgba(255,255,255,0.08);">
+                            <div style="text-align: center; font-size: 1.05rem; color: #e0e0e0; line-height: 2.2;">
+                                \[
+                                    \hat{Q}^{k+1} \leftarrow \arg\min_Q \;\;
+                                    \underbrace{
+                                        \frac{1}{2}\, \mathbb{E}_{(s,a,r,s') \sim \mathcal{D}} \!\left[\Big( Q(s,a) - \big(r + \gamma \hat{Q}^k(s', \pi(s'))\big) \Big)^2 \right]
+                                    }_{\text{Standard Bellman error (same as SAC / DQN)}}
+                                    \;\;+\;\;
+                                    \underbrace{
+                                        \color{#a855f7}{ \alpha \!\left(
+                                            \mathbb{E}_{\substack{s \sim \mathcal{D} \\ a \sim \mu(a|s)}}\!\left[Q(s,a)\right]
+                                            \;-\;
+                                            \mathbb{E}_{\substack{s \sim \mathcal{D} \\ a \sim \hat{\pi}_\beta(a|s)}}\!\left[Q(s,a)\right]
+                                        \right) }
+                                    }_{\color{#a855f7}{\textbf{CQL regularizer (added by CQL)}}}
+                                \]
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap;">
+                            <div style="flex: 1; min-width: 180px; background: rgba(255,255,255,0.03); border-radius: 8px; padding: 10px 12px; border-left: 3px solid #3b82f6;">
+                                <div style="font-size: 0.8rem; color: #3b82f6; font-weight: 600; margin-bottom: 4px;">Bellman Error</div>
+                                <div style="font-size: 0.78rem; color: #888; line-height: 1.4;">Standard TD backup &mdash; identical to what SAC or DQN already compute. Drives Q toward bootstrapped targets.</div>
+                            </div>
+                            <div style="flex: 1; min-width: 180px; background: rgba(168,85,247,0.08); border-radius: 8px; padding: 10px 12px; border-left: 3px solid #a855f7;">
+                                <div style="font-size: 0.8rem; color: #a855f7; font-weight: 600; margin-bottom: 4px;">CQL Regularizer</div>
+                                <div style="font-size: 0.78rem; color: #888; line-height: 1.4;"><strong style="color:#ef4444;">Push down</strong> Q-values under &mu;(a|s) &mdash; <strong style="color:#10b981;">Pull up</strong> Q-values for dataset actions under &pi;<sub>&beta;</sub>. Net effect: conservative lower bound.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Variant selector -->
+                    <p style="font-size: 0.82rem; color: #666; margin-bottom: 8px;">The Bellman error is the same in all variants. These tabs show only the <strong style="color: #a855f7;">CQL regularizer</strong> that gets added to it:</p>
+                    <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                        <button class="toggle-btn active" id="objVariantBasic" onclick="selectObjVariant('basic')">CQL (Eq. 1)</button>
+                        <button class="toggle-btn" id="objVariantTight" onclick="selectObjVariant('tight')">CQL (Eq. 2)</button>
+                        <button class="toggle-btn" id="objVariantH" onclick="selectObjVariant('cqlh')">CQL(H) &mdash; Practical</button>
+                    </div>
+
+                    <div id="objVariantPanel" style="background: rgba(0,0,0,0.2); border-radius: 10px; padding: 15px; min-height: 90px;">
+                        <!-- Populated by JS -->
+                    </div>
+
+                    <div class="info-panel" style="margin-top: 15px;">
+                        <h4>📖 Notation Guide</h4>
+                        <p style="margin-bottom: 8px;">
+                            <strong style="color: #f59e0b;">\(\hat{\pi}_\beta\)</strong> &mdash; empirical behavior policy (from the dataset)
+                        </p>
+                        <p style="margin-bottom: 8px;">
+                            <strong style="color: #10b981;">\(\mu(a|s)\)</strong> &mdash; distribution to push Q-values down under (often set to current policy &pi;)
+                        </p>
+                        <p style="margin-bottom: 8px;">
+                            <strong style="color: #a855f7;">\(\alpha\)</strong> &mdash; conservatism coefficient. Higher &alpha; = more conservative lower bound. Can be auto-tuned via Lagrangian dual descent.
+                        </p>
+                        <p style="margin-bottom: 8px;">
+                            <strong style="color: #3b82f6;">\(r + \gamma \hat{Q}^k(s', \pi(s'))\)</strong> &mdash; TD target: reward + discounted next-state value (uses \(s'\) from the dataset tuple)
+                        </p>
+                        <p style="font-size: 0.85rem; color: #888;">
+                            The full objective is what you implement &mdash; just add the purple term to your existing Bellman update code.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CQL Regularizer Interactive Viz + Architecture -->
+            <div class="main-grid">
+                <!-- Interactive CQL Regularizer -->
+                <div class="card">
+                    <div class="card-title">
+                        <div class="icon" style="background: linear-gradient(135deg, #a855f7, #7c3aed);">🎛️</div>
+                        CQL Regularizer Effect
+                    </div>
+                    <div class="cql-reg-viz">
+                        <div class="slider-container">
+                            <label>&alpha; (CQL coef):</label>
+                            <input type="range" class="slider" id="alphaSlider" min="0" max="5" step="0.1" value="1.0">
+                            <span class="slider-value" id="alphaValue">1.0</span>
+                        </div>
+                        <div class="reg-canvas-container">
+                            <canvas class="reg-canvas" id="regCanvas"></canvas>
+                        </div>
+                        <div class="reg-metrics">
+                            <div class="reg-metric">
+                                <div class="reg-metric-value" id="pushDown" style="color: #ef4444;">-1.20</div>
+                                <div class="reg-metric-label">Push Down (OOD)</div>
+                            </div>
+                            <div class="reg-metric">
+                                <div class="reg-metric-value" id="pullUp" style="color: #10b981;">+0.80</div>
+                                <div class="reg-metric-label">Pull Up (Dataset)</div>
+                            </div>
+                            <div class="reg-metric">
+                                <div class="reg-metric-value" id="netEffect" style="color: #a855f7;">-0.40</div>
+                                <div class="reg-metric-label">Net Conservatism</div>
+                            </div>
+                        </div>
+                        <p style="font-size: 0.85rem; color: #888; text-align: center;">
+                            CQL penalizes Q-values for actions likely under the policy but unlikely in the dataset, while preserving Q-values for observed actions.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Architecture / How it works -->
+                <div class="card">
+                    <div class="card-title">
+                        <div class="icon" style="background: linear-gradient(135deg, #10b981, #059669);">🏗️</div>
+                        How CQL Works
+                    </div>
+                    <svg class="pipeline-svg" viewBox="0 0 500 300">
+                        <!-- Static Dataset -->
+                        <rect x="20" y="20" width="120" height="55" rx="8" fill="#f59e0b" class="pipeline-stage" data-component="dataset"/>
+                        <text x="80" y="42" text-anchor="middle" fill="white" font-size="10" font-weight="bold">Static Dataset D</text>
+                        <text x="80" y="58" text-anchor="middle" fill="white" font-size="9">(s, a, r, s')</text>
+
+                        <!-- Q-Network -->
+                        <rect x="200" y="20" width="120" height="55" rx="8" fill="#3b82f6" class="pipeline-stage" data-component="qnet"/>
+                        <text x="260" y="42" text-anchor="middle" fill="white" font-size="10" font-weight="bold">Q-Network</text>
+                        <text x="260" y="58" text-anchor="middle" fill="white" font-size="9">Q_&theta;(s, a)</text>
+
+                        <!-- Arrow: Dataset to Q-Net -->
+                        <path d="M 140 48 L 195 48" stroke="#f59e0b" stroke-width="2" fill="none" marker-end="url(#arrowOrange)" class="flow-arrow"/>
+                        <text x="167" y="40" fill="#888" font-size="8">sample</text>
+
+                        <!-- Bellman Backup -->
+                        <rect x="370" y="20" width="110" height="55" rx="8" fill="rgba(59,130,246,0.3)" stroke="#3b82f6" stroke-width="2" class="pipeline-stage" data-component="bellman"/>
+                        <text x="425" y="42" text-anchor="middle" fill="#3b82f6" font-size="10" font-weight="bold">Bellman</text>
+                        <text x="425" y="58" text-anchor="middle" fill="#3b82f6" font-size="9">Target</text>
+
+                        <!-- Arrow: Q to Bellman -->
+                        <path d="M 320 48 L 365 48" stroke="#3b82f6" stroke-width="2" fill="none" marker-end="url(#arrowBlue)"/>
+
+                        <!-- CQL Regularizer Box -->
+                        <rect x="20" y="120" width="200" height="80" rx="8" fill="rgba(168,85,247,0.2)" stroke="#a855f7" stroke-width="2" class="pipeline-stage" data-component="cql_reg"/>
+                        <text x="120" y="145" text-anchor="middle" fill="#a855f7" font-size="10" font-weight="bold">CQL Regularizer</text>
+                        <text x="120" y="165" text-anchor="middle" fill="#888" font-size="9">Push down: E_&mu;[Q(s,a)]</text>
+                        <text x="120" y="180" text-anchor="middle" fill="#888" font-size="9">Pull up: E_&pi;&beta;[Q(s,a)]</text>
+
+                        <!-- Arrow: Q to CQL Reg -->
+                        <path d="M 230 75 Q 180 100 150 120" stroke="#a855f7" stroke-width="2" fill="none" marker-end="url(#arrowPurple)"/>
+                        <text x="180" y="105" fill="#888" font-size="8">Q-values</text>
+
+                        <!-- Combined Loss -->
+                        <rect x="280" y="130" width="120" height="60" rx="8" fill="rgba(0,217,255,0.2)" stroke="#00d9ff" stroke-width="2" class="pipeline-stage" data-component="loss"/>
+                        <text x="340" y="155" text-anchor="middle" fill="#00d9ff" font-size="10" font-weight="bold">Total Loss</text>
+                        <text x="340" y="170" text-anchor="middle" fill="#888" font-size="9">Bellman + &alpha; CQL</text>
+
+                        <!-- Arrows to Combined Loss -->
+                        <path d="M 425 75 Q 425 110 400 130" stroke="#3b82f6" stroke-width="2" fill="none" marker-end="url(#arrowBlue)"/>
+                        <path d="M 220 160 L 275 160" stroke="#a855f7" stroke-width="2" fill="none" marker-end="url(#arrowPurple)"/>
+
+                        <!-- Policy (Actor-Critic variant) -->
+                        <rect x="180" y="230" width="120" height="55" rx="8" fill="#10b981" class="pipeline-stage" data-component="policy"/>
+                        <text x="240" y="252" text-anchor="middle" fill="white" font-size="10" font-weight="bold">Policy &pi;</text>
+                        <text x="240" y="268" text-anchor="middle" fill="white" font-size="9">max E[Q(s,a)]</text>
+
+                        <!-- Arrow: Loss updates Q -->
+                        <path d="M 340 190 Q 340 215 290 235" stroke="#00d9ff" stroke-width="2" fill="none" marker-end="url(#arrowCyan)"/>
+                        <text x="330" y="218" fill="#888" font-size="8">update</text>
+
+                        <!-- Arrow: Policy to Q (provides mu) -->
+                        <path d="M 240 230 Q 270 180 280 75" stroke="#10b981" stroke-width="2" fill="none" marker-end="url(#arrowGreen)" stroke-dasharray="4"/>
+                        <text x="275" y="150" fill="#888" font-size="8">&mu;</text>
+
+                        <!-- No Environment box -->
+                        <rect x="380" y="230" width="100" height="55" rx="8" fill="rgba(239,68,68,0.15)" stroke="#ef4444" stroke-width="2" stroke-dasharray="6"/>
+                        <text x="430" y="252" text-anchor="middle" fill="#ef4444" font-size="10" font-weight="bold">Environment</text>
+                        <text x="430" y="268" text-anchor="middle" fill="#ef4444" font-size="9">No interaction!</text>
+                        <line x1="380" y1="230" x2="480" y2="285" stroke="#ef4444" stroke-width="2" opacity="0.5"/>
+                        <line x1="480" y1="230" x2="380" y2="285" stroke="#ef4444" stroke-width="2" opacity="0.5"/>
+
+                        <!-- Arrow Markers -->
+                        <defs>
+                            <marker id="arrowCyan" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#00d9ff"/>
+                            </marker>
+                            <marker id="arrowBlue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#3b82f6"/>
+                            </marker>
+                            <marker id="arrowOrange" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#f59e0b"/>
+                            </marker>
+                            <marker id="arrowGreen" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#10b981"/>
+                            </marker>
+                            <marker id="arrowPurple" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#a855f7"/>
+                            </marker>
+                        </defs>
+                    </svg>
+
+                    <div class="info-panel" id="component-info" style="display: none;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gap-Expanding Property + Results -->
+            <div class="main-grid">
+                <!-- Gap Expanding -->
+                <div class="card">
+                    <div class="card-title">
+                        <div class="icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">📊</div>
+                        Gap-Expanding Property (Theorem 3.4)
+                    </div>
+                    <div class="gap-viz">
+                        <div class="gap-canvas-container">
+                            <canvas class="gap-canvas" id="gapCanvas"></canvas>
+                        </div>
+                        <p style="font-size: 0.85rem; color: #888; text-align: center;">
+                            CQL expands the gap between Q-values of in-distribution (dataset) actions and OOD actions.<br>
+                            This implicitly constrains the policy to stay close to the behavior policy.
+                        </p>
+                        <div class="formula">
+                            \( \mathbb{E}_{\pi_\beta}[\hat{Q}^k] - \mathbb{E}_{\mu_k}[\hat{Q}^k] \;>\; \mathbb{E}_{\pi_\beta}[Q^k] - \mathbb{E}_{\mu_k}[Q^k] \)
+                        </div>
+                        <p style="font-size: 0.8rem; color: #888; text-align: center;">
+                            The learned Q-gap is always larger than the true Q-gap, making the policy robust to OOD errors.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- D4RL Benchmark Results -->
+                <div class="card">
+                    <div class="card-title">
+                        <div class="icon" style="background: linear-gradient(135deg, #10b981, #059669);">🏆</div>
+                        D4RL Benchmark Highlights
+                    </div>
+                    <div class="comparison-container">
+                        <p style="font-size: 0.85rem; color: #888; margin-bottom: 10px;">Normalized scores on challenging multi-source datasets where CQL excels:</p>
+                        <div id="benchmarkBars"></div>
+                        <div class="slider-container" style="margin-top: 10px;">
+                            <label style="min-width: 60px;">Task:</label>
+                            <select id="taskSelect" style="flex: 1; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: #e8e8e8; padding: 8px; border-radius: 8px; font-size: 0.85rem;">
+                                <option value="walker2d-medium-expert">walker2d-medium-expert</option>
+                                <option value="hopper-medium-expert">hopper-medium-expert</option>
+                                <option value="antmaze-medium-play">antmaze-medium-play</option>
+                                <option value="antmaze-large-diverse">antmaze-large-diverse</option>
+                                <option value="kitchen-partial">kitchen-partial</option>
+                                <option value="pen-human">pen-human (Adroit)</option>
+                            </select>
+                        </div>
+                        <p style="font-size: 0.8rem; color: #888; margin-top: 10px; text-align: center;">
+                            CQL is the only method to outperform behavioral cloning on complex, multi-modal datasets &mdash; often by 2-5x.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Theoretical Guarantees -->
+            <div class="card" style="margin-bottom: 20px;">
+                <div class="card-title">
+                    <div class="icon" style="background: linear-gradient(135deg, #ec4899, #be185d);">📜</div>
+                    Theoretical Guarantees
+                </div>
+                <div class="loss-equations">
+                    <div class="loss-item" data-loss="thm1">
+                        <h4><span class="loss-dot" style="background: #ef4444;"></span>Theorem 3.1: Pointwise Lower Bound</h4>
+                        <p style="font-size: 0.85rem; color: #aaa; line-height: 1.6;">
+                            For sufficiently large &alpha;, iterating the basic CQL objective (Eq. 1) produces \(\hat{Q}^\pi(s,a) \leq Q^\pi(s,a)\) for all (s,a) in the dataset. The Q-function is a pointwise lower bound on the true Q-function.
+                        </p>
+                    </div>
+                    <div class="loss-item" data-loss="thm2">
+                        <h4><span class="loss-dot" style="background: #10b981;"></span>Theorem 3.2: Tighter Expected Lower Bound</h4>
+                        <p style="font-size: 0.85rem; color: #aaa; line-height: 1.6;">
+                            The tighter variant (Eq. 2) guarantees \(\hat{V}^\pi(s) \leq V^\pi(s)\) &mdash; the expected value under the policy is lower-bounded, even though individual Q-values may not be. This avoids unnecessary pessimism while remaining safe.
+                        </p>
+                    </div>
+                    <div class="loss-item" data-loss="thm3">
+                        <h4><span class="loss-dot" style="background: #a855f7;"></span>Theorem 3.6: Safe Policy Improvement</h4>
+                        <p style="font-size: 0.85rem; color: #aaa; line-height: 1.6;">
+                            CQL provides a &zeta;-safe policy improvement guarantee: the learned policy performs at least as well as the behavior policy (minus a bounded error), with high probability. The improvement bound tightens with more data.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Paper Lineage -->
+            <div class="card" style="margin-bottom: 20px;">
+                <div class="card-title">
+                    <div class="icon" style="background: linear-gradient(135deg, #6366f1, #4f46e5);">🌳</div>
+                    Paper Lineage
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div>
+                        <h4 style="font-size: 0.9rem; color: #f59e0b; margin-bottom: 12px;">Builds On</h4>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #f59e0b;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">SAC</div>
+                                <div style="font-size: 0.75rem; color: #888;">Haarnoja et al., 2018 &mdash; Soft Actor-Critic; CQL(H) is built directly on top of SAC's actor-critic framework</div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #f59e0b;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">BCQ</div>
+                                <div style="font-size: 0.75rem; color: #888;">Fujimoto et al., 2019 &mdash; Batch-Constrained Q-learning; first to identify the distribution shift problem in offline RL and constrain the policy</div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #f59e0b;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">BEAR</div>
+                                <div style="font-size: 0.75rem; color: #888;">Kumar et al., 2019 &mdash; Bootstrapping Error Accumulation Reduction; constrains policy via MMD to behavior policy support</div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #f59e0b;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">BRAC</div>
+                                <div style="font-size: 0.75rem; color: #888;">Wu et al., 2019 &mdash; Behavior Regularized Actor Critic; unifies offline RL methods via policy regularization; CQL instead regularizes the Q-function</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 style="font-size: 0.9rem; color: #10b981; margin-bottom: 12px;">Built Upon By</h4>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #10b981;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">IQL</div>
+                                <div style="font-size: 0.75rem; color: #888;">Kostrikov et al., 2022 &mdash; Implicit Q-Learning; avoids querying OOD actions entirely via expectile regression, simplifying CQL's approach</div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #10b981;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">Cal-QL</div>
+                                <div style="font-size: 0.75rem; color: #888;">Nakamoto et al., 2023 &mdash; Calibrated CQL; fixes over-conservatism by calibrating the lower bound to the behavior policy value</div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #10b981;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">TD3+BC</div>
+                                <div style="font-size: 0.75rem; color: #888;">Fujimoto &amp; Gu, 2021 &mdash; Minimalist offline RL: just TD3 + a BC regularization term; competitive with CQL at a fraction of the complexity</div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #10b981;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">Decision Transformer</div>
+                                <div style="font-size: 0.75rem; color: #888;">Chen et al., 2021 &mdash; Reframes offline RL as sequence modeling; an alternative paradigm to CQL's value-based conservatism</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Key Features -->
+            <div class="key-features">
+                <div class="feature">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);">📴</div>
+                    <h4>Fully Offline</h4>
+                    <p>Learns entirely from static datasets with no environment interaction needed</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #a855f7, #7c3aed);">🔧</div>
+                    <h4>Simple to Implement</h4>
+                    <p>Just ~20 lines of code added to standard SAC or DQN implementations</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #10b981, #059669);">🎯</div>
+                    <h4>No Behavior Cloning</h4>
+                    <p>Unlike prior methods, CQL does not require fitting a separate behavior policy estimator</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="../js/sidebar.js"></script>
+    <script>
+        // ==================== Key Ideas Interaction ====================
+        const ideaInfo = {
+            1: {
+                title: 'The Overestimation Problem in Offline RL',
+                desc: 'In standard RL, if the Q-function overestimates the value of some actions, the agent can try those actions and correct the error. In offline RL, there is no such correction mechanism. The policy greedily selects actions with the highest Q-values, which tend to be out-of-distribution actions with erroneously inflated values. This causes the policy to fail catastrophically at test time.'
+            },
+            2: {
+                title: 'Conservative Q-Function Estimation',
+                desc: 'CQL learns a Q-function whose expected value under the policy is a lower bound on the true policy value. This means the policy is always optimized against a pessimistic estimate \u2014 if it performs well under the conservative Q, it will perform at least as well in reality. The key insight is that only the expected value needs to be a lower bound, not every individual Q(s,a).'
+            },
+            3: {
+                title: 'Push Down OOD, Pull Up In-Distribution',
+                desc: 'The CQL regularizer has two opposing forces: (1) it minimizes Q-values under the current policy distribution (pushing down values for actions the policy might take but weren\u2019t in the data), and (2) it maximizes Q-values under the dataset distribution (pulling up values for actions that were actually observed). This creates a gap that naturally steers the policy toward in-distribution actions.'
+            }
+        };
+
+        document.querySelectorAll('.idea').forEach(idea => {
+            idea.addEventListener('click', function() {
+                document.querySelectorAll('.idea').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                const num = this.dataset.idea;
+                const info = ideaInfo[num];
+                const ideaPanel = document.getElementById('idea-info');
+                ideaPanel.style.display = 'block';
+                ideaPanel.innerHTML = `
+                    <h4>${info.title}</h4>
+                    <p>${info.desc}</p>
+                `;
+            });
+        });
+
+        // ==================== Architecture Interaction ====================
+        const componentInfo = {
+            dataset: {
+                title: 'Static Dataset D',
+                desc: 'A fixed dataset of (state, action, reward, next_state) tuples collected by one or more behavior policies. CQL never collects new data \u2014 it learns entirely from this offline dataset. The dataset can come from multiple sources (expert demos, random exploration, previous policies).'
+            },
+            qnet: {
+                title: 'Q-Network Q_\u03b8(s, a)',
+                desc: 'Neural network approximating the action-value function. In the actor-critic variant, twin Q-networks are used (like SAC). For discrete actions, a single QR-DQN network is used. The Q-network receives both standard Bellman updates and the CQL regularization.'
+            },
+            bellman: {
+                title: 'Bellman Backup Target',
+                desc: 'Standard temporal difference target: y = r + \u03b3 \u00b7 Q_target(s\u2019, a\u2019). For actor-critic, a\u2019 comes from the current policy. For Q-learning, a\u2019 = argmax Q. The Bellman error provides the standard RL learning signal, pulling Q-values toward bootstrapped estimates.'
+            },
+            cql_reg: {
+                title: 'CQL Regularizer',
+                desc: 'The key innovation. Two terms: (1) Push Down: minimize E_\u03bc[Q(s,a)] where \u03bc is the policy (or logsumexp over all actions). This penalizes high Q-values for actions the policy might choose. (2) Pull Up: maximize E_\u03c0\u03b2[Q(s,a)] over dataset actions. This prevents the Q-function from collapsing everywhere.'
+            },
+            loss: {
+                title: 'Total CQL Loss',
+                desc: 'The final training objective combines the standard Bellman error with the CQL regularizer scaled by \u03b1: L = \u00bd\u00b7Bellman_error + \u03b1\u00b7CQL_reg. The coefficient \u03b1 can be fixed or automatically tuned via Lagrangian dual gradient descent to maintain a target level of conservatism.'
+            },
+            policy: {
+                title: 'Policy \u03c0',
+                desc: 'In the actor-critic variant, the policy is trained to maximize the conservative Q-values (like standard SAC). Because the Q-values are conservative, the policy naturally avoids OOD actions without needing an explicit policy constraint. In the Q-learning variant, the policy is implicitly defined as the greedy policy over Q.'
+            }
+        };
+
+        document.querySelectorAll('.pipeline-stage').forEach(stage => {
+            stage.addEventListener('click', function() {
+                document.querySelectorAll('.pipeline-stage').forEach(s => s.classList.remove('active'));
+                this.classList.add('active');
+                const component = this.dataset.component;
+                if (component && componentInfo[component]) {
+                    const info = componentInfo[component];
+                    const compPanel = document.getElementById('component-info');
+                    compPanel.style.display = 'block';
+                    compPanel.innerHTML = `
+                        <h4>${info.title}</h4>
+                        <p>${info.desc}</p>
+                    `;
+                }
+            });
+        });
+
+        // ==================== CQL Objective Variant Selector ====================
+        const objVariants = {
+            basic: {
+                title: 'CQL (Eq. 1): Pointwise Lower Bound',
+                formula: String.raw`\( \text{CQL reg.} \;=\; \alpha \; \mathbb{E}_{\substack{s \sim \mathcal{D} \\ a \sim \mu(a|s)}} \!\left[Q(s,a)\right] \)`,
+                desc: 'Simplest form &mdash; only pushes Q-values down under &mu;(a|s), no pull-up term. Gives a <strong>pointwise</strong> lower bound: Q&#770;(s,a) &le; Q<sup>&pi;</sup>(s,a) for all (s,a). Can be overly conservative since it penalizes even in-distribution actions.',
+                color: '#ef4444'
+            },
+            tight: {
+                title: 'CQL (Eq. 2): Expected Lower Bound (Tighter)',
+                formula: String.raw`\( \text{CQL reg.} \;=\; \alpha \!\left( \underbrace{ \mathbb{E}_{\substack{s \sim \mathcal{D} \\ a \sim \mu(a|s)}}\!\left[Q(s,a)\right] }_{\color{#ef4444}{\text{push down}}} \;-\; \underbrace{ \mathbb{E}_{\substack{s \sim \mathcal{D} \\ a \sim \hat{\pi}_\beta(a|s)}}\!\left[Q(s,a)\right] }_{\color{#10b981}{\text{pull up}}} \right) \)`,
+                desc: 'Adds the pull-up term under &pi;<sub>&beta;</sub>(a|s). Only the <strong>expected</strong> value V&#770;<sup>&pi;</sup>(s) is lower-bounded, not every individual Q(s,a). This avoids unnecessary pessimism while remaining safe.',
+                color: '#10b981'
+            },
+            cqlh: {
+                title: 'CQL(H): Practical Variant (what you implement)',
+                formula: String.raw`\( \text{CQL reg.} \;=\; \alpha \!\left( \underbrace{ \mathbb{E}_{s \sim \mathcal{D}} \!\left[ \log \sum_{a \in \mathcal{A}} \exp Q(s,a) \right] }_{\color{#ef4444}{\text{push down (logsumexp over all actions)}}} \;-\; \underbrace{ \mathbb{E}_{\substack{s \sim \mathcal{D} \\ a \sim \hat{\pi}_\beta(a|s)}} \!\left[Q(s,a)\right] }_{\color{#10b981}{\text{pull up under } \hat{\pi}_\beta}} \right) \)`,
+                desc: 'Sets &mu; = softmax(Q) via the logsumexp trick &mdash; the log&sum;exp over all actions a &in; A is a smooth upper bound on max<sub>a</sub> Q(s,a). The outer expectation is over states s ~ D. No need to sample from &mu; explicitly. This is the variant used in practice &mdash; just <strong>~20 lines of code</strong> on top of SAC or DQN.',
+                color: '#a855f7'
+            }
+        };
+
+        function selectObjVariant(key) {
+            // Update buttons
+            document.getElementById('objVariantBasic').classList.toggle('active', key === 'basic');
+            document.getElementById('objVariantTight').classList.toggle('active', key === 'tight');
+            document.getElementById('objVariantH').classList.toggle('active', key === 'cqlh');
+
+            const v = objVariants[key];
+            const panel = document.getElementById('objVariantPanel');
+            panel.innerHTML = `
+                <h4 style="font-size: 0.95rem; color: ${v.color}; margin-bottom: 10px;">${v.title}</h4>
+                <div class="formula" style="border-color: ${v.color}40; background: ${v.color}15;">${v.formula}</div>
+                <p style="font-size: 0.82rem; color: #aaa; line-height: 1.5; margin-top: 8px;">${v.desc}</p>
+            `;
+            // Re-typeset MathJax for the new content
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                window.MathJax.typesetPromise([panel]);
+            }
+        }
+        // Initialize with the basic variant
+        selectObjVariant('basic');
+
+        // ==================== Loss Item Interaction ====================
+        document.querySelectorAll('.loss-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.loss-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // ==================== Overestimation Problem Canvas ====================
+        const problemCanvas = document.getElementById('problemCanvas');
+        const problemCtx = problemCanvas.getContext('2d');
+        let showCQL = false;
+
+        function resizeProblemCanvas() {
+            const rect = problemCanvas.getBoundingClientRect();
+            problemCanvas.width = rect.width * window.devicePixelRatio;
+            problemCanvas.height = rect.height * window.devicePixelRatio;
+            problemCtx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+        }
+
+        function drawProblemViz() {
+            const dpr = window.devicePixelRatio || 1;
+            const rect = problemCanvas.getBoundingClientRect();
+            const w = rect.width, h = rect.height;
+
+            // Reset canvas completely to avoid stale state
+            problemCanvas.width = w * dpr;
+            problemCanvas.height = h * dpr;
+            problemCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+            const pad = { left: 50, right: 20, top: 25, bottom: 35 };
+            const pw = w - pad.left - pad.right;
+            const ph = h - pad.top - pad.bottom;
+
+            // Axes
+            problemCtx.strokeStyle = '#444';
+            problemCtx.lineWidth = 1;
+            problemCtx.beginPath();
+            problemCtx.moveTo(pad.left, pad.top);
+            problemCtx.lineTo(pad.left, h - pad.bottom);
+            problemCtx.lineTo(w - pad.right, h - pad.bottom);
+            problemCtx.stroke();
+
+            problemCtx.fillStyle = '#888';
+            problemCtx.font = '11px sans-serif';
+            problemCtx.textAlign = 'center';
+            problemCtx.fillText('Action space', w / 2, h - 8);
+
+            problemCtx.save();
+            problemCtx.translate(15, h / 2);
+            problemCtx.rotate(-Math.PI / 2);
+            problemCtx.fillText('Q-value', 0, 0);
+            problemCtx.restore();
+
+            // Use same Y range for both views so the chart doesn't jump
+            const xMin = -3, xMax = 3;
+            const yMin = -1.5, yMax = 5;
+
+            function toX(x) { return pad.left + ((x - xMin) / (xMax - xMin)) * pw; }
+            function toY(y) { return h - pad.bottom - ((y - yMin) / (yMax - yMin)) * ph; }
+
+            // Dataset coverage region (shaded)
+            const dataLeft = -1.2, dataRight = 1.2;
+            problemCtx.fillStyle = 'rgba(245, 158, 11, 0.1)';
+            problemCtx.fillRect(toX(dataLeft), pad.top, toX(dataRight) - toX(dataLeft), ph);
+
+            // Dataset boundary lines
+            problemCtx.strokeStyle = 'rgba(245, 158, 11, 0.5)';
+            problemCtx.lineWidth = 1;
+            problemCtx.setLineDash([4, 4]);
+            problemCtx.beginPath();
+            problemCtx.moveTo(toX(dataLeft), pad.top);
+            problemCtx.lineTo(toX(dataLeft), h - pad.bottom);
+            problemCtx.moveTo(toX(dataRight), pad.top);
+            problemCtx.lineTo(toX(dataRight), h - pad.bottom);
+            problemCtx.stroke();
+            problemCtx.setLineDash([]);
+
+            problemCtx.fillStyle = '#f59e0b';
+            problemCtx.font = '10px sans-serif';
+            problemCtx.fillText('Dataset', toX(0), pad.top + 15);
+
+            // True Q-function (smooth curve)
+            problemCtx.beginPath();
+            problemCtx.strokeStyle = '#10b981';
+            problemCtx.lineWidth = 3;
+            for (let i = 0; i <= pw; i++) {
+                const x = xMin + (i / pw) * (xMax - xMin);
+                const y = 2.0 * Math.exp(-0.5 * x * x) + 0.3 * Math.sin(x * 2);
+                const cx = toX(x), cy = toY(y);
+                i === 0 ? problemCtx.moveTo(cx, cy) : problemCtx.lineTo(cx, cy);
+            }
+            problemCtx.stroke();
+
+            if (!showCQL) {
+                // Standard Q-Learning: overestimated Q (with spikes outside data)
+                problemCtx.beginPath();
+                problemCtx.strokeStyle = '#ef4444';
+                problemCtx.lineWidth = 2.5;
+                for (let i = 0; i <= pw; i++) {
+                    const x = xMin + (i / pw) * (xMax - xMin);
+                    const trueQ = 2.0 * Math.exp(-0.5 * x * x) + 0.3 * Math.sin(x * 2);
+                    let learnedQ;
+                    if (x < dataLeft || x > dataRight) {
+                        const dist = x < dataLeft ? (dataLeft - x) : (x - dataRight);
+                        learnedQ = trueQ + 1.5 * dist + 0.8 * Math.sin(x * 3);
+                    } else {
+                        learnedQ = trueQ + 0.15 * Math.sin(x * 5);
+                    }
+                    const cx = toX(x), cy = toY(learnedQ);
+                    i === 0 ? problemCtx.moveTo(cx, cy) : problemCtx.lineTo(cx, cy);
+                }
+                problemCtx.stroke();
+
+                // Labels
+                problemCtx.fillStyle = '#ef4444';
+                problemCtx.font = 'bold 11px sans-serif';
+                problemCtx.fillText('Overestimated!', toX(2.2), toY(4.2));
+                problemCtx.fillText('Overestimated!', toX(-2.2), toY(3.8));
+            } else {
+                // CQL: conservative Q (below true, especially OOD)
+                problemCtx.beginPath();
+                problemCtx.strokeStyle = '#3b82f6';
+                problemCtx.lineWidth = 2.5;
+                for (let i = 0; i <= pw; i++) {
+                    const x = xMin + (i / pw) * (xMax - xMin);
+                    const trueQ = 2.0 * Math.exp(-0.5 * x * x) + 0.3 * Math.sin(x * 2);
+                    let learnedQ;
+                    if (x < dataLeft || x > dataRight) {
+                        const dist = x < dataLeft ? (dataLeft - x) : (x - dataRight);
+                        learnedQ = trueQ - 0.8 * dist;
+                    } else {
+                        learnedQ = trueQ - 0.15;
+                    }
+                    const cx = toX(x), cy = toY(learnedQ);
+                    i === 0 ? problemCtx.moveTo(cx, cy) : problemCtx.lineTo(cx, cy);
+                }
+                problemCtx.stroke();
+
+                // Labels
+                problemCtx.fillStyle = '#3b82f6';
+                problemCtx.font = 'bold 11px sans-serif';
+                problemCtx.fillText('Conservative', toX(2.2), toY(-0.5));
+            }
+
+            // Legend
+            problemCtx.font = '10px sans-serif';
+            problemCtx.textAlign = 'left';
+            const legendY = pad.top + 12;
+            const legendX = w - pad.right - 120;
+
+            problemCtx.fillStyle = '#10b981';
+            problemCtx.fillRect(legendX, legendY - 5, 12, 3);
+            problemCtx.fillText('True Q', legendX + 18, legendY);
+
+            if (!showCQL) {
+                problemCtx.fillStyle = '#ef4444';
+                problemCtx.fillRect(legendX, legendY + 12, 12, 3);
+                problemCtx.fillText('Learned Q', legendX + 18, legendY + 17);
+            } else {
+                problemCtx.fillStyle = '#3b82f6';
+                problemCtx.fillRect(legendX, legendY + 12, 12, 3);
+                problemCtx.fillText('CQL Q', legendX + 18, legendY + 17);
+            }
+        }
+
+        document.getElementById('btnStandard').addEventListener('click', function() {
+            showCQL = false;
+            document.getElementById('btnStandard').classList.add('active');
+            document.getElementById('btnCQL').classList.remove('active');
+            document.getElementById('problemExplanation').textContent = 'Standard offline RL: Q-values for OOD actions (outside dataset) are erroneously high, causing the policy to select bad actions.';
+            drawProblemViz();
+        });
+
+        document.getElementById('btnCQL').addEventListener('click', function() {
+            showCQL = true;
+            document.getElementById('btnCQL').classList.add('active');
+            document.getElementById('btnStandard').classList.remove('active');
+            document.getElementById('problemExplanation').textContent = 'CQL: Q-values are conservative everywhere, especially for OOD actions. The policy safely selects in-distribution actions with known good values.';
+            drawProblemViz();
+        });
+
+        // ==================== CQL Regularizer Canvas ====================
+        const regCanvas = document.getElementById('regCanvas');
+        const regCtx = regCanvas.getContext('2d');
+        const alphaSlider = document.getElementById('alphaSlider');
+
+        function resizeRegCanvas() {
+            const rect = regCanvas.getBoundingClientRect();
+            regCanvas.width = rect.width * window.devicePixelRatio;
+            regCanvas.height = rect.height * window.devicePixelRatio;
+            regCtx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+        }
+
+        function drawRegViz(alpha) {
+            const dpr = window.devicePixelRatio || 1;
+            const rect = regCanvas.getBoundingClientRect();
+            const w = rect.width, h = rect.height;
+            regCanvas.width = w * dpr;
+            regCanvas.height = h * dpr;
+            regCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+            const pad = { left: 50, right: 20, top: 20, bottom: 35 };
+            const pw = w - pad.left - pad.right;
+            const ph = h - pad.top - pad.bottom;
+
+            // Axes
+            regCtx.strokeStyle = '#444';
+            regCtx.lineWidth = 1;
+            regCtx.beginPath();
+            regCtx.moveTo(pad.left, pad.top);
+            regCtx.lineTo(pad.left, h - pad.bottom);
+            regCtx.lineTo(w - pad.right, h - pad.bottom);
+            regCtx.stroke();
+
+            regCtx.fillStyle = '#888';
+            regCtx.font = '11px sans-serif';
+            regCtx.textAlign = 'center';
+            regCtx.fillText('Action', w / 2, h - 8);
+
+            regCtx.save();
+            regCtx.translate(15, h / 2);
+            regCtx.rotate(-Math.PI / 2);
+            regCtx.fillText('Q(s,a)', 0, 0);
+            regCtx.restore();
+
+            const nActions = 8;
+            const barWidth = pw / (nActions * 2.5);
+            const dataActions = [2, 3, 4, 5]; // In-distribution
+            const oodActions = [0, 1, 6, 7];
+
+            // Base Q-values (before CQL)
+            const baseQ = [1.8, 2.5, 1.5, 2.0, 1.8, 1.6, 2.8, 2.2];
+            // True Q
+            const trueQ = [0.5, 0.8, 1.5, 2.0, 1.8, 1.6, 0.3, 0.6];
+
+            // Compute CQL-adjusted Q-values
+            const cqlQ = baseQ.map((q, i) => {
+                if (oodActions.includes(i)) {
+                    return q - alpha * 0.6; // Push down OOD
+                } else {
+                    return q + alpha * 0.15; // Pull up in-distribution
+                }
+            });
+
+            const yMax = 4;
+            const yMin = -0.5;
+            function toY(y) { return h - pad.bottom - ((y - yMin) / (yMax - yMin)) * ph; }
+
+            // Zero line
+            regCtx.strokeStyle = 'rgba(255,255,255,0.1)';
+            regCtx.beginPath();
+            regCtx.moveTo(pad.left, toY(0));
+            regCtx.lineTo(w - pad.right, toY(0));
+            regCtx.stroke();
+
+            // Y-axis labels
+            regCtx.fillStyle = '#666';
+            regCtx.font = '10px sans-serif';
+            regCtx.textAlign = 'right';
+            for (let y = 0; y <= 3; y++) {
+                regCtx.fillText(y.toString(), pad.left - 8, toY(y) + 4);
+            }
+
+            // Draw bars
+            const actionLabels = ['a0', 'a1', 'a2', 'a3', 'a4', 'a5', 'a6', 'a7'];
+            for (let i = 0; i < nActions; i++) {
+                const cx = pad.left + (i + 0.5) * (pw / nActions);
+                const val = cqlQ[i];
+                const bh = ((Math.max(val, 0) - yMin) / (yMax - yMin)) * ph;
+                const barTop = toY(Math.max(val, 0));
+
+                const isOOD = oodActions.includes(i);
+
+                // Bar
+                regCtx.fillStyle = isOOD ? 'rgba(239, 68, 68, 0.7)' : 'rgba(16, 185, 129, 0.7)';
+                regCtx.fillRect(cx - barWidth / 2, barTop, barWidth, h - pad.bottom - barTop);
+
+                // True Q marker
+                const trueY = toY(trueQ[i]);
+                regCtx.strokeStyle = '#f59e0b';
+                regCtx.lineWidth = 2;
+                regCtx.beginPath();
+                regCtx.moveTo(cx - barWidth / 2 - 4, trueY);
+                regCtx.lineTo(cx + barWidth / 2 + 4, trueY);
+                regCtx.stroke();
+
+                // Arrow showing push/pull direction
+                if (alpha > 0.2) {
+                    const arrowStartY = toY(baseQ[i]);
+                    const arrowEndY = toY(cqlQ[i]);
+                    if (Math.abs(arrowStartY - arrowEndY) > 5) {
+                        regCtx.strokeStyle = isOOD ? '#ef4444' : '#10b981';
+                        regCtx.lineWidth = 2;
+                        regCtx.beginPath();
+                        regCtx.moveTo(cx, arrowStartY);
+                        regCtx.lineTo(cx, arrowEndY);
+                        regCtx.stroke();
+                        // Arrowhead
+                        const dir = arrowEndY > arrowStartY ? 1 : -1;
+                        regCtx.beginPath();
+                        regCtx.moveTo(cx - 4, arrowEndY - dir * 6);
+                        regCtx.lineTo(cx, arrowEndY);
+                        regCtx.lineTo(cx + 4, arrowEndY - dir * 6);
+                        regCtx.stroke();
+                    }
+                }
+
+                // Label
+                regCtx.fillStyle = isOOD ? '#ef4444' : '#10b981';
+                regCtx.font = '9px sans-serif';
+                regCtx.textAlign = 'center';
+                regCtx.fillText(actionLabels[i], cx, h - pad.bottom + 12);
+                regCtx.fillText(isOOD ? 'OOD' : 'Data', cx, h - pad.bottom + 22);
+            }
+
+            // Legend
+            regCtx.font = '10px sans-serif';
+            regCtx.textAlign = 'left';
+            regCtx.fillStyle = '#f59e0b';
+            regCtx.fillText('\u2014 True Q', w - pad.right - 80, pad.top + 15);
+
+            // Update metrics
+            const pushDownVal = alpha * 0.6 * oodActions.length / nActions;
+            const pullUpVal = alpha * 0.15 * dataActions.length / nActions;
+            const netVal = pullUpVal - pushDownVal;
+
+            document.getElementById('pushDown').textContent = (-pushDownVal).toFixed(2);
+            document.getElementById('pullUp').textContent = '+' + pullUpVal.toFixed(2);
+            document.getElementById('netEffect').textContent = netVal.toFixed(2);
+            document.getElementById('netEffect').style.color = netVal <= 0 ? '#a855f7' : '#ef4444';
+            document.getElementById('alphaValue').textContent = alpha.toFixed(1);
+        }
+
+        alphaSlider.addEventListener('input', function() {
+            drawRegViz(parseFloat(this.value));
+        });
+
+        // ==================== Gap-Expanding Canvas ====================
+        const gapCanvas = document.getElementById('gapCanvas');
+        const gapCtx = gapCanvas.getContext('2d');
+
+        function resizeGapCanvas() {
+            const rect = gapCanvas.getBoundingClientRect();
+            gapCanvas.width = rect.width * window.devicePixelRatio;
+            gapCanvas.height = rect.height * window.devicePixelRatio;
+            gapCtx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+        }
+
+        function drawGapViz() {
+            const dpr = window.devicePixelRatio || 1;
+            const rect = gapCanvas.getBoundingClientRect();
+            const w = rect.width, h = rect.height;
+            gapCanvas.width = w * dpr;
+            gapCanvas.height = h * dpr;
+            gapCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+            const centerX = w / 2;
+            const barHeight = 40;
+            const maxBarWidth = w * 0.35;
+            const gap = 25;
+
+            // True Q-values
+            const trueInDist = 2.0;
+            const trueOOD = 1.5;
+            const trueGap = trueInDist - trueOOD;
+
+            // CQL Q-values (gap expanded)
+            const cqlInDist = 1.9;
+            const cqlOOD = 0.5;
+            const cqlGap = cqlInDist - cqlOOD;
+
+            const maxVal = 2.5;
+
+            const y1 = 30;
+            const y2 = y1 + barHeight + gap;
+
+            // Labels
+            gapCtx.fillStyle = '#888';
+            gapCtx.font = '12px sans-serif';
+            gapCtx.textAlign = 'center';
+            gapCtx.fillText('True Q-values', centerX, y1 - 8);
+
+            // True Q bars
+            const trueInW = (trueInDist / maxVal) * maxBarWidth;
+            const trueOodW = (trueOOD / maxVal) * maxBarWidth;
+
+            // In-dist bar (right of center)
+            gapCtx.fillStyle = 'rgba(16, 185, 129, 0.7)';
+            gapCtx.fillRect(centerX + 5, y1, trueInW, barHeight);
+            gapCtx.fillStyle = '#10b981';
+            gapCtx.font = '11px sans-serif';
+            gapCtx.textAlign = 'left';
+            gapCtx.fillText('In-dist: ' + trueInDist.toFixed(1), centerX + trueInW + 10, y1 + barHeight / 2 + 4);
+
+            // OOD bar (left of center)
+            gapCtx.fillStyle = 'rgba(239, 68, 68, 0.7)';
+            gapCtx.fillRect(centerX - 5 - trueOodW, y1, trueOodW, barHeight);
+            gapCtx.fillStyle = '#ef4444';
+            gapCtx.textAlign = 'right';
+            gapCtx.fillText('OOD: ' + trueOOD.toFixed(1), centerX - trueOodW - 10, y1 + barHeight / 2 + 4);
+
+            // Gap indicator
+            gapCtx.fillStyle = '#f59e0b';
+            gapCtx.font = 'bold 11px sans-serif';
+            gapCtx.textAlign = 'center';
+            gapCtx.fillText('Gap: ' + trueGap.toFixed(1), centerX, y1 + barHeight + 14);
+
+            // CQL section
+            const y3 = y2 + 20;
+            gapCtx.fillStyle = '#888';
+            gapCtx.font = '12px sans-serif';
+            gapCtx.fillText('CQL Q-values (gap expanded)', centerX, y3 - 8);
+
+            const cqlInW = (cqlInDist / maxVal) * maxBarWidth;
+            const cqlOodW = (cqlOOD / maxVal) * maxBarWidth;
+
+            // In-dist bar
+            gapCtx.fillStyle = 'rgba(16, 185, 129, 0.9)';
+            gapCtx.fillRect(centerX + 5, y3, cqlInW, barHeight);
+            gapCtx.fillStyle = '#10b981';
+            gapCtx.font = '11px sans-serif';
+            gapCtx.textAlign = 'left';
+            gapCtx.fillText('In-dist: ' + cqlInDist.toFixed(1), centerX + cqlInW + 10, y3 + barHeight / 2 + 4);
+
+            // OOD bar
+            gapCtx.fillStyle = 'rgba(239, 68, 68, 0.5)';
+            gapCtx.fillRect(centerX - 5 - cqlOodW, y3, cqlOodW, barHeight);
+            gapCtx.fillStyle = '#ef4444';
+            gapCtx.textAlign = 'right';
+            gapCtx.fillText('OOD: ' + cqlOOD.toFixed(1), centerX - cqlOodW - 10, y3 + barHeight / 2 + 4);
+
+            // Gap indicator (larger!)
+            gapCtx.fillStyle = '#a855f7';
+            gapCtx.font = 'bold 12px sans-serif';
+            gapCtx.textAlign = 'center';
+            gapCtx.fillText('Gap: ' + cqlGap.toFixed(1) + ' (expanded!)', centerX, y3 + barHeight + 14);
+
+            // Center line
+            gapCtx.strokeStyle = 'rgba(255,255,255,0.2)';
+            gapCtx.lineWidth = 1;
+            gapCtx.setLineDash([4, 4]);
+            gapCtx.beginPath();
+            gapCtx.moveTo(centerX, 0);
+            gapCtx.lineTo(centerX, h);
+            gapCtx.stroke();
+            gapCtx.setLineDash([]);
+        }
+
+        // ==================== Benchmark Results ====================
+        const benchmarkData = {
+            'walker2d-medium-expert': { SAC: 1.9, BC: 11.3, BEAR: 10.8, 'BRAC-v': 0.9, CQL: 98.7 },
+            'hopper-medium-expert': { SAC: 1.6, BC: 111.9, BEAR: 4.0, 'BRAC-v': 0.8, CQL: 111.0 },
+            'antmaze-medium-play': { SAC: 0, BC: 0, BEAR: 0, 'BRAC-v': 0, CQL: 61.2 },
+            'antmaze-large-diverse': { SAC: 0, BC: 0, BEAR: 0, 'BRAC-v': 0, CQL: 14.9 },
+            'kitchen-partial': { SAC: 0, BC: 33.8, BEAR: 13.1, 'BRAC-v': 0, CQL: 49.8 },
+            'pen-human': { SAC: 6.3, BC: 34.4, BEAR: -1.0, 'BRAC-v': 0.6, CQL: 37.5 }
+        };
+
+        const methodColors = {
+            SAC: '#888',
+            BC: '#f59e0b',
+            BEAR: '#3b82f6',
+            'BRAC-v': '#ec4899',
+            CQL: '#10b981'
+        };
+
+        function renderBenchmark(taskName) {
+            const data = benchmarkData[taskName];
+            const maxVal = Math.max(...Object.values(data), 1);
+            const container = document.getElementById('benchmarkBars');
+            container.innerHTML = '';
+
+            for (const [method, score] of Object.entries(data)) {
+                const row = document.createElement('div');
+                row.className = 'comparison-row';
+                const pct = Math.max(score, 0) / maxVal * 100;
+                const color = methodColors[method];
+                row.innerHTML = `
+                    <span class="comparison-label" style="color: ${color}; font-weight: ${method === 'CQL' ? '700' : '400'};">${method}</span>
+                    <div class="comparison-bar-track">
+                        <div class="comparison-bar-fill" style="width: ${pct}%; background: ${color}; opacity: ${method === 'CQL' ? 1 : 0.7};"></div>
+                    </div>
+                    <span class="comparison-value" style="color: ${color};">${score.toFixed(1)}</span>
+                `;
+                container.appendChild(row);
+            }
+        }
+
+        document.getElementById('taskSelect').addEventListener('change', function() {
+            renderBenchmark(this.value);
+        });
+
+        // ==================== Initialize ====================
+        window.addEventListener('resize', () => {
+            drawProblemViz();
+            drawRegViz(parseFloat(alphaSlider.value));
+            drawGapViz();
+        });
+
+        setTimeout(() => {
+            drawProblemViz();
+            drawRegViz(1.0);
+            drawGapViz();
+            renderBenchmark('walker2d-medium-expert');
+        }, 100);
+    </script>
+</body>
+</html>

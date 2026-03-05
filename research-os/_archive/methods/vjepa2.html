@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <title>V-JEPA 2 - ML Method Visualizations</title>
+    <link rel="stylesheet" href="../css/sidebar.css">
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+            }
+        };
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js" async></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #e8e8e8;
+        }
+
+        .main-content {
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.2rem;
+            margin-bottom: 8px;
+            background: linear-gradient(90deg, #00d9ff, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        /* Core Ideas */
+        .key-ideas {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .idea {
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .idea:hover {
+            background: rgba(0,0,0,0.4);
+        }
+
+        .idea.active {
+            border-color: #00d9ff;
+            background: rgba(0, 217, 255, 0.1);
+        }
+
+        .idea-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+
+        .idea h4 {
+            font-size: 1rem;
+            margin-bottom: 8px;
+        }
+
+        .idea p {
+            font-size: 0.8rem;
+            color: #888;
+            line-height: 1.4;
+        }
+
+        .info-panel {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 15px;
+            min-height: 100px;
+        }
+
+        .info-panel h4 {
+            color: #00d9ff;
+            margin-bottom: 8px;
+        }
+
+        .info-panel p {
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: #aaa;
+        }
+
+        .formula {
+            background: rgba(168, 85, 247, 0.1);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            margin: 10px 0;
+            font-size: 1rem;
+            text-align: center;
+            color: #e0e0e0;
+        }
+
+        /* Pipeline SVG */
+        .pipeline-svg {
+            width: 100%;
+            height: 480px;
+        }
+
+        .pipeline-stage {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .pipeline-stage:hover {
+            filter: brightness(1.2);
+        }
+
+        .pipeline-stage.active {
+            filter: drop-shadow(0 0 15px currentColor);
+        }
+
+        .flow-arrow {
+            stroke-dasharray: 8 4;
+            animation: flowDash 1s linear infinite;
+        }
+
+        @keyframes flowDash {
+            to { stroke-dashoffset: -12; }
+        }
+
+        /* Model Components */
+        .model-equations {
+            display: grid;
+            gap: 15px;
+        }
+
+        .model-item {
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .model-item:hover {
+            background: rgba(0,0,0,0.4);
+        }
+
+        .model-item.active {
+            border-color: #a855f7;
+        }
+
+        .model-item h4 {
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .model-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        /* Canvas */
+        .canvas-container {
+            position: relative;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        .planning-canvas {
+            width: 100%;
+            height: 300px;
+        }
+
+        /* Slider */
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .slider-container label {
+            font-size: 0.9rem;
+            min-width: 120px;
+        }
+
+        .slider {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 8px;
+            border-radius: 4px;
+            background: linear-gradient(90deg, #3b82f6, #a855f7);
+            outline: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #fff;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        .slider-value {
+            font-family: monospace;
+            font-size: 1rem;
+            color: #00d9ff;
+            min-width: 50px;
+        }
+
+        /* Comparison Bars */
+        .comparison-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .comparison-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .comparison-label {
+            font-size: 0.85rem;
+            min-width: 100px;
+        }
+
+        .comparison-bar-track {
+            flex: 1;
+            height: 24px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .comparison-bar-fill {
+            height: 100%;
+            border-radius: 12px;
+            transition: width 0.5s ease;
+        }
+
+        .comparison-value {
+            font-family: monospace;
+            font-size: 0.85rem;
+            min-width: 60px;
+            text-align: right;
+        }
+
+        /* Key Features */
+        .key-features {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .feature {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .feature-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .feature h4 {
+            font-size: 0.95rem;
+            margin-bottom: 5px;
+        }
+
+        .feature p {
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        /* Toggle buttons */
+        .toggle-btns {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .toggle-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(0,0,0,0.3);
+            color: #aaa;
+        }
+
+        .toggle-btn.active {
+            border-color: #00d9ff;
+            background: rgba(0, 217, 255, 0.1);
+            color: #00d9ff;
+        }
+
+        .toggle-btn:hover {
+            background: rgba(0,0,0,0.5);
+        }
+
+        /* Metrics row */
+        .metrics-row {
+            display: flex;
+            justify-content: space-around;
+            padding: 15px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+
+        .metric {
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            font-family: monospace;
+        }
+
+        .metric-label {
+            font-size: 0.75rem;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        @media (max-width: 1000px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            .key-ideas {
+                grid-template-columns: 1fr;
+            }
+            .key-features {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding-top: 70px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Menu Button -->
+    <button class="mobile-menu-btn" aria-label="Toggle menu">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+    </button>
+
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <button class="sidebar-toggle" aria-label="Toggle sidebar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+        </button>
+
+        <div class="sidebar-header">
+            <div class="sidebar-logo">📊</div>
+            <div class="sidebar-title">
+                <h1>ML Methods</h1>
+                <span>Interactive Visualizations</span>
+            </div>
+        </div>
+
+        <div class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Overview</div>
+                <ul class="nav-items">
+                    <li class="nav-item"><a href="../index.html" class="nav-link" data-tooltip="Home"><div class="nav-icon other">🏠</div><div class="nav-text"><span>Home</span><span>All methods overview</span></div></a></li>
+                </ul>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">Standard RL</div>
+                <ul class="nav-items">
+                    <li class="nav-item"><a href="sac.html" class="nav-link" data-tooltip="SAC"><div class="nav-icon rl">🎯</div><div class="nav-text"><span>SAC</span><span>Soft Actor-Critic</span></div></a></li>
+                    <li class="nav-item"><a href="rlhf.html" class="nav-link" data-tooltip="RLHF"><div class="nav-icon rl">👤</div><div class="nav-text"><span>RLHF</span><span>RL from Human Feedback</span></div></a></li>
+                    <li class="nav-item"><a href="cql.html" class="nav-link" data-tooltip="CQL"><div class="nav-icon rl">🛡️</div><div class="nav-text"><span>CQL</span><span>Conservative Q-Learning</span></div></a></li>
+                </ul>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">World Models</div>
+                <ul class="nav-items">
+                    <li class="nav-item"><a href="world-models.html" class="nav-link" data-tooltip="World Models"><div class="nav-icon wm">🧠</div><div class="nav-text"><span>World Models</span><span>Ha & Schmidhuber</span></div></a></li>
+                    <li class="nav-item"><a href="planet.html" class="nav-link" data-tooltip="PlaNet"><div class="nav-icon wm">🪐</div><div class="nav-text"><span>PlaNet</span><span>Latent Dynamics Planning</span></div></a></li>
+                    <li class="nav-item"><a href="dreamer.html" class="nav-link" data-tooltip="Dreamer"><div class="nav-icon wm">💭</div><div class="nav-text"><span>Dreamer</span><span>Latent Imagination</span></div></a></li>
+                    <li class="nav-item"><a href="dreamerv2.html" class="nav-link" data-tooltip="DreamerV2"><div class="nav-icon wm">🎲</div><div class="nav-text"><span>DreamerV2</span><span>Discrete World Models</span></div></a></li>
+                    <li class="nav-item"><a href="dreamerv3.html" class="nav-link" data-tooltip="DreamerV3"><div class="nav-icon wm">🌐</div><div class="nav-text"><span>DreamerV3</span><span>Diverse Domains</span></div></a></li>
+                    <li class="nav-item"><a href="vjepa.html" class="nav-link" data-tooltip="V-JEPA"><div class="nav-icon wm">🎬</div><div class="nav-text"><span>V-JEPA</span><span>Feature Prediction</span></div></a></li>
+                    <li class="nav-item"><a href="vjepa2.html" class="nav-link active" data-tooltip="V-JEPA 2"><div class="nav-icon wm">🤖</div><div class="nav-text"><span>V-JEPA 2</span><span>Understanding & Planning</span></div></a></li>
+                </ul>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">Robotics Concepts</div>
+                <ul class="nav-items">
+                    <li class="nav-item">
+                        <a href="robot-controllers.html" class="nav-link" data-tooltip="Controllers">
+                            <div class="nav-icon" style="background: linear-gradient(135deg, #f59e0b, #ef4444);">🦾</div>
+                            <div class="nav-text">
+                                <span>Controllers</span>
+                                <span>Impedance, Stiffness & Contact</span>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+            <span>Press <kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">Ctrl+B</kbd> to toggle</span>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <h1>V-JEPA 2</h1>
+            <p class="subtitle">Self-Supervised Video Models Enable Understanding, Prediction and Planning &mdash; Assran et al., 2025</p>
+            <div style="text-align: center; margin-bottom: 20px;">
+                <a href="https://github.com/facebookresearch/vjepa2" target="_blank" style="color: #888; text-decoration: none; font-size: 0.85rem; transition: color 0.2s;">
+                    <span style="margin-right: 5px;">🔗</span> github.com/facebookresearch/vjepa2
+                </a>
+            </div>
+
+            <!-- Three Core Ideas -->
+            <div class="card" style="margin-bottom: 20px;">
+                <div class="card-title">
+                    <div class="icon" style="background: linear-gradient(135deg, #00d9ff, #0099cc);">💡</div>
+                    Core Ideas
+                </div>
+                <div class="key-ideas">
+                    <div class="idea" data-idea="1">
+                        <div class="idea-icon" style="background: linear-gradient(135deg, #00d9ff, #0099cc);">📈</div>
+                        <h4>Scaling Self-Supervised Video Pretraining</h4>
+                        <p>Scale along ALL axes simultaneously: data (2M&rarr;22M videos), model (300M&rarr;1B params), training (90K&rarr;252K iters), and progressive resolution (256px&rarr;384px, 16&rarr;64 frames). Each contributes +1&ndash;1.5 points.</p>
+                    </div>
+                    <div class="idea" data-idea="2">
+                        <div class="idea-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">🤖</div>
+                        <h4>Action-Conditioned World Model (V-JEPA 2-AC)</h4>
+                        <p>Freeze the video encoder, train a 300M-param autoregressive transformer predictor on top using only 62 hours of robot data. Block-causal attention predicts next-frame representations conditioned on actions.</p>
+                    </div>
+                    <div class="idea" data-idea="3">
+                        <div class="idea-icon" style="background: linear-gradient(135deg, #10b981, #059669);">🧭</div>
+                        <h4>Planning via Energy Minimization</h4>
+                        <p>Plan robot actions by minimizing L1 distance between predicted future state and goal state in representation space. No reward function needed &mdash; just provide a goal image.</p>
+                    </div>
+                </div>
+                <div class="info-panel" id="idea-info" style="display: none;">
+                </div>
+            </div>
+
+            <div class="main-grid">
+                <!-- Model Components -->
+                <div class="card">
+                    <div class="card-title">
+                        <div class="icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">🧩</div>
+                        Model Components
+                    </div>
+                    <div class="model-equations">
+                        <div class="model-item" data-model="backbone">
+                            <h4><span class="model-dot" style="background: #00d9ff;"></span>ViT-g Backbone (1B params)</h4>
+                            <p style="font-size: 0.8rem; color: #888; margin-top: 8px;">Vision Transformer with 1B parameters trained on 22M videos. Uses 3D-RoPE instead of absolute position embeddings. Progressive training: 256px&rarr;384px, 16&rarr;64 frames.</p>
+                        </div>
+                        <div class="model-item" data-model="predictor">
+                            <h4><span class="model-dot" style="background: #f59e0b;"></span>Autoregressive Predictor (V-JEPA 2-AC)</h4>
+                            <p style="font-size: 0.8rem; color: #888; margin-top: 8px;">300M params, 24 transformer layers, 16 heads, 1024 dim. Block-causal attention. Takes (features, actions, poses) &rarr; predicts next features.</p>
+                        </div>
+                        <div class="model-item" data-model="tfloss">
+                            <h4><span class="model-dot" style="background: #10b981;"></span>Teacher-Forcing Loss</h4>
+                            <div class="formula">
+                                \( \mathcal{L}_{\text{TF}} = \frac{1}{T}\sum_{k=1}^{T}\|\hat{z}_k - z_k\|_1 \)
+                            </div>
+                            <p style="font-size: 0.8rem; color: #888; margin-top: 8px;">L1 between predicted and actual backbone features at each timestep</p>
+                        </div>
+                        <div class="model-item" data-model="rollout">
+                            <h4><span class="model-dot" style="background: #a855f7;"></span>Rollout Loss</h4>
+                            <div class="formula">
+                                \( \mathcal{L}_{\text{rollout}} = \|P(a_{1:T}; z_0) - z_{T+1}\|_1 \)
+                            </div>
+                            <p style="font-size: 0.8rem; color: #888; margin-top: 8px;">L1 error over multi-step autoregressive rollouts. Helps reduce compounding errors.</p>
+                        </div>
+                        <div class="model-item" data-model="energy">
+                            <h4><span class="model-dot" style="background: #ef4444;"></span>Energy-Based Planning</h4>
+                            <div class="formula">
+                                \( E(a_{1:H}) = \|P_{\text{AC}}(z_0, s_0, a_{1:H}) - z_{\text{goal}}\|_1 \)
+                            </div>
+                            <p style="font-size: 0.8rem; color: #888; margin-top: 8px;">Minimize over action sequences. No reward function needed.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Architecture SVG -->
+                <div class="card">
+                    <div class="card-title">
+                        <div class="icon" style="background: linear-gradient(135deg, #10b981, #059669);">🏗️</div>
+                        V-JEPA 2 Architecture
+                    </div>
+                    <svg class="pipeline-svg" viewBox="0 0 500 470">
+                        <!-- Part 1: V-JEPA 2 Pretraining -->
+                        <text x="250" y="15" text-anchor="middle" fill="#00d9ff" font-size="10" font-weight="bold">V-JEPA 2 Pretraining</text>
+
+                        <!-- Video Frames -->
+                        <rect x="15" y="30" width="70" height="40" rx="6" fill="#3b82f6" class="pipeline-stage" data-component="video"/>
+                        <text x="50" y="48" text-anchor="middle" fill="white" font-size="8" font-weight="bold">Video</text>
+                        <text x="50" y="59" text-anchor="middle" fill="white" font-size="7">22M videos</text>
+
+                        <!-- Mask -->
+                        <rect x="100" y="30" width="50" height="40" rx="6" fill="rgba(239,68,68,0.3)" stroke="#ef4444" stroke-width="1.5" class="pipeline-stage" data-component="mask"/>
+                        <text x="125" y="48" text-anchor="middle" fill="#ef4444" font-size="8" font-weight="bold">Mask</text>
+                        <text x="125" y="59" text-anchor="middle" fill="#888" font-size="7">90%</text>
+
+                        <!-- x-encoder -->
+                        <rect x="165" y="25" width="90" height="50" rx="8" fill="rgba(0,217,255,0.2)" stroke="#00d9ff" stroke-width="2" class="pipeline-stage" data-component="xencoder"/>
+                        <text x="210" y="45" text-anchor="middle" fill="#00d9ff" font-size="9" font-weight="bold">x-encoder</text>
+                        <text x="210" y="58" text-anchor="middle" fill="#888" font-size="7">ViT-g (1B)</text>
+
+                        <!-- Predictor -->
+                        <rect x="270" y="25" width="75" height="50" rx="8" fill="rgba(168,85,247,0.2)" stroke="#a855f7" stroke-width="1.5" class="pipeline-stage" data-component="pretrain_pred"/>
+                        <text x="307" y="45" text-anchor="middle" fill="#a855f7" font-size="9" font-weight="bold">Predictor</text>
+                        <text x="307" y="58" text-anchor="middle" fill="#888" font-size="7">features</text>
+
+                        <!-- y-encoder (EMA) -->
+                        <rect x="165" y="90" width="90" height="40" rx="8" fill="rgba(245,158,11,0.2)" stroke="#f59e0b" stroke-width="1.5" class="pipeline-stage" data-component="yencoder"/>
+                        <text x="210" y="107" text-anchor="middle" fill="#f59e0b" font-size="9" font-weight="bold">y-encoder (EMA)</text>
+                        <text x="210" y="120" text-anchor="middle" fill="#888" font-size="7">stop-grad targets</text>
+
+                        <!-- L1 Loss -->
+                        <rect x="370" y="30" width="60" height="38" rx="8" fill="rgba(16,185,129,0.2)" stroke="#10b981" stroke-width="1.5" class="pipeline-stage" data-component="pretrain_loss"/>
+                        <text x="400" y="48" text-anchor="middle" fill="#10b981" font-size="9" font-weight="bold">L1 Loss</text>
+                        <text x="400" y="58" text-anchor="middle" fill="#888" font-size="7">252K iters</text>
+
+                        <!-- Arrows for pretraining -->
+                        <path d="M 85 50 L 98 50" stroke="#3b82f6" stroke-width="1.5" fill="none" marker-end="url(#arrowBlue)"/>
+                        <path d="M 150 50 L 163 50" stroke="#ef4444" stroke-width="1.5" fill="none" marker-end="url(#arrowRed)"/>
+                        <path d="M 255 50 L 268 50" stroke="#a855f7" stroke-width="1.5" fill="none" marker-end="url(#arrowPurple)"/>
+                        <path d="M 345 50 L 368 50" stroke="#10b981" stroke-width="1.5" fill="none" marker-end="url(#arrowGreen)" class="flow-arrow"/>
+                        <path d="M 50 70 Q 50 110 163 110" stroke="#f59e0b" stroke-width="1.5" fill="none" marker-end="url(#arrowOrange)"/>
+                        <path d="M 255 110 Q 340 110 390 70" stroke="#f59e0b" stroke-width="1.5" fill="none" marker-end="url(#arrowOrange)" stroke-dasharray="4"/>
+                        <text x="330" y="100" fill="#888" font-size="7">stop-grad</text>
+
+                        <!-- Scale labels -->
+                        <rect x="440" y="25" width="50" height="50" rx="6" fill="rgba(0,217,255,0.1)" stroke="#00d9ff" stroke-width="1" stroke-dasharray="3"/>
+                        <text x="465" y="40" text-anchor="middle" fill="#00d9ff" font-size="7">1B params</text>
+                        <text x="465" y="52" text-anchor="middle" fill="#888" font-size="6">22M videos</text>
+                        <text x="465" y="64" text-anchor="middle" fill="#888" font-size="6">384px/64f</text>
+
+                        <!-- Separator -->
+                        <line x1="15" y1="145" x2="485" y2="145" stroke="rgba(255,255,255,0.15)" stroke-width="1" stroke-dasharray="6"/>
+
+                        <!-- Part 2: V-JEPA 2-AC -->
+                        <text x="250" y="165" text-anchor="middle" fill="#f59e0b" font-size="10" font-weight="bold">V-JEPA 2-AC (Action-Conditioned World Model)</text>
+
+                        <!-- Frame 0 -->
+                        <rect x="15" y="180" width="55" height="35" rx="6" fill="rgba(59,130,246,0.3)" stroke="#3b82f6" stroke-width="1.5"/>
+                        <text x="42" y="195" text-anchor="middle" fill="#3b82f6" font-size="7" font-weight="bold">Frame x_0</text>
+                        <text x="42" y="206" text-anchor="middle" fill="#888" font-size="6">current</text>
+
+                        <!-- Frame 1 -->
+                        <rect x="80" y="180" width="55" height="35" rx="6" fill="rgba(59,130,246,0.3)" stroke="#3b82f6" stroke-width="1.5"/>
+                        <text x="107" y="195" text-anchor="middle" fill="#3b82f6" font-size="7" font-weight="bold">Frame x_1</text>
+
+                        <!-- Frame dots -->
+                        <text x="152" y="200" fill="#888" font-size="12">...</text>
+
+                        <!-- Frozen Encoder -->
+                        <rect x="15" y="230" width="155" height="40" rx="8" fill="rgba(0,217,255,0.15)" stroke="#00d9ff" stroke-width="2" class="pipeline-stage" data-component="frozen_enc"/>
+                        <text x="92" y="248" text-anchor="middle" fill="#00d9ff" font-size="9" font-weight="bold">Frozen Encoder ❄️</text>
+                        <text x="92" y="261" text-anchor="middle" fill="#888" font-size="7">ViT-g (1B) &mdash; pretrained</text>
+
+                        <!-- Arrows frames to encoder -->
+                        <path d="M 42 215 L 42 228" stroke="#3b82f6" stroke-width="1.5" fill="none" marker-end="url(#arrowBlue)"/>
+                        <path d="M 107 215 L 107 228" stroke="#3b82f6" stroke-width="1.5" fill="none" marker-end="url(#arrowBlue)"/>
+
+                        <!-- Features z_0, z_1 -->
+                        <rect x="15" y="285" width="55" height="28" rx="6" fill="rgba(0,217,255,0.2)" stroke="#00d9ff" stroke-width="1"/>
+                        <text x="42" y="303" text-anchor="middle" fill="#00d9ff" font-size="8" font-weight="bold">z_0</text>
+
+                        <rect x="80" y="285" width="55" height="28" rx="6" fill="rgba(0,217,255,0.2)" stroke="#00d9ff" stroke-width="1"/>
+                        <text x="107" y="303" text-anchor="middle" fill="#00d9ff" font-size="8" font-weight="bold">z_1</text>
+
+                        <!-- Arrows encoder to features -->
+                        <path d="M 50 270 L 42 283" stroke="#00d9ff" stroke-width="1.5" fill="none" marker-end="url(#arrowCyan)"/>
+                        <path d="M 100 270 L 107 283" stroke="#00d9ff" stroke-width="1.5" fill="none" marker-end="url(#arrowCyan)"/>
+
+                        <!-- Actions -->
+                        <rect x="15" y="330" width="55" height="25" rx="6" fill="rgba(16,185,129,0.2)" stroke="#10b981" stroke-width="1"/>
+                        <text x="42" y="346" text-anchor="middle" fill="#10b981" font-size="7" font-weight="bold">a_0, s_0</text>
+
+                        <rect x="80" y="330" width="55" height="25" rx="6" fill="rgba(16,185,129,0.2)" stroke="#10b981" stroke-width="1"/>
+                        <text x="107" y="346" text-anchor="middle" fill="#10b981" font-size="7" font-weight="bold">a_1, s_1</text>
+
+                        <text x="152" y="345" fill="#888" font-size="12">...</text>
+
+                        <!-- Autoregressive Predictor -->
+                        <rect x="185" y="280" width="170" height="85" rx="10" fill="rgba(245,158,11,0.15)" stroke="#f59e0b" stroke-width="2" class="pipeline-stage" data-component="ac_predictor"/>
+                        <text x="270" y="305" text-anchor="middle" fill="#f59e0b" font-size="10" font-weight="bold">Autoregressive</text>
+                        <text x="270" y="318" text-anchor="middle" fill="#f59e0b" font-size="10" font-weight="bold">Predictor</text>
+                        <text x="270" y="335" text-anchor="middle" fill="#888" font-size="7">300M params &middot; 24 layers</text>
+                        <text x="270" y="347" text-anchor="middle" fill="#888" font-size="7">Block-causal &middot; 3D-RoPE</text>
+                        <text x="270" y="359" text-anchor="middle" fill="#888" font-size="7">62 hours robot data</text>
+
+                        <!-- Arrows: features & actions to predictor -->
+                        <path d="M 135 300 L 183 300" stroke="#00d9ff" stroke-width="1.5" fill="none" marker-end="url(#arrowCyan)" class="flow-arrow"/>
+                        <path d="M 135 342 L 183 342" stroke="#10b981" stroke-width="1.5" fill="none" marker-end="url(#arrowGreen)" class="flow-arrow"/>
+
+                        <!-- Predicted output -->
+                        <rect x="375" y="295" width="60" height="35" rx="8" fill="rgba(245,158,11,0.3)" stroke="#f59e0b" stroke-width="2"/>
+                        <text x="405" y="312" text-anchor="middle" fill="#f59e0b" font-size="9" font-weight="bold">z&#770;_{t+1}</text>
+                        <text x="405" y="324" text-anchor="middle" fill="#888" font-size="7">predicted</text>
+
+                        <path d="M 355 315 L 373 315" stroke="#f59e0b" stroke-width="2" fill="none" marker-end="url(#arrowOrange)" class="flow-arrow"/>
+
+                        <!-- Goal image path -->
+                        <rect x="375" y="180" width="60" height="35" rx="6" fill="rgba(16,185,129,0.3)" stroke="#10b981" stroke-width="1.5"/>
+                        <text x="405" y="195" text-anchor="middle" fill="#10b981" font-size="7" font-weight="bold">Goal</text>
+                        <text x="405" y="206" text-anchor="middle" fill="#10b981" font-size="7">Image</text>
+
+                        <rect x="375" y="230" width="60" height="28" rx="6" fill="rgba(16,185,129,0.15)" stroke="#10b981" stroke-width="1"/>
+                        <text x="405" y="248" text-anchor="middle" fill="#10b981" font-size="8" font-weight="bold">z_goal</text>
+
+                        <path d="M 405 215 L 405 228" stroke="#10b981" stroke-width="1.5" fill="none" marker-end="url(#arrowGreen)"/>
+                        <text x="445" y="225" fill="#888" font-size="6">Frozen</text>
+                        <text x="445" y="233" fill="#888" font-size="6">Enc ❄️</text>
+
+                        <!-- Energy -->
+                        <rect x="448" y="270" width="45" height="55" rx="8" fill="rgba(239,68,68,0.2)" stroke="#ef4444" stroke-width="2" class="pipeline-stage" data-component="energy_plan"/>
+                        <text x="470" y="290" text-anchor="middle" fill="#ef4444" font-size="8" font-weight="bold">Energy</text>
+                        <text x="470" y="303" text-anchor="middle" fill="#ef4444" font-size="7">||z&#770; - z_g||</text>
+                        <text x="470" y="315" text-anchor="middle" fill="#888" font-size="6">minimize</text>
+
+                        <path d="M 405 258 L 460 268" stroke="#ef4444" stroke-width="1.5" fill="none" marker-end="url(#arrowRed)"/>
+                        <path d="M 435 312 L 450 305" stroke="#ef4444" stroke-width="1.5" fill="none" marker-end="url(#arrowRed)"/>
+
+                        <!-- Planning loop arrow -->
+                        <path d="M 470 325 Q 470 370 270 370 Q 70 370 42 357" stroke="#ef4444" stroke-width="1.5" fill="none" marker-end="url(#arrowRed)" stroke-dasharray="6"/>
+                        <text x="270" y="385" text-anchor="middle" fill="#ef4444" font-size="7" font-weight="bold">Gradient-based action optimization (replanning)</text>
+
+                        <!-- Training Info -->
+                        <rect x="15" y="400" width="478" height="28" rx="8" fill="rgba(168,85,247,0.1)" stroke="#a855f7" stroke-width="1"/>
+                        <text x="250" y="418" text-anchor="middle" fill="#a855f7" font-size="9" font-weight="bold">L_total = L_TF + &lambda;&middot;L_rollout &nbsp;|&nbsp; Frozen backbone &mdash; only predictor trained &nbsp;|&nbsp; Goal-conditioned planning via energy min</text>
+
+                        <!-- Arrow Markers -->
+                        <defs>
+                            <marker id="arrowCyan" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#00d9ff"/>
+                            </marker>
+                            <marker id="arrowBlue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#3b82f6"/>
+                            </marker>
+                            <marker id="arrowOrange" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#f59e0b"/>
+                            </marker>
+                            <marker id="arrowGreen" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#10b981"/>
+                            </marker>
+                            <marker id="arrowPurple" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#a855f7"/>
+                            </marker>
+                            <marker id="arrowGray" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#888"/>
+                            </marker>
+                            <marker id="arrowRed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#ef4444"/>
+                            </marker>
+                        </defs>
+                    </svg>
+
+                    <div class="info-panel" id="component-info" style="display: none;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Planning Canvas + Benchmark Results -->
+            <div class="main-grid">
+                <!-- Interactive Planning Visualization -->
+                <div class="card">
+                    <div class="card-title">
+                        <div class="icon" style="background: linear-gradient(135deg, #10b981, #059669);">🧭</div>
+                        Planning via Energy Minimization
+                    </div>
+                    <div class="slider-container">
+                        <label>Iteration:</label>
+                        <input type="range" class="slider" id="iterSlider" min="1" max="30" step="1" value="1">
+                        <span class="slider-value" id="iterValue">1</span>
+                    </div>
+                    <div class="slider-container">
+                        <label>Horizon H:</label>
+                        <input type="range" class="slider" id="horizonSlider" min="4" max="20" step="1" value="8">
+                        <span class="slider-value" id="horizonValue">8</span>
+                    </div>
+                    <div class="canvas-container">
+                        <canvas class="planning-canvas" id="planningCanvas"></canvas>
+                    </div>
+                    <div class="metrics-row">
+                        <div class="metric">
+                            <div class="metric-value" id="metricEnergy" style="color: #ef4444;">12.4</div>
+                            <div class="metric-label">Energy</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value" id="metricIter" style="color: #00d9ff;">1</div>
+                            <div class="metric-label">Iteration</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value" id="metricTrajLen" style="color: #f59e0b;">8.2</div>
+                            <div class="metric-label">Trajectory Length</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Benchmark Results -->
+                <div class="card">
+                    <div class="card-title">
+                        <div class="icon" style="background: linear-gradient(135deg, #a855f7, #7c3aed);">🏆</div>
+                        Benchmark Results
+                    </div>
+                    <div class="comparison-container">
+                        <div class="toggle-btns" id="benchBtns">
+                            <button class="toggle-btn active" data-bench="scaling">Scaling Ingredients</button>
+                            <button class="toggle-btn" data-bench="comparison">Model Comparison</button>
+                        </div>
+                        <div id="benchInfo" style="font-size: 0.8rem; color: #888; text-align: center; margin-bottom: 8px;"></div>
+                        <div id="benchmarkBars"></div>
+                        <p style="font-size: 0.8rem; color: #888; margin-top: 10px; text-align: center;">
+                            Average accuracy across 6 video understanding benchmarks. Scaling all axes yields +4.0 points total improvement.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Training Objectives -->
+            <div class="card" style="margin-bottom: 20px;">
+                <div class="card-title">
+                    <div class="icon" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">📐</div>
+                    Training Objectives
+                </div>
+                <div class="model-equations">
+                    <div class="model-item" data-loss="pretrain">
+                        <h4><span class="model-dot" style="background: #00d9ff;"></span>Pretraining (V-JEPA Objective)</h4>
+                        <div class="formula">
+                            $$\mathcal{L}_{\text{pretrain}} = \|P_\phi(\Delta_y, E_\theta(x)) - \text{sg}(\bar{E}_{\bar\theta}(y))\|_1$$
+                        </div>
+                        <p style="font-size: 0.8rem; color: #888; margin-top: 8px;">Predict masked video features from visible context. The target encoder is an EMA of the online encoder with stop-gradient.</p>
+                    </div>
+                    <div class="model-item" data-loss="tf">
+                        <h4><span class="model-dot" style="background: #10b981;"></span>Teacher-Forcing Loss</h4>
+                        <div class="formula">
+                            $$\mathcal{L}_{\text{TF}}(\phi) = \frac{1}{T}\sum_{k=1}^{T}\left\|P_\phi\big((a_t, s_t, E(x_l))_{l\leq k}\big) - E(x_{k+1})\right\|_1$$
+                        </div>
+                        <p style="font-size: 0.8rem; color: #888; margin-top: 8px;">At each timestep, predict the next frame's features given all preceding frames, actions, and end-effector states.</p>
+                    </div>
+                    <div class="model-item" data-loss="rollout">
+                        <h4><span class="model-dot" style="background: #a855f7;"></span>Rollout Loss</h4>
+                        <div class="formula">
+                            $$\mathcal{L}_{\text{rollout}}(\phi) = \|P_\phi(a_{1:T}; s_1, z_1) - z_{T+1}\|_1$$
+                        </div>
+                        <p style="font-size: 0.8rem; color: #888; margin-top: 8px;">Multi-step autoregressive prediction loss. Reduces compounding errors during long-horizon rollouts.</p>
+                    </div>
+                    <div class="model-item" data-loss="planning">
+                        <h4><span class="model-dot" style="background: #ef4444;"></span>Planning Energy</h4>
+                        <div class="formula">
+                            $$a_{1:H}^* = \arg\min_{a_{1:H}} \|P_{\text{AC}}(z_0, s_0, a_{1:H}) - z_{\text{goal}}\|_1$$
+                        </div>
+                        <p style="font-size: 0.8rem; color: #888; margin-top: 8px;">Find the action sequence that minimizes the distance between predicted future and goal in representation space. Only the first action is executed, then replanning occurs.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Paper Lineage -->
+            <div class="card" style="margin-bottom: 20px;">
+                <div class="card-title">
+                    <div class="icon" style="background: linear-gradient(135deg, #6366f1, #4f46e5);">🌳</div>
+                    Paper Lineage
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div>
+                        <h4 style="font-size: 0.9rem; color: #f59e0b; margin-bottom: 12px;">Builds On</h4>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #f59e0b;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">V-JEPA</div>
+                                <div style="font-size: 0.75rem; color: #888;">Bardes et al., 2024 &mdash; Original self-supervised video prediction in latent space. V-JEPA 2 scales the data, model, and training far beyond the original.</div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #f59e0b;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">Scaling ViT</div>
+                                <div style="font-size: 0.75rem; color: #888;">Zhai et al., 2022 &mdash; Foundational work on scaling Vision Transformers. V-JEPA 2 uses ViT-g (1B params) with 3D-RoPE.</div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #f59e0b;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">Droid Dataset</div>
+                                <div style="font-size: 0.75rem; color: #888;">Khazatsky et al., 2024 &mdash; 62 hours of robot manipulation data (7-DOF Franka Panda) used to train V-JEPA 2-AC.</div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #f59e0b;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">I-JEPA</div>
+                                <div style="font-size: 0.75rem; color: #888;">Assran et al., 2023 &mdash; Image-level JEPA that inspired the video extension. Predicts image features from context.</div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #f59e0b;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">RoPE</div>
+                                <div style="font-size: 0.75rem; color: #888;">Su et al., 2024 &mdash; Rotary Position Embedding extended to 3D (spatial + temporal) for video transformers.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 style="font-size: 0.9rem; color: #10b981; margin-bottom: 12px;">Built Upon By</h4>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #10b981;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">Frontier Paper</div>
+                                <div style="font-size: 0.75rem; color: #888;">V-JEPA 2 is a very recent contribution (2025). Follow-up work building on this foundation is expected in robotics, video understanding, and world models.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Key Features -->
+            <div class="key-features">
+                <div class="feature">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #00d9ff, #0099cc);">🎬</div>
+                    <h4>1M Hours of Video</h4>
+                    <p>Pretrained on unprecedented scale of internet video data (22M videos from 5 datasets)</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">🤖</div>
+                    <h4>62 Hours to Robot</h4>
+                    <p>Only 62 hours of robot data needed for the action-conditioned world model on top of frozen backbone</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #10b981, #059669);">🎯</div>
+                    <h4>Goal-Conditioned Planning</h4>
+                    <p>Plans by minimizing distance to goal in feature space &mdash; no reward function or task-specific training</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="../js/sidebar.js"></script>
+    <script>
+        // ==================== Key Ideas Interaction ====================
+        const ideaInfo = {
+            1: {
+                title: 'Scaling Self-Supervised Video Pretraining',
+                desc: 'V-JEPA 2 demonstrates that scaling self-supervised video pretraining improves all downstream capabilities. Four key ingredients: (1) Data scaling: increasing from VideoMix2M (2M videos) to VideoMix22M (22M videos from SSv2, Kinetics, HowTo100M, YT-Temporal-1B, ImageNet) gives +1.0 point. (2) Model scaling: going from ViT-L (300M params) to ViT-g (1B params) gives +1.5 points. (3) Longer training: extending from 90K to 252K iterations with warmup-constant-decay schedule gives +0.8 points. (4) Progressive resolution: training at 256px then scaling to 384px and from 16 to 64 frames gives +1.0 point. Total improvement: +4.0 points, reaching 88.2% average accuracy across 6 understanding tasks.'
+            },
+            2: {
+                title: 'Action-Conditioned World Model (V-JEPA 2-AC)',
+                desc: 'V-JEPA 2-AC adds an action-conditioned predictor on top of the frozen V-JEPA 2 backbone. The predictor is a 300M-parameter transformer (24 layers, 16 heads, 1024 hidden dim) with block-causal attention. It processes interleaved sequences of (frame features, actions, end-effector states) and predicts next-frame representations autoregressively. Trained with teacher-forcing loss + rollout loss on only 62 hours of robot manipulation data from the Droid dataset (7-DOF Franka Panda arm). Uses 3D-RoPE for spatiotemporal position encoding. The frozen backbone means all visual understanding comes from internet video pretraining.'
+            },
+            3: {
+                title: 'Planning via Energy Minimization',
+                desc: 'V-JEPA 2-AC enables robot planning without any reward function. Given a current observation and a goal image, both are encoded by the frozen video encoder into feature maps z_current and z_goal. The system optimizes an action sequence a_{1:H} to minimize E(a) = ||P(a_{1:H}, z_0) - z_goal||_1, where P is the autoregressive predictor. This is done via gradient-based optimization (MPPI or similar). Only the first action is executed, then replanning occurs. This enables zero-shot manipulation in new environments without any task-specific training or reward engineering.'
+            }
+        };
+
+        document.querySelectorAll('.idea').forEach(idea => {
+            idea.addEventListener('click', function() {
+                document.querySelectorAll('.idea').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                const num = this.dataset.idea;
+                const info = ideaInfo[num];
+                const panel = document.getElementById('idea-info');
+                panel.style.display = 'block';
+                panel.innerHTML = `
+                    <h4>${info.title}</h4>
+                    <p>${info.desc}</p>
+                `;
+            });
+        });
+
+        // ==================== Architecture Interaction ====================
+        const componentInfo = {
+            video: {
+                title: 'Video Dataset (VideoMix22M)',
+                desc: 'V-JEPA 2 is pretrained on VideoMix22M, a collection of 22 million videos from 5 datasets: Something-Something v2 (SSv2), Kinetics-710, HowTo100M, YT-Temporal-1B, and ImageNet. This represents a massive scale-up from the original V-JEPA\'s 2M videos, contributing +1.0 point improvement in downstream accuracy.'
+            },
+            mask: {
+                title: 'Masking Strategy',
+                desc: 'Following the JEPA paradigm, a large portion (~90%) of the video patches are masked. The x-encoder only sees the unmasked patches (context), while the predictor must predict the features of the masked regions. This forces the model to learn meaningful spatiotemporal representations.'
+            },
+            xencoder: {
+                title: 'x-encoder (ViT-g, 1B params)',
+                desc: 'The online encoder processes only the visible (unmasked) video patches. It is a ViT-g with 1 billion parameters using 3D-RoPE for position encoding. During pretraining, it is updated by gradient descent. After pretraining, this encoder is frozen and serves as the visual backbone for all downstream tasks including the action-conditioned world model.'
+            },
+            pretrain_pred: {
+                title: 'Pretraining Predictor',
+                desc: 'During V-JEPA pretraining, the predictor takes the encoded visible patches and positional information about the masked regions, then predicts the features of those masked patches. The targets come from the EMA y-encoder with stop-gradient. This predictor is discarded after pretraining.'
+            },
+            yencoder: {
+                title: 'y-encoder (EMA Target)',
+                desc: 'The target encoder is an exponential moving average (EMA) of the x-encoder. It processes the full (unmasked) video to produce target features. Stop-gradient prevents the targets from collapsing. This asymmetric design (online encoder sees partial input, target encoder sees full input) is key to the JEPA self-supervised paradigm.'
+            },
+            pretrain_loss: {
+                title: 'Pretraining L1 Loss',
+                desc: 'The pretraining objective minimizes the L1 distance between the predictor\'s output and the stop-gradient target features. Training runs for 252K iterations with a warmup-constant-decay learning rate schedule. Progressive resolution: starts at 256px with 16 frames, scales to 384px with 64 frames.'
+            },
+            frozen_enc: {
+                title: 'Frozen Encoder (Pretrained ViT-g)',
+                desc: 'After pretraining on 22M internet videos, the ViT-g encoder is completely frozen. All visual understanding capability comes from this pretrained backbone. For V-JEPA 2-AC, only the autoregressive predictor on top is trained, using just 62 hours of robot data. This transfer learning approach is key: internet video provides general visual understanding, robot data provides action-conditioned dynamics.'
+            },
+            ac_predictor: {
+                title: 'Autoregressive Predictor (V-JEPA 2-AC)',
+                desc: 'A 300M-parameter transformer with 24 layers, 16 attention heads, and 1024 hidden dimension. Uses block-causal attention to process interleaved sequences of (frame features z_t, actions a_t, end-effector states s_t). Predicts next-frame features autoregressively. Trained with teacher-forcing + rollout loss on 62 hours of Droid dataset (7-DOF Franka Panda arm). Uses 3D-RoPE for spatiotemporal position encoding.'
+            },
+            energy_plan: {
+                title: 'Energy-Based Planning',
+                desc: 'Given current observation and goal image, both encoded by the frozen backbone into z_current and z_goal, the planner optimizes: a*_{1:H} = argmin ||P_AC(z_0, s_0, a_{1:H}) - z_goal||_1. This is solved via gradient-based optimization (e.g., MPPI). Only the first action a*_1 is executed, then replanning occurs with the new observation. No reward function or task-specific training needed.'
+            }
+        };
+
+        document.querySelectorAll('.pipeline-stage').forEach(stage => {
+            stage.addEventListener('click', function() {
+                document.querySelectorAll('.pipeline-stage').forEach(s => s.classList.remove('active'));
+                this.classList.add('active');
+                const component = this.dataset.component;
+                if (component && componentInfo[component]) {
+                    const info = componentInfo[component];
+                    const panel = document.getElementById('component-info');
+                    panel.style.display = 'block';
+                    panel.innerHTML = `
+                        <h4>${info.title}</h4>
+                        <p>${info.desc}</p>
+                    `;
+                }
+            });
+        });
+
+        // ==================== Model Item Interaction ====================
+        document.querySelectorAll('.model-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.model-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // ==================== Planning Canvas ====================
+        const planningCanvas = document.getElementById('planningCanvas');
+        const planCtx = planningCanvas.getContext('2d');
+        const iterSlider = document.getElementById('iterSlider');
+        const horizonSlider = document.getElementById('horizonSlider');
+
+        // Pre-generate trajectory data for smooth animation
+        function generateTrajectories(horizon, maxIter) {
+            const startX = 60, startY = 200;
+            const goalX = 500, goalY = 80;
+            const trajectories = [];
+
+            for (let iter = 0; iter <= maxIter; iter++) {
+                const t = iter / maxIter; // 0 to 1
+                const points = [];
+                const numPoints = horizon + 1;
+
+                for (let i = 0; i <= horizon; i++) {
+                    const frac = i / horizon;
+
+                    // Initial random trajectory (iter 0): curves away from goal
+                    const randOffsetX = (1 - t) * Math.sin(frac * Math.PI * 2.5) * 80 * (1 - frac * 0.3);
+                    const randOffsetY = (1 - t) * Math.cos(frac * Math.PI * 1.8) * 60;
+
+                    // Optimized trajectory (converges to smooth curve toward goal)
+                    const optX = startX + (goalX - startX) * frac;
+                    const optY = startY + (goalY - startY) * frac - Math.sin(frac * Math.PI) * 40 * (1 - t * 0.5);
+
+                    const x = optX + randOffsetX;
+                    const y = optY + randOffsetY;
+
+                    points.push({ x, y });
+                }
+                trajectories.push(points);
+            }
+            return trajectories;
+        }
+
+        // Energy as function of iteration
+        function getEnergy(iter, maxIter) {
+            const t = iter / maxIter;
+            return 12.4 * Math.exp(-3.5 * t) + 0.3;
+        }
+
+        // Energy history for mini chart
+        function getEnergyHistory(currentIter, maxIter) {
+            const history = [];
+            for (let i = 1; i <= currentIter; i++) {
+                history.push(getEnergy(i, maxIter));
+            }
+            return history;
+        }
+
+        let cachedTrajectories = null;
+        let cachedHorizon = null;
+
+        function drawPlanningViz() {
+            const dpr = window.devicePixelRatio || 1;
+            const rect = planningCanvas.getBoundingClientRect();
+            const w = rect.width, h = rect.height;
+            planningCanvas.width = w * dpr;
+            planningCanvas.height = h * dpr;
+            planCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+            const iter = parseInt(iterSlider.value);
+            const horizon = parseInt(horizonSlider.value);
+            const maxIter = 30;
+
+            // Regenerate trajectories if horizon changed
+            if (cachedHorizon !== horizon) {
+                cachedTrajectories = generateTrajectories(horizon, maxIter);
+                cachedHorizon = horizon;
+            }
+
+            // Clear
+            planCtx.clearRect(0, 0, w, h);
+
+            // Scale factor for canvas
+            const scaleX = w / 600;
+            const scaleY = h / 300;
+
+            const startX = 60 * scaleX, startY = 200 * scaleY;
+            const goalX = 500 * scaleX, goalY = 80 * scaleY;
+
+            // Background: representation space grid
+            planCtx.strokeStyle = 'rgba(255,255,255,0.03)';
+            planCtx.lineWidth = 1;
+            for (let x = 0; x < w; x += 30) {
+                planCtx.beginPath();
+                planCtx.moveTo(x, 0);
+                planCtx.lineTo(x, h);
+                planCtx.stroke();
+            }
+            for (let y = 0; y < h; y += 30) {
+                planCtx.beginPath();
+                planCtx.moveTo(0, y);
+                planCtx.lineTo(w, y);
+                planCtx.stroke();
+            }
+
+            // Label
+            planCtx.fillStyle = 'rgba(255,255,255,0.15)';
+            planCtx.font = '11px sans-serif';
+            planCtx.textAlign = 'center';
+            planCtx.fillText('Representation Space', w / 2, h - 8);
+
+            // Draw faded previous trajectories
+            if (iter > 1) {
+                for (let prevIter = Math.max(1, iter - 5); prevIter < iter; prevIter++) {
+                    const pts = cachedTrajectories[prevIter];
+                    const alpha = 0.05 + 0.05 * (prevIter - (iter - 5));
+                    planCtx.beginPath();
+                    planCtx.strokeStyle = `rgba(245, 158, 11, ${alpha})`;
+                    planCtx.lineWidth = 1;
+                    for (let i = 0; i < pts.length; i++) {
+                        const px = pts[i].x * scaleX;
+                        const py = pts[i].y * scaleY;
+                        i === 0 ? planCtx.moveTo(px, py) : planCtx.lineTo(px, py);
+                    }
+                    planCtx.stroke();
+                }
+            }
+
+            // Draw current trajectory
+            const currentPts = cachedTrajectories[iter];
+            planCtx.beginPath();
+            planCtx.strokeStyle = '#f59e0b';
+            planCtx.lineWidth = 2.5;
+            for (let i = 0; i < currentPts.length; i++) {
+                const px = currentPts[i].x * scaleX;
+                const py = currentPts[i].y * scaleY;
+                i === 0 ? planCtx.moveTo(px, py) : planCtx.lineTo(px, py);
+            }
+            planCtx.stroke();
+
+            // Draw intermediate state dots
+            for (let i = 1; i < currentPts.length - 1; i++) {
+                const px = currentPts[i].x * scaleX;
+                const py = currentPts[i].y * scaleY;
+                planCtx.beginPath();
+                planCtx.arc(px, py, 4, 0, 2 * Math.PI);
+                planCtx.fillStyle = 'rgba(245, 158, 11, 0.7)';
+                planCtx.fill();
+                planCtx.strokeStyle = '#f59e0b';
+                planCtx.lineWidth = 1;
+                planCtx.stroke();
+            }
+
+            // Current state (blue dot)
+            planCtx.beginPath();
+            planCtx.arc(startX, startY, 10, 0, 2 * Math.PI);
+            planCtx.fillStyle = '#3b82f6';
+            planCtx.fill();
+            planCtx.strokeStyle = '#fff';
+            planCtx.lineWidth = 2;
+            planCtx.stroke();
+
+            planCtx.fillStyle = '#fff';
+            planCtx.font = 'bold 10px sans-serif';
+            planCtx.textAlign = 'center';
+            planCtx.fillText('z_0', startX, startY + 25);
+
+            planCtx.fillStyle = '#3b82f6';
+            planCtx.font = '9px sans-serif';
+            planCtx.fillText('Current', startX, startY + 37);
+
+            // Goal state (green star)
+            drawStar(planCtx, goalX, goalY, 12, 5, '#10b981');
+
+            planCtx.fillStyle = '#fff';
+            planCtx.font = 'bold 10px sans-serif';
+            planCtx.textAlign = 'center';
+            planCtx.fillText('z_goal', goalX, goalY + 25);
+
+            planCtx.fillStyle = '#10b981';
+            planCtx.font = '9px sans-serif';
+            planCtx.fillText('Goal', goalX, goalY + 37);
+
+            // Predicted end state
+            const endPt = currentPts[currentPts.length - 1];
+            const endX = endPt.x * scaleX;
+            const endY = endPt.y * scaleY;
+
+            planCtx.beginPath();
+            planCtx.arc(endX, endY, 7, 0, 2 * Math.PI);
+            planCtx.fillStyle = '#f59e0b';
+            planCtx.fill();
+            planCtx.strokeStyle = '#fff';
+            planCtx.lineWidth = 2;
+            planCtx.stroke();
+
+            // Dashed line from predicted to goal
+            planCtx.beginPath();
+            planCtx.setLineDash([4, 4]);
+            planCtx.strokeStyle = 'rgba(239, 68, 68, 0.6)';
+            planCtx.lineWidth = 1.5;
+            planCtx.moveTo(endX, endY);
+            planCtx.lineTo(goalX, goalY);
+            planCtx.stroke();
+            planCtx.setLineDash([]);
+
+            // Energy label on dashed line
+            const energy = getEnergy(iter, maxIter);
+            const midLineX = (endX + goalX) / 2;
+            const midLineY = (endY + goalY) / 2;
+            planCtx.fillStyle = '#ef4444';
+            planCtx.font = 'bold 10px monospace';
+            planCtx.textAlign = 'center';
+            planCtx.fillText('E=' + energy.toFixed(1), midLineX, midLineY - 8);
+
+            // Mini energy chart in top-right corner
+            const chartW = 100, chartH = 50;
+            const chartX = w - chartW - 15, chartY = 10;
+
+            planCtx.fillStyle = 'rgba(0,0,0,0.4)';
+            planCtx.fillRect(chartX, chartY, chartW, chartH);
+            planCtx.strokeStyle = 'rgba(255,255,255,0.2)';
+            planCtx.lineWidth = 1;
+            planCtx.strokeRect(chartX, chartY, chartW, chartH);
+
+            planCtx.fillStyle = '#888';
+            planCtx.font = '8px sans-serif';
+            planCtx.textAlign = 'center';
+            planCtx.fillText('Energy vs Iteration', chartX + chartW / 2, chartY + 10);
+
+            // Draw energy curve
+            const energyHistory = getEnergyHistory(iter, maxIter);
+            if (energyHistory.length > 0) {
+                const maxE = 13;
+                planCtx.beginPath();
+                planCtx.strokeStyle = '#ef4444';
+                planCtx.lineWidth = 1.5;
+                for (let i = 0; i < energyHistory.length; i++) {
+                    const cx = chartX + 5 + (i / (maxIter - 1)) * (chartW - 10);
+                    const cy = chartY + chartH - 5 - (energyHistory[i] / maxE) * (chartH - 18);
+                    i === 0 ? planCtx.moveTo(cx, cy) : planCtx.lineTo(cx, cy);
+                }
+                planCtx.stroke();
+
+                // Dot at current
+                const lastI = energyHistory.length - 1;
+                const dotCx = chartX + 5 + (lastI / (maxIter - 1)) * (chartW - 10);
+                const dotCy = chartY + chartH - 5 - (energyHistory[lastI] / maxE) * (chartH - 18);
+                planCtx.beginPath();
+                planCtx.arc(dotCx, dotCy, 3, 0, 2 * Math.PI);
+                planCtx.fillStyle = '#ef4444';
+                planCtx.fill();
+            }
+
+            // Compute trajectory length
+            let trajLen = 0;
+            for (let i = 1; i < currentPts.length; i++) {
+                const dx = (currentPts[i].x - currentPts[i - 1].x) * scaleX;
+                const dy = (currentPts[i].y - currentPts[i - 1].y) * scaleY;
+                trajLen += Math.sqrt(dx * dx + dy * dy);
+            }
+
+            // Update metrics
+            document.getElementById('iterValue').textContent = iter;
+            document.getElementById('horizonValue').textContent = horizon;
+            document.getElementById('metricEnergy').textContent = energy.toFixed(1);
+            document.getElementById('metricIter').textContent = iter;
+            document.getElementById('metricTrajLen').textContent = (trajLen / 50).toFixed(1);
+        }
+
+        function drawStar(ctx, cx, cy, outerR, points, color) {
+            const innerR = outerR * 0.4;
+            ctx.beginPath();
+            for (let i = 0; i < points * 2; i++) {
+                const r = i % 2 === 0 ? outerR : innerR;
+                const angle = (i * Math.PI) / points - Math.PI / 2;
+                const x = cx + r * Math.cos(angle);
+                const y = cy + r * Math.sin(angle);
+                i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fillStyle = color;
+            ctx.fill();
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        iterSlider.addEventListener('input', drawPlanningViz);
+        horizonSlider.addEventListener('input', function() {
+            cachedHorizon = null; // Force regeneration
+            drawPlanningViz();
+        });
+
+        // ==================== Benchmark Results ====================
+        const benchData = {
+            scaling: {
+                info: 'Cumulative improvement from scaling each axis (avg accuracy on 6 tasks)',
+                methods: {
+                    'Baseline': 84.2,
+                    '+ Data (22M)': 85.2,
+                    '+ Model (ViT-g)': 86.7,
+                    '+ Training (252K)': 87.5,
+                    '+ Resolution (384px)': 88.2
+                },
+                maxVal: 92,
+                colors: {
+                    'Baseline': '#888',
+                    '+ Data (22M)': '#3b82f6',
+                    '+ Model (ViT-g)': '#a855f7',
+                    '+ Training (252K)': '#f59e0b',
+                    '+ Resolution (384px)': '#10b981'
+                }
+            },
+            comparison: {
+                info: 'Model comparison on average video understanding accuracy (%)',
+                methods: {
+                    'V-JEPA 2 (ViT-g)': 88.2,
+                    'DINOv2': 75.8,
+                    'Hiera': 74.7,
+                    'V-JEPA (H/16)': 71.5,
+                    'VideoMAE': 71.4
+                },
+                maxVal: 92,
+                colors: {
+                    'V-JEPA 2 (ViT-g)': '#00d9ff',
+                    'DINOv2': '#a855f7',
+                    'Hiera': '#f59e0b',
+                    'V-JEPA (H/16)': '#3b82f6',
+                    'VideoMAE': '#888'
+                }
+            }
+        };
+
+        function renderBenchmark(benchKey) {
+            const data = benchData[benchKey];
+            const container = document.getElementById('benchmarkBars');
+            const infoDiv = document.getElementById('benchInfo');
+            infoDiv.textContent = data.info;
+            container.innerHTML = '';
+
+            for (const [method, score] of Object.entries(data.methods)) {
+                const pct = Math.max(score, 0) / data.maxVal * 100;
+                const color = data.colors[method] || '#888';
+                const isTop = Object.values(data.methods).indexOf(score) === 0 ||
+                              (benchKey === 'scaling' && method === '+ Resolution (384px)') ||
+                              (benchKey === 'comparison' && method === 'V-JEPA 2 (ViT-g)');
+                const row = document.createElement('div');
+                row.className = 'comparison-row';
+                row.innerHTML = `
+                    <span class="comparison-label" style="color: ${color}; font-weight: ${isTop ? '700' : '400'}; min-width: 140px;">${method}</span>
+                    <div class="comparison-bar-track">
+                        <div class="comparison-bar-fill" style="width: ${pct}%; background: ${color}; opacity: ${isTop ? 1 : 0.7};"></div>
+                    </div>
+                    <span class="comparison-value" style="color: ${color};">${score}%</span>
+                `;
+                container.appendChild(row);
+            }
+        }
+
+        document.getElementById('benchBtns').addEventListener('click', function(e) {
+            const btn = e.target.closest('.toggle-btn');
+            if (!btn) return;
+            document.querySelectorAll('#benchBtns .toggle-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderBenchmark(btn.dataset.bench);
+        });
+
+        // ==================== Initialize ====================
+        window.addEventListener('resize', drawPlanningViz);
+
+        setTimeout(() => {
+            drawPlanningViz();
+            renderBenchmark('scaling');
+        }, 100);
+    </script>
+</body>
+</html>

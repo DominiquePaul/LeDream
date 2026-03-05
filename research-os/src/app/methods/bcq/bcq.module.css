@@ -1,0 +1,95 @@
+/* ===== Page Header ===== */
+.subtitle {
+  text-align: center;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+  font-size: 1rem;
+}
+
+.githubLink {
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.githubLink a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.85rem;
+  transition: color 0.2s;
+}
+
+.githubLink a:hover {
+  color: var(--accent-primary);
+}
+
+/* ===== Architecture SVG ===== */
+.archSvg {
+  width: 100%;
+  height: auto;
+  margin-bottom: 10px;
+}
+
+.archStage {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.archStage:hover {
+  filter: brightness(1.3);
+}
+
+/* ===== Formula Note ===== */
+.formulaNote {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-top: 6px;
+}
+
+/* ===== Paper Lineage ===== */
+.lineageGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.lineageColumn h4 {
+  font-size: 0.9rem;
+  margin-bottom: 12px;
+}
+
+.lineageList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lineageItem {
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.lineageItemBuildsOn {
+  border-left: 3px solid #f59e0b;
+}
+
+.lineageItemBuiltUpon {
+  border-left: 3px solid #10b981;
+}
+
+.lineageItemTitle {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.lineageItemDesc {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 1000px) {
+  .lineageGrid {
+    grid-template-columns: 1fr;
+  }
+}

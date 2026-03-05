@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <title>V-JEPA - ML Method Visualizations</title>
+    <link rel="stylesheet" href="../css/sidebar.css">
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+            }
+        };
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js" async></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #e8e8e8;
+        }
+
+        .main-content {
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.2rem;
+            margin-bottom: 8px;
+            background: linear-gradient(90deg, #00d9ff, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        /* Core Ideas */
+        .key-ideas {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .idea {
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .idea:hover {
+            background: rgba(0,0,0,0.4);
+        }
+
+        .idea.active {
+            border-color: #00d9ff;
+            background: rgba(0, 217, 255, 0.1);
+        }
+
+        .idea-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+
+        .idea h4 {
+            font-size: 1rem;
+            margin-bottom: 8px;
+        }
+
+        .idea p {
+            font-size: 0.8rem;
+            color: #888;
+            line-height: 1.4;
+        }
+
+        .info-panel {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 15px;
+            min-height: 100px;
+        }
+
+        .info-panel h4 {
+            color: #00d9ff;
+            margin-bottom: 8px;
+        }
+
+        .info-panel p {
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: #aaa;
+        }
+
+        .formula {
+            background: rgba(168, 85, 247, 0.1);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            margin: 10px 0;
+            font-size: 1rem;
+            text-align: center;
+            color: #e0e0e0;
+        }
+
+        /* Pipeline SVG */
+        .pipeline-svg {
+            width: 100%;
+            height: 420px;
+        }
+
+        .pipeline-stage {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .pipeline-stage:hover {
+            filter: brightness(1.2);
+        }
+
+        .pipeline-stage.active {
+            filter: drop-shadow(0 0 15px currentColor);
+        }
+
+        .flow-arrow {
+            stroke-dasharray: 8 4;
+            animation: flowDash 1s linear infinite;
+        }
+
+        @keyframes flowDash {
+            to { stroke-dashoffset: -12; }
+        }
+
+        /* Model Components */
+        .model-equations {
+            display: grid;
+            gap: 15px;
+        }
+
+        .model-item {
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .model-item:hover {
+            background: rgba(0,0,0,0.4);
+        }
+
+        .model-item.active {
+            border-color: #a855f7;
+        }
+
+        .model-item h4 {
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .model-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        /* Canvas */
+        .canvas-container {
+            position: relative;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        .masking-canvas {
+            width: 100%;
+            height: 300px;
+        }
+
+        /* Slider */
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .slider-container label {
+            font-size: 0.9rem;
+            min-width: 120px;
+        }
+
+        .slider {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 8px;
+            border-radius: 4px;
+            background: linear-gradient(90deg, #3b82f6, #a855f7);
+            outline: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #fff;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        .slider-value {
+            font-family: monospace;
+            font-size: 1rem;
+            color: #00d9ff;
+            min-width: 50px;
+        }
+
+        /* Comparison Bars */
+        .comparison-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .comparison-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .comparison-label {
+            font-size: 0.85rem;
+            min-width: 100px;
+        }
+
+        .comparison-bar-track {
+            flex: 1;
+            height: 24px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .comparison-bar-fill {
+            height: 100%;
+            border-radius: 12px;
+            transition: width 0.5s ease;
+        }
+
+        .comparison-value {
+            font-family: monospace;
+            font-size: 0.85rem;
+            min-width: 60px;
+            text-align: right;
+        }
+
+        /* Key Features */
+        .key-features {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .feature {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .feature-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .feature h4 {
+            font-size: 0.95rem;
+            margin-bottom: 5px;
+        }
+
+        .feature p {
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        /* Toggle buttons */
+        .toggle-btns {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .toggle-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(0,0,0,0.3);
+            color: #aaa;
+        }
+
+        .toggle-btn.active {
+            border-color: #00d9ff;
+            background: rgba(0, 217, 255, 0.1);
+            color: #00d9ff;
+        }
+
+        .toggle-btn:hover {
+            background: rgba(0,0,0,0.5);
+        }
+
+        /* Metrics row */
+        .metrics-row {
+            display: flex;
+            justify-content: space-around;
+            padding: 15px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+
+        .metric {
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            font-family: monospace;
+        }
+
+        .metric-label {
+            font-size: 0.75rem;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        /* Task select dropdown */
+        .task-select {
+            background: rgba(0,0,0,0.4);
+            color: #e8e8e8;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            outline: none;
+            margin-bottom: 12px;
+        }
+
+        .task-select:focus {
+            border-color: #00d9ff;
+        }
+
+        @media (max-width: 1000px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            .key-ideas {
+                grid-template-columns: 1fr;
+            }
+            .key-features {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding-top: 70px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Menu Button -->
+    <button class="mobile-menu-btn" aria-label="Toggle menu">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+    </button>
+
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <button class="sidebar-toggle" aria-label="Toggle sidebar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+        </button>
+
+        <div class="sidebar-header">
+            <div class="sidebar-logo">📊</div>
+            <div class="sidebar-title">
+                <h1>ML Methods</h1>
+                <span>Interactive Visualizations</span>
+            </div>
+        </div>
+
+        <div class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Overview</div>
+                <ul class="nav-items">
+                    <li class="nav-item">
+                        <a href="../index.html" class="nav-link" data-tooltip="Home">
+                            <div class="nav-icon other">🏠</div>
+                            <div class="nav-text">
+                                <span>Home</span>
+                                <span>All methods overview</span>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Standard RL</div>
+                <ul class="nav-items">
+                    <li class="nav-item">
+                        <a href="sac.html" class="nav-link" data-tooltip="SAC">
+                            <div class="nav-icon rl">🎯</div>
+                            <div class="nav-text">
+                                <span>SAC</span>
+                                <span>Soft Actor-Critic</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="rlhf.html" class="nav-link" data-tooltip="RLHF">
+                            <div class="nav-icon rl">👤</div>
+                            <div class="nav-text">
+                                <span>RLHF</span>
+                                <span>RL from Human Feedback</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="cql.html" class="nav-link" data-tooltip="CQL">
+                            <div class="nav-icon rl">🛡️</div>
+                            <div class="nav-text">
+                                <span>CQL</span>
+                                <span>Conservative Q-Learning</span>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">World Models</div>
+                <ul class="nav-items">
+                    <li class="nav-item">
+                        <a href="world-models.html" class="nav-link" data-tooltip="World Models">
+                            <div class="nav-icon wm">🧠</div>
+                            <div class="nav-text">
+                                <span>World Models</span>
+                                <span>Ha & Schmidhuber</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="planet.html" class="nav-link" data-tooltip="PlaNet">
+                            <div class="nav-icon wm">🪐</div>
+                            <div class="nav-text">
+                                <span>PlaNet</span>
+                                <span>Latent Dynamics Planning</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="dreamer.html" class="nav-link" data-tooltip="Dreamer">
+                            <div class="nav-icon wm">💭</div>
+                            <div class="nav-text">
+                                <span>Dreamer</span>
+                                <span>Latent Imagination</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="dreamerv2.html" class="nav-link" data-tooltip="DreamerV2">
+                            <div class="nav-icon wm">🎲</div>
+                            <div class="nav-text">
+                                <span>DreamerV2</span>
+                                <span>Discrete World Models</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="dreamerv3.html" class="nav-link" data-tooltip="DreamerV3">
+                            <div class="nav-icon wm">🌐</div>
+                            <div class="nav-text">
+                                <span>DreamerV3</span>
+                                <span>Diverse Domains</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="vjepa.html" class="nav-link active" data-tooltip="V-JEPA">
+                            <div class="nav-icon wm">🎬</div>
+                            <div class="nav-text">
+                                <span>V-JEPA</span>
+                                <span>Feature Prediction</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="vjepa2.html" class="nav-link" data-tooltip="V-JEPA 2">
+                            <div class="nav-icon wm">🤖</div>
+                            <div class="nav-text">
+                                <span>V-JEPA 2</span>
+                                <span>Understanding & Planning</span>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">Robotics Concepts</div>
+                <ul class="nav-items">
+                    <li class="nav-item">
+                        <a href="robot-controllers.html" class="nav-link" data-tooltip="Controllers">
+                            <div class="nav-icon" style="background: linear-gradient(135deg, #f59e0b, #ef4444);">🦾</div>
+                            <div class="nav-text">
+                                <span>Controllers</span>
+                                <span>Impedance, Stiffness & Contact</span>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+            <span>Press <kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">Ctrl+B</kbd> to toggle</span>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <h1>V-JEPA</h1>
+            <p class="subtitle">Revisiting Feature Prediction for Learning Visual Representations from Video &mdash; Bardes et al., 2024</p>
+            <div style="text-align: center; margin-bottom: 20px;">
+                <a href="https://github.com/facebookresearch/jepa" target="_blank" style="color: #888; text-decoration: none; font-size: 0.85rem; transition: color 0.2s;">
+                    <span style="margin-right: 5px;">🔗</span> github.com/facebookresearch/jepa
+                </a>
+            </div>
+
+            <!-- Three Core Ideas -->
+            <div class="card" style="margin-bottom: 20px;">
+                <div class="card-title">
+                    <div class="icon" style="background: linear-gradient(135deg, #00d9ff, #0099cc);">💡</div>
+                    Core Ideas
+                </div>
+                <div class="key-ideas">
+                    <div class="idea" data-idea="1">
+                        <div class="idea-icon" style="background: linear-gradient(135deg, #00d9ff, #0099cc);">🧠</div>
+                        <h4>Feature Prediction, Not Pixels</h4>
+                        <p>Instead of reconstructing raw pixels like MAE/VideoMAE, predict abstract feature representations. Eliminates irrelevant low-level details and focuses on semantic content.</p>
+                    </div>
+                    <div class="idea" data-idea="2">
+                        <div class="idea-icon" style="background: linear-gradient(135deg, #a855f7, #7c3aed);">🔗</div>
+                        <h4>Joint-Embedding Predictive Architecture</h4>
+                        <p>Two encoders: x-encoder (context, ViT) processes visible tokens, y-encoder (EMA copy, stop-gradient) produces targets from masked regions. Predictor maps context features + mask tokens to predicted targets. L1 loss.</p>
+                    </div>
+                    <div class="idea" data-idea="3">
+                        <div class="idea-icon" style="background: linear-gradient(135deg, #10b981, #059669);">🎭</div>
+                        <h4>Multi-Block Masking for Video</h4>
+                        <p>Mask ~90% of video tokens using short-range (8 blocks at 15% each) + long-range (2 blocks at 70% each) spatial-temporal masks. Forces model to predict across space and time.</p>
+                    </div>
+                </div>
+                <div class="info-panel" id="idea-info" style="display: none;">
+                </div>
+            </div>
+
+            <div class="main-grid">
+                <!-- Model Components -->
+                <div class="card">
+                    <div class="card-title">
+                        <div class="icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">🧩</div>
+                        Model Components
+                    </div>
+                    <div class="model-equations">
+                        <div class="model-item" data-model="x-encoder">
+                            <h4><span class="model-dot" style="background: #00d9ff;"></span>x-encoder (Context)</h4>
+                            <p style="font-size: 0.8rem; color: #888; margin-top: 4px;">Standard ViT (L/16, H/16, or H/16_384). Processes only visible ~10% of tokens. Very efficient &mdash; the key to training speed.</p>
+                        </div>
+                        <div class="model-item" data-model="y-encoder">
+                            <h4><span class="model-dot" style="background: #a855f7;"></span>y-encoder (EMA Target)</h4>
+                            <p style="font-size: 0.8rem; color: #888; margin-top: 4px;">Exponential moving average of x-encoder weights. Processes full video including masked regions. Stop-gradient prevents collapse. &tau;: 0.996&rarr;1.0</p>
+                        </div>
+                        <div class="model-item" data-model="predictor">
+                            <h4><span class="model-dot" style="background: #10b981;"></span>Predictor</h4>
+                            <p style="font-size: 0.8rem; color: #888; margin-top: 4px;">Narrow ViT (12 layers, dim 384). Takes x-encoder outputs + learnable mask tokens with positional embeddings. Outputs predicted features at masked positions.</p>
+                        </div>
+                        <div class="model-item" data-model="masking">
+                            <h4><span class="model-dot" style="background: #f59e0b;"></span>Multi-Block Masking</h4>
+                            <p style="font-size: 0.8rem; color: #888; margin-top: 4px;">Short-range (8 blocks, 15%) + long-range (2 blocks, 70%). ~90% masking ratio. Patches are 16&times;16 pixels spanning 2 frames.</p>
+                        </div>
+                        <div class="model-item" data-model="probing">
+                            <h4><span class="model-dot" style="background: #ef4444;"></span>Attentive Probing</h4>
+                            <p style="font-size: 0.8rem; color: #888; margin-top: 4px;">Evaluation protocol. Freeze backbone, add cross-attention layer with learnable query token, then linear classifier. Better than linear probing for unnormalized features.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- V-JEPA Architecture SVG -->
+                <div class="card">
+                    <div class="card-title">
+                        <div class="icon" style="background: linear-gradient(135deg, #10b981, #059669);">🏗️</div>
+                        V-JEPA Architecture
+                    </div>
+                    <svg class="pipeline-svg" viewBox="0 0 500 420">
+                        <!-- Video Clip -->
+                        <rect x="160" y="5" width="180" height="35" rx="8" fill="rgba(245,158,11,0.2)" stroke="#f59e0b" stroke-width="1.5" class="pipeline-stage" data-component="video"/>
+                        <text x="250" y="20" text-anchor="middle" fill="#f59e0b" font-size="9" font-weight="bold">Video Clip (T&times;H&times;W)</text>
+                        <text x="250" y="33" text-anchor="middle" fill="#888" font-size="7">Patchified &rarr; tokens</text>
+
+                        <!-- Mask -->
+                        <rect x="190" y="50" width="120" height="22" rx="6" fill="rgba(245,158,11,0.15)" stroke="#f59e0b" stroke-width="1" stroke-dasharray="4" class="pipeline-stage" data-component="mask"/>
+                        <text x="250" y="64" text-anchor="middle" fill="#f59e0b" font-size="8">Binary Mask (~90%)</text>
+
+                        <!-- Arrow from video to mask -->
+                        <path d="M 250 40 L 250 48" stroke="#f59e0b" stroke-width="1.5" fill="none" marker-end="url(#arrowOrange)"/>
+
+                        <!-- Split arrows -->
+                        <path d="M 210 72 L 110 95" stroke="#00d9ff" stroke-width="1.5" fill="none" marker-end="url(#arrowCyan)"/>
+                        <path d="M 290 72 L 390 95" stroke="#a855f7" stroke-width="1.5" fill="none" marker-end="url(#arrowPurple)"/>
+
+                        <!-- Labels for split -->
+                        <text x="140" y="82" text-anchor="middle" fill="#00d9ff" font-size="7">Visible (~10%)</text>
+                        <text x="360" y="82" text-anchor="middle" fill="#a855f7" font-size="7">All tokens</text>
+
+                        <!-- x-encoder -->
+                        <rect x="40" y="100" width="140" height="55" rx="10" fill="rgba(0,217,255,0.2)" stroke="#00d9ff" stroke-width="2" class="pipeline-stage" data-component="x_encoder"/>
+                        <text x="110" y="120" text-anchor="middle" fill="#00d9ff" font-size="10" font-weight="bold">x-encoder (E&#952;)</text>
+                        <text x="110" y="135" text-anchor="middle" fill="#888" font-size="7">ViT-L/16 or ViT-H/16</text>
+                        <text x="110" y="147" text-anchor="middle" fill="#00d9ff" font-size="7">Context features [N&times;d]</text>
+
+                        <!-- y-encoder (EMA, dashed border) -->
+                        <rect x="320" y="100" width="140" height="55" rx="10" fill="rgba(168,85,247,0.15)" stroke="#a855f7" stroke-width="2" stroke-dasharray="6 3" class="pipeline-stage" data-component="y_encoder"/>
+                        <text x="390" y="120" text-anchor="middle" fill="#a855f7" font-size="10" font-weight="bold">y-encoder (&#274;&#952;)</text>
+                        <text x="390" y="135" text-anchor="middle" fill="#888" font-size="7">EMA copy, stop-gradient</text>
+                        <text x="390" y="147" text-anchor="middle" fill="#a855f7" font-size="7">Target features [L&times;d]</text>
+
+                        <!-- EMA update arrow (dashed) from x-encoder to y-encoder -->
+                        <path d="M 180 115 Q 250 90 320 115" stroke="#a855f7" stroke-width="1.5" fill="none" stroke-dasharray="5 3" class="flow-arrow"/>
+                        <text x="250" y="98" text-anchor="middle" fill="#a855f7" font-size="7" font-weight="bold">EMA update</text>
+
+                        <!-- Remove unmasked tokens -->
+                        <rect x="340" y="170" width="120" height="22" rx="6" fill="rgba(168,85,247,0.1)" stroke="#a855f7" stroke-width="1" class="pipeline-stage" data-component="remove_unmasked"/>
+                        <text x="400" y="184" text-anchor="middle" fill="#a855f7" font-size="7">Remove unmasked &rarr; [M&times;d]</text>
+                        <path d="M 390 155 L 400 168" stroke="#a855f7" stroke-width="1.5" fill="none" marker-end="url(#arrowPurple)"/>
+
+                        <!-- Mask tokens + x-encoder output merge -->
+                        <rect x="70" y="180" width="80" height="22" rx="6" fill="rgba(16,185,129,0.15)" stroke="#10b981" stroke-width="1" class="pipeline-stage" data-component="mask_tokens"/>
+                        <text x="110" y="194" text-anchor="middle" fill="#10b981" font-size="7">Mask tokens + pos emb</text>
+
+                        <!-- Arrow from x-encoder down -->
+                        <path d="M 110 155 L 110 178" stroke="#00d9ff" stroke-width="1.5" fill="none" marker-end="url(#arrowCyan)"/>
+
+                        <!-- Predictor -->
+                        <rect x="40" y="220" width="200" height="55" rx="10" fill="rgba(16,185,129,0.2)" stroke="#10b981" stroke-width="2" class="pipeline-stage" data-component="predictor"/>
+                        <text x="140" y="240" text-anchor="middle" fill="#10b981" font-size="10" font-weight="bold">Predictor (P&#966;)</text>
+                        <text x="140" y="255" text-anchor="middle" fill="#888" font-size="7">Narrow ViT: 12 layers, dim 384</text>
+                        <text x="140" y="267" text-anchor="middle" fill="#10b981" font-size="7">Predicted features [M&times;d]</text>
+
+                        <!-- Arrows into predictor -->
+                        <path d="M 110 202 L 120 218" stroke="#10b981" stroke-width="1.5" fill="none" marker-end="url(#arrowGreen)"/>
+
+                        <!-- L1 Loss -->
+                        <rect x="160" y="305" width="180" height="40" rx="10" fill="rgba(239,68,68,0.15)" stroke="#ef4444" stroke-width="2" class="pipeline-stage" data-component="loss"/>
+                        <text x="250" y="322" text-anchor="middle" fill="#ef4444" font-size="10" font-weight="bold">L1 Loss</text>
+                        <text x="250" y="337" text-anchor="middle" fill="#888" font-size="7">||predicted - sg(target)||&#8321;</text>
+
+                        <!-- Arrow from predictor to loss -->
+                        <path d="M 180 275 L 220 303" stroke="#10b981" stroke-width="2" fill="none" marker-end="url(#arrowGreen)" class="flow-arrow"/>
+                        <text x="180" y="295" text-anchor="middle" fill="#10b981" font-size="7">predicted</text>
+
+                        <!-- Arrow from target to loss with stop-gradient -->
+                        <path d="M 400 192 L 400 290 L 310 310" stroke="#a855f7" stroke-width="2" fill="none" marker-end="url(#arrowPurple)"/>
+                        <text x="410" y="250" text-anchor="start" fill="#a855f7" font-size="7">target</text>
+
+                        <!-- Stop-gradient symbol -->
+                        <circle cx="380" cy="290" r="10" fill="rgba(239,68,68,0.3)" stroke="#ef4444" stroke-width="1.5"/>
+                        <text x="380" y="294" text-anchor="middle" fill="#ef4444" font-size="11" font-weight="bold">&#8856;</text>
+                        <text x="395" y="290" text-anchor="start" fill="#888" font-size="7">sg</text>
+
+                        <!-- Summary bar -->
+                        <rect x="20" y="365" width="460" height="45" rx="10" fill="rgba(0,217,255,0.08)" stroke="#00d9ff" stroke-width="1"/>
+                        <text x="250" y="382" text-anchor="middle" fill="#00d9ff" font-size="8" font-weight="bold">Key: Predict features at masked positions, NOT pixels</text>
+                        <text x="250" y="397" text-anchor="middle" fill="#888" font-size="7">x-encoder sees ~10% tokens | y-encoder (EMA) sees 100% | Predictor bridges the gap | L1 loss in feature space</text>
+
+                        <!-- Arrow Markers -->
+                        <defs>
+                            <marker id="arrowCyan" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#00d9ff"/>
+                            </marker>
+                            <marker id="arrowPurple" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#a855f7"/>
+                            </marker>
+                            <marker id="arrowGreen" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#10b981"/>
+                            </marker>
+                            <marker id="arrowOrange" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#f59e0b"/>
+                            </marker>
+                            <marker id="arrowRed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#ef4444"/>
+                            </marker>
+                            <marker id="arrowGray" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#888"/>
+                            </marker>
+                        </defs>
+                    </svg>
+
+                    <div class="info-panel" id="component-info" style="display: none;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Canvas + Benchmark Results -->
+            <div class="main-grid">
+                <!-- Interactive Canvas: Video Token Masking -->
+                <div class="card">
+                    <div class="card-title">
+                        <div class="icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">🎬</div>
+                        Video Token Masking
+                    </div>
+                    <div class="toggle-btns" id="maskModeBtns">
+                        <button class="toggle-btn" data-mode="short">Short-range masks</button>
+                        <button class="toggle-btn" data-mode="long">Long-range masks</button>
+                        <button class="toggle-btn active" data-mode="combined">Combined (V-JEPA)</button>
+                    </div>
+                    <div class="slider-container">
+                        <label>Masking ratio:</label>
+                        <input type="range" class="slider" id="maskRatioSlider" min="50" max="95" step="1" value="90">
+                        <span class="slider-value" id="maskRatioValue">90%</span>
+                    </div>
+                    <div class="canvas-container">
+                        <canvas class="masking-canvas" id="maskingCanvas"></canvas>
+                    </div>
+                    <div class="metrics-row">
+                        <div class="metric">
+                            <div class="metric-value" id="metricMaskRatio" style="color: #888;">90%</div>
+                            <div class="metric-label">Masking Ratio</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value" id="metricVisible" style="color: #00d9ff;">10%</div>
+                            <div class="metric-label">Visible Tokens</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value" id="metricSpeedup" style="color: #10b981;">~10x</div>
+                            <div class="metric-label">Processing Speedup</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Benchmark Results -->
+                <div class="card">
+                    <div class="card-title">
+                        <div class="icon" style="background: linear-gradient(135deg, #a855f7, #7c3aed);">🏆</div>
+                        Benchmark Results (Frozen Evaluation)
+                    </div>
+                    <div class="comparison-container">
+                        <select class="task-select" id="taskSelect">
+                            <option value="k400">Kinetics-400 (K400)</option>
+                            <option value="ssv2">Something-Something v2 (SSv2)</option>
+                            <option value="in1k">ImageNet-1K (IN1K)</option>
+                        </select>
+                        <div id="benchmarkBars"></div>
+                        <p style="font-size: 0.8rem; color: #888; margin-top: 10px; text-align: center;">
+                            All results with frozen backbone + attentive probing. V-JEPA achieves strong performance across video and image tasks without pixel reconstruction.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Training Objectives -->
+            <div class="card" style="margin-bottom: 20px;">
+                <div class="card-title">
+                    <div class="icon" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">📐</div>
+                    Training Objectives
+                </div>
+                <div class="model-equations">
+                    <div class="model-item" data-loss="vjepa">
+                        <h4><span class="model-dot" style="background: #10b981;"></span>V-JEPA Loss</h4>
+                        <div class="formula">
+                            $$\mathcal{L} = \|P_\phi(E_\theta(x), \Delta_y) - \text{sg}(\bar{E}_{\bar\theta}(y))\|_1$$
+                        </div>
+                        <p style="font-size: 0.8rem; color: #888; margin-top: 8px;">L1 loss between predicted features at masked positions and stopped-gradient target features from the EMA encoder. &Delta;<sub>y</sub> denotes the learnable mask tokens with positional embeddings.</p>
+                    </div>
+                    <div class="model-item" data-loss="ema">
+                        <h4><span class="model-dot" style="background: #a855f7;"></span>EMA Update</h4>
+                        <div class="formula">
+                            $$\bar{\theta} \leftarrow \tau\bar{\theta} + (1-\tau)\theta, \quad \tau: 0.996 \to 1.0$$
+                        </div>
+                        <p style="font-size: 0.8rem; color: #888; margin-top: 8px;">Exponential moving average update for the y-encoder weights. &tau; linearly increases from 0.996 to 1.0 over training, making the target encoder increasingly stable.</p>
+                    </div>
+                    <div class="model-item" data-loss="masking">
+                        <h4><span class="model-dot" style="background: #f59e0b;"></span>Multi-Block Masking</h4>
+                        <div class="formula">
+                            $$M = M_{\text{short}} \cup M_{\text{long}}, \quad \frac{|M|}{|T|} \approx 0.9$$
+                        </div>
+                        <p style="font-size: 0.8rem; color: #888; margin-top: 8px;">Union of short-range (8 blocks &times; 15%) and long-range (2 blocks &times; 70%) masks. Total masking ratio ~90%. All masks span the full temporal dimension.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Paper Lineage -->
+            <div class="card" style="margin-bottom: 20px;">
+                <div class="card-title">
+                    <div class="icon" style="background: linear-gradient(135deg, #6366f1, #4f46e5);">🌳</div>
+                    Paper Lineage
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div>
+                        <h4 style="font-size: 0.9rem; color: #f59e0b; margin-bottom: 12px;">Builds On</h4>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #f59e0b;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">I-JEPA</div>
+                                <div style="font-size: 0.75rem; color: #888;">Assran et al., 2023 &mdash; Image-based JEPA. V-JEPA extends the approach to video with temporal masking strategies.</div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #f59e0b;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">BYOL</div>
+                                <div style="font-size: 0.75rem; color: #888;">Grill et al., 2020 &mdash; Bootstrap Your Own Latent. Pioneered EMA target encoder + stop-gradient for self-supervised learning.</div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #f59e0b;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">MAE</div>
+                                <div style="font-size: 0.75rem; color: #888;">He et al., 2022 &mdash; Masked Autoencoders. V-JEPA replaces pixel reconstruction with feature prediction.</div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #f59e0b;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">ViT</div>
+                                <div style="font-size: 0.75rem; color: #888;">Dosovitskiy et al., 2021 &mdash; Vision Transformer. Core backbone architecture used in both encoders and predictor.</div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #f59e0b;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">BEiT</div>
+                                <div style="font-size: 0.75rem; color: #888;">Bao et al., 2022 &mdash; Bidirectional Encoder representations from Image Transformers. Masking strategy inspiration.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 style="font-size: 0.9rem; color: #10b981; margin-bottom: 12px;">Built Upon By</h4>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; border-left: 3px solid #10b981;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">V-JEPA 2</div>
+                                <div style="font-size: 0.75rem; color: #888;">Assran et al., 2025 &mdash; Extends V-JEPA with improved training, action-conditioned world model, and planning capabilities.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Key Features -->
+            <div class="key-features">
+                <div class="feature">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #00d9ff, #0099cc);">🧠</div>
+                    <h4>No Pixel Reconstruction</h4>
+                    <p>Predicts features not pixels &mdash; more semantic, more efficient</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">⚡</div>
+                    <h4>90% Masking Efficiency</h4>
+                    <p>Processes only 10% of tokens, massive computational savings</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #10b981, #059669);">❄️</div>
+                    <h4>Frozen Backbone</h4>
+                    <p>Representations so good they work with frozen backbone + attentive probe</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="../js/sidebar.js"></script>
+    <script>
+        // ==================== Key Ideas Interaction ====================
+        const ideaInfo = {
+            1: {
+                title: 'Feature Prediction, Not Pixels',
+                desc: 'The key insight is that predicting in representation space rather than pixel space eliminates the need to model irrelevant details. A pixel-level prediction model must reconstruct exact textures, lighting, and backgrounds \u2014 wasting capacity on unpredictable low-level details. V-JEPA instead predicts abstract features, allowing it to focus on semantic concepts like objects, motion, and spatial relationships. This leads to more versatile representations that transfer well to downstream tasks, while training significantly faster than pixel-prediction methods like VideoMAE.'
+            },
+            2: {
+                title: 'Joint-Embedding Predictive Architecture',
+                desc: 'V-JEPA uses a Joint-Embedding Predictive Architecture. The x-encoder processes only the visible (unmasked) tokens \u2014 about 10% of the video. The y-encoder is an exponential moving average (EMA) copy of the x-encoder that processes the full video to produce target features. A stop-gradient on the y-encoder prevents representation collapse (where everything maps to the same point). The predictor is a narrow transformer (12 layers, dim 384) that takes x-encoder outputs and learnable mask tokens with positional embeddings, and outputs predicted features at masked positions. Training uses L1 loss between predictions and (stopped gradient) targets.'
+            },
+            3: {
+                title: 'Multi-Block Masking for Video',
+                desc: 'V-JEPA uses a specific masking strategy optimized for video. Short-range masks: union of 8 randomly sampled blocks covering 15% of each frame, with aspect ratios in [0.75, 1.5]. Long-range masks: union of 2 blocks covering 70% of each frame. Both types span the full temporal dimension. The result is about 90% of tokens masked. The multi-block strategy forces the model to make predictions after removing large contiguous spatial-temporal regions, which encourages learning of high-level scene understanding rather than local pixel interpolation.'
+            }
+        };
+
+        document.querySelectorAll('.idea').forEach(idea => {
+            idea.addEventListener('click', function() {
+                document.querySelectorAll('.idea').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                const num = this.dataset.idea;
+                const info = ideaInfo[num];
+                const panel = document.getElementById('idea-info');
+                panel.style.display = 'block';
+                panel.innerHTML = `
+                    <h4>${info.title}</h4>
+                    <p>${info.desc}</p>
+                `;
+            });
+        });
+
+        // ==================== Architecture Interaction ====================
+        const archComponentInfo = {
+            video: {
+                title: 'Video Clip Input',
+                desc: 'Input is a video clip of T frames at resolution H\u00d7W. The video is patchified into non-overlapping 16\u00d716 pixel patches spanning 2 consecutive frames (tubelet embedding). This creates a grid of T/2 \u00d7 H/16 \u00d7 W/16 tokens, each representing a small spatial-temporal region of the video.'
+            },
+            mask: {
+                title: 'Binary Mask (~90%)',
+                desc: 'A binary mask determines which tokens are visible (context for x-encoder) and which are masked (targets from y-encoder). The mask is generated using the multi-block strategy: union of 8 short-range blocks (15% each) and 2 long-range blocks (70% each), all spanning the full temporal dimension. About 90% of all tokens are masked.'
+            },
+            x_encoder: {
+                title: 'x-encoder (Context Encoder)',
+                desc: 'Standard Vision Transformer (ViT-L/16 or ViT-H/16) that processes only the visible (unmasked) tokens \u2014 approximately 10% of the video. This is the main encoder whose weights are learned through gradient descent. Processing only 10% of tokens makes training very efficient compared to methods that process all tokens.'
+            },
+            y_encoder: {
+                title: 'y-encoder (EMA Target Encoder)',
+                desc: 'An exponential moving average (EMA) copy of the x-encoder that processes the full video including masked regions to produce target features. The stop-gradient prevents gradients from flowing through the y-encoder, which is critical for avoiding representation collapse. The EMA momentum \u03c4 increases from 0.996 to 1.0 over training.'
+            },
+            remove_unmasked: {
+                title: 'Remove Unmasked Tokens',
+                desc: 'After the y-encoder processes all tokens, the features at unmasked (visible) positions are discarded, keeping only the features at masked positions [M\u00d7d]. These serve as the prediction targets \u2014 the predictor must output features matching these target representations.'
+            },
+            mask_tokens: {
+                title: 'Learnable Mask Tokens',
+                desc: 'Learnable embeddings that serve as placeholders for masked positions. Combined with positional embeddings encoding the spatial-temporal location of each masked token. These are concatenated with the x-encoder outputs and fed to the predictor, allowing it to know where predictions should be made.'
+            },
+            predictor: {
+                title: 'Predictor Network',
+                desc: 'A narrow Vision Transformer (12 layers, dimension 384) that takes x-encoder outputs concatenated with learnable mask tokens (with positional embeddings) and outputs predicted features at masked positions. The predictor is intentionally narrow to prevent it from simply copying input features, forcing the x-encoder to learn rich representations.'
+            },
+            loss: {
+                title: 'L1 Loss in Feature Space',
+                desc: 'The training objective is the L1 (absolute) distance between the predictor\u2019s output at masked positions and the stop-gradient target features from the y-encoder. L1 loss is preferred over L2 because it is less sensitive to outliers and produces sharper feature predictions. The stop-gradient on targets is essential to prevent collapse.'
+            }
+        };
+
+        document.querySelectorAll('.pipeline-stage').forEach(stage => {
+            stage.addEventListener('click', function() {
+                document.querySelectorAll('.pipeline-stage').forEach(s => s.classList.remove('active'));
+                this.classList.add('active');
+                const component = this.dataset.component;
+                if (component && archComponentInfo[component]) {
+                    const info = archComponentInfo[component];
+                    const panel = document.getElementById('component-info');
+                    panel.style.display = 'block';
+                    panel.innerHTML = `
+                        <h4>${info.title}</h4>
+                        <p>${info.desc}</p>
+                    `;
+                }
+            });
+        });
+
+        // ==================== Model Item Interaction ====================
+        document.querySelectorAll('.model-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.model-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // ==================== Video Token Masking Canvas ====================
+        const maskingCanvas = document.getElementById('maskingCanvas');
+        const maskingCtx = maskingCanvas.getContext('2d');
+        const maskRatioSlider = document.getElementById('maskRatioSlider');
+        let currentMaskMode = 'combined';
+        let maskAnimFrame = null;
+        let maskState = null;
+
+        function generateMasks(gridW, gridH, numFrames, ratio, mode) {
+            // Create a 3D array: [frame][row][col] = 0 (visible) or 1 (short-range) or 2 (long-range)
+            const masks = [];
+            for (let f = 0; f < numFrames; f++) {
+                masks.push([]);
+                for (let r = 0; r < gridH; r++) {
+                    masks[f].push(new Array(gridW).fill(0));
+                }
+            }
+
+            const totalTokens = gridW * gridH * numFrames;
+            const targetMasked = Math.floor(totalTokens * (ratio / 100));
+
+            function applyBlock(masks, blockW, blockH, maskType) {
+                const startR = Math.floor(Math.random() * (gridH - blockH + 1));
+                const startC = Math.floor(Math.random() * (gridW - blockW + 1));
+                for (let f = 0; f < numFrames; f++) {
+                    for (let r = startR; r < startR + blockH && r < gridH; r++) {
+                        for (let c = startC; c < startC + blockW && c < gridW; c++) {
+                            if (masks[f][r][c] === 0) {
+                                masks[f][r][c] = maskType;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (mode === 'short' || mode === 'combined') {
+                // Short-range: 8 blocks, each covering ~15% of spatial area
+                const blockArea = Math.floor(gridW * gridH * 0.15);
+                for (let b = 0; b < 8; b++) {
+                    const aspect = 0.75 + Math.random() * 0.75; // [0.75, 1.5]
+                    let bH = Math.max(1, Math.round(Math.sqrt(blockArea / aspect)));
+                    let bW = Math.max(1, Math.round(blockArea / bH));
+                    bH = Math.min(bH, gridH);
+                    bW = Math.min(bW, gridW);
+                    applyBlock(masks, bW, bH, 1);
+                }
+            }
+
+            if (mode === 'long' || mode === 'combined') {
+                // Long-range: 2 blocks, each covering ~70% of spatial area
+                const blockArea = Math.floor(gridW * gridH * 0.70);
+                for (let b = 0; b < 2; b++) {
+                    const aspect = 0.75 + Math.random() * 0.75;
+                    let bH = Math.max(1, Math.round(Math.sqrt(blockArea / aspect)));
+                    let bW = Math.max(1, Math.round(blockArea / bH));
+                    bH = Math.min(bH, gridH);
+                    bW = Math.min(bW, gridW);
+                    applyBlock(masks, bW, bH, 2);
+                }
+            }
+
+            // Adjust to match target ratio
+            let maskedCount = 0;
+            for (let f = 0; f < numFrames; f++) {
+                for (let r = 0; r < gridH; r++) {
+                    for (let c = 0; c < gridW; c++) {
+                        if (masks[f][r][c] > 0) maskedCount++;
+                    }
+                }
+            }
+
+            // If we need more masking, randomly mask additional tokens
+            if (maskedCount < targetMasked) {
+                const unmaskTokens = [];
+                for (let f = 0; f < numFrames; f++) {
+                    for (let r = 0; r < gridH; r++) {
+                        for (let c = 0; c < gridW; c++) {
+                            if (masks[f][r][c] === 0) unmaskTokens.push([f, r, c]);
+                        }
+                    }
+                }
+                // Shuffle and mask
+                for (let i = unmaskTokens.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [unmaskTokens[i], unmaskTokens[j]] = [unmaskTokens[j], unmaskTokens[i]];
+                }
+                const toMask = Math.min(targetMasked - maskedCount, unmaskTokens.length);
+                for (let i = 0; i < toMask; i++) {
+                    const [f, r, c] = unmaskTokens[i];
+                    masks[f][r][c] = mode === 'long' ? 2 : 1;
+                }
+            }
+
+            return masks;
+        }
+
+        function regenerateMasks() {
+            const ratio = parseInt(maskRatioSlider.value);
+            maskState = generateMasks(14, 14, 8, ratio, currentMaskMode);
+        }
+
+        function drawMaskingViz() {
+            const dpr = window.devicePixelRatio || 1;
+            const rect = maskingCanvas.getBoundingClientRect();
+            const w = rect.width, h = rect.height;
+            maskingCanvas.width = w * dpr;
+            maskingCanvas.height = h * dpr;
+            maskingCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+            maskingCtx.clearRect(0, 0, w, h);
+
+            if (!maskState) regenerateMasks();
+
+            const numFrames = 8;
+            const gridW = 14, gridH = 14;
+            const padding = 8;
+            const frameGap = 6;
+            const totalGaps = (numFrames - 1) * frameGap;
+            const availableW = w - padding * 2 - totalGaps;
+            const frameW = availableW / numFrames;
+            const cellSize = Math.min(frameW / gridW, (h - padding * 2 - 30) / gridH);
+            const actualFrameW = cellSize * gridW;
+            const actualFrameH = cellSize * gridH;
+
+            // Center vertically
+            const startY = padding + 20;
+
+            // Count stats
+            let totalTokens = 0, maskedTokens = 0;
+
+            for (let f = 0; f < numFrames; f++) {
+                const frameX = padding + f * (actualFrameW + frameGap);
+
+                // Frame label
+                maskingCtx.fillStyle = '#888';
+                maskingCtx.font = '9px sans-serif';
+                maskingCtx.textAlign = 'center';
+                maskingCtx.fillText('t=' + (f + 1), frameX + actualFrameW / 2, startY - 6);
+
+                for (let r = 0; r < gridH; r++) {
+                    for (let c = 0; c < gridW; c++) {
+                        const x = frameX + c * cellSize;
+                        const y = startY + r * cellSize;
+                        const val = maskState[f][r][c];
+                        totalTokens++;
+
+                        if (val === 0) {
+                            // Visible token (context x) - blue
+                            maskingCtx.fillStyle = 'rgba(0, 217, 255, 0.6)';
+                        } else if (val === 1) {
+                            // Short-range masked - gray
+                            maskingCtx.fillStyle = 'rgba(100, 100, 100, 0.4)';
+                            maskedTokens++;
+                        } else {
+                            // Long-range masked - darker gray
+                            maskingCtx.fillStyle = 'rgba(60, 60, 60, 0.5)';
+                            maskedTokens++;
+                        }
+
+                        maskingCtx.fillRect(x + 0.5, y + 0.5, cellSize - 1, cellSize - 1);
+
+                        // Border
+                        maskingCtx.strokeStyle = 'rgba(255,255,255,0.05)';
+                        maskingCtx.lineWidth = 0.5;
+                        maskingCtx.strokeRect(x + 0.5, y + 0.5, cellSize - 1, cellSize - 1);
+                    }
+                }
+
+                // Frame border
+                maskingCtx.strokeStyle = 'rgba(255,255,255,0.15)';
+                maskingCtx.lineWidth = 1;
+                maskingCtx.strokeRect(frameX, startY, actualFrameW, actualFrameH);
+            }
+
+            // Legend
+            const legendY = startY + actualFrameH + 12;
+            const legendItems = [
+                { color: 'rgba(0, 217, 255, 0.6)', label: 'Visible (context x)' },
+                { color: 'rgba(100, 100, 100, 0.4)', label: 'Short-range masked' },
+                { color: 'rgba(60, 60, 60, 0.5)', label: 'Long-range masked' }
+            ];
+
+            let legendX = w / 2 - 180;
+            maskingCtx.font = '10px sans-serif';
+            maskingCtx.textAlign = 'left';
+            legendItems.forEach(item => {
+                maskingCtx.fillStyle = item.color;
+                maskingCtx.fillRect(legendX, legendY - 8, 12, 12);
+                maskingCtx.strokeStyle = 'rgba(255,255,255,0.2)';
+                maskingCtx.strokeRect(legendX, legendY - 8, 12, 12);
+                maskingCtx.fillStyle = '#888';
+                maskingCtx.fillText(item.label, legendX + 16, legendY + 2);
+                legendX += 130;
+            });
+
+            // Update metrics
+            const actualRatio = ((maskedTokens / totalTokens) * 100).toFixed(0);
+            const visiblePct = (100 - (maskedTokens / totalTokens) * 100).toFixed(0);
+            const speedup = (totalTokens / Math.max(1, totalTokens - maskedTokens)).toFixed(0);
+
+            document.getElementById('metricMaskRatio').textContent = actualRatio + '%';
+            document.getElementById('metricVisible').textContent = visiblePct + '%';
+            document.getElementById('metricSpeedup').textContent = '~' + speedup + 'x';
+            document.getElementById('maskRatioValue').textContent = maskRatioSlider.value + '%';
+        }
+
+        // Mask mode buttons
+        document.getElementById('maskModeBtns').addEventListener('click', function(e) {
+            const btn = e.target.closest('.toggle-btn');
+            if (!btn) return;
+            document.querySelectorAll('#maskModeBtns .toggle-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentMaskMode = btn.dataset.mode;
+            regenerateMasks();
+            drawMaskingViz();
+        });
+
+        maskRatioSlider.addEventListener('input', function() {
+            regenerateMasks();
+            drawMaskingViz();
+        });
+
+        // ==================== Benchmark Results ====================
+        const benchmarkData = {
+            k400: {
+                methods: {
+                    'V-JEPA (H/16)': { score: 82.0, color: '#00d9ff' },
+                    'DINOv2': { score: 83.4, color: '#a855f7' },
+                    'VideoMAE': { score: 79.8, color: '#f59e0b' },
+                    'OmniMAE': { score: 78.3, color: '#10b981' },
+                    'OpenCLIP': { score: 81.0, color: '#888' }
+                },
+                maxVal: 90
+            },
+            ssv2: {
+                methods: {
+                    'V-JEPA (H/16)': { score: 71.4, color: '#00d9ff' },
+                    'DINOv2': { score: 50.6, color: '#a855f7' },
+                    'VideoMAE': { score: 66.6, color: '#f59e0b' },
+                    'OmniMAE': { score: 63.5, color: '#10b981' },
+                    'OpenCLIP': { score: 52.1, color: '#888' }
+                },
+                maxVal: 80
+            },
+            in1k: {
+                methods: {
+                    'V-JEPA (H/16)': { score: 75.9, color: '#00d9ff' },
+                    'DINOv2': { score: 86.2, color: '#a855f7' },
+                    'VideoMAE': { score: 72.7, color: '#f59e0b' },
+                    'OmniMAE': { score: 73.8, color: '#10b981' },
+                    'OpenCLIP': { score: 84.4, color: '#888' }
+                },
+                maxVal: 95
+            }
+        };
+
+        function renderBenchmark(taskKey) {
+            const data = benchmarkData[taskKey];
+            const container = document.getElementById('benchmarkBars');
+            container.innerHTML = '';
+
+            for (const [method, info] of Object.entries(data.methods)) {
+                const pct = (info.score / data.maxVal) * 100;
+                const isVJEPA = method.includes('V-JEPA');
+                const row = document.createElement('div');
+                row.className = 'comparison-row';
+                row.innerHTML = `
+                    <span class="comparison-label" style="color: ${info.color}; font-weight: ${isVJEPA ? '700' : '400'};">${method}</span>
+                    <div class="comparison-bar-track">
+                        <div class="comparison-bar-fill" style="width: ${pct}%; background: ${info.color}; opacity: ${isVJEPA ? 1 : 0.7};"></div>
+                    </div>
+                    <span class="comparison-value" style="color: ${info.color};">${info.score}</span>
+                `;
+                container.appendChild(row);
+            }
+        }
+
+        document.getElementById('taskSelect').addEventListener('change', function() {
+            renderBenchmark(this.value);
+        });
+
+        // ==================== Initialize ====================
+        window.addEventListener('resize', function() {
+            drawMaskingViz();
+        });
+
+        setTimeout(() => {
+            regenerateMasks();
+            drawMaskingViz();
+            renderBenchmark('k400');
+        }, 100);
+    </script>
+</body>
+</html>
