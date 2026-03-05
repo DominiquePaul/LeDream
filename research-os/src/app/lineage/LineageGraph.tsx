@@ -480,7 +480,7 @@ export function LineageGraph() {
         ref={svgRef}
         className={s.svgCanvas}
         width="100%"
-        height={Math.max(500, layout.height * zoom + 40)}
+        height="100%"
         onWheel={handleWheel}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}

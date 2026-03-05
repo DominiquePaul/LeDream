@@ -21,6 +21,7 @@
 /* ─── Graph container ─── */
 .graphWrapper {
   position: relative;
+  height: clamp(500px, 70vh, 900px);
   border: 1px solid var(--border-default);
   border-radius: 8px;
   background: var(--bg-surface);
