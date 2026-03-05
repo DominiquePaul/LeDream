@@ -103,6 +103,182 @@ function PaperCard({ paper }: { paper: Paper }) {
   return card;
 }
 
+function BulkTagBar({
+  selected,
+  onClear,
+}: {
+  selected: Set<string>;
+  onClear: () => void;
+}) {
+  const { tags, addTagToPaper, removeTagFromPaper, papers, refresh } = useResearch();
+  const [busy, setBusy] = useState(false);
+
+  const selectedPapers = papers.filter((p) => selected.has(p.id));
+
+  // For each tag, count how many selected papers have it
+  const tagCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    tags.forEach((t) => {
+      counts[t.id] = selectedPapers.filter((p) =>
+        p.tags?.some((pt) => pt.id === t.id)
+      ).length;
+    });
+    return counts;
+  }, [tags, selectedPapers]);
+
+  const handleToggleTag = async (tagId: string) => {
+    setBusy(true);
+    const allHave = tagCounts[tagId] === selected.size;
+    for (const paperId of selected) {
+      if (allHave) {
+        await removeTagFromPaper(paperId, tagId);
+      } else {
+        await addTagToPaper(paperId, tagId);
+      }
+    }
+    await refresh();
+    setBusy(false);
+  };
+
+  return (
+    <div className="bulk-tag-bar">
+      <div className="bulk-tag-bar__info">
+        <span>{selected.size} paper{selected.size !== 1 ? "s" : ""} selected</span>
+        <button onClick={onClear} className="bulk-tag-bar__clear">Deselect all</button>
+      </div>
+      <div className="bulk-tag-bar__tags">
+        {tags.map((t) => {
+          const count = tagCounts[t.id];
+          const allHave = count === selected.size;
+          const someHave = count > 0 && !allHave;
+          return (
+            <button
+              key={t.id}
+              onClick={() => handleToggleTag(t.id)}
+              disabled={busy}
+              className={`bulk-tag-bar__tag ${allHave ? "bulk-tag-bar__tag--all" : ""} ${someHave ? "bulk-tag-bar__tag--some" : ""}`}
+              style={{
+                borderColor: allHave ? t.color + "66" : someHave ? t.color + "44" : undefined,
+                background: allHave ? t.color + "22" : undefined,
+                color: allHave || someHave ? t.color : undefined,
+              }}
+            >
+              {allHave ? "- " : "+ "}#{t.name}
+              {someHave && <span className="bulk-tag-bar__tag-count">({count})</span>}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function TableView({
+  papers,
+  selected,
+  onToggle,
+  onToggleAll,
+}: {
+  papers: Paper[];
+  selected: Set<string>;
+  onToggle: (id: string) => void;
+  onToggleAll: () => void;
+}) {
+  const allSelected = papers.length > 0 && papers.every((p) => selected.has(p.id));
+  const someSelected = papers.some((p) => selected.has(p.id)) && !allSelected;
+
+  return (
+    <div className="table-view">
+      <table className="table-view__table">
+        <thead>
+          <tr>
+            <th className="table-view__th-check">
+              <input
+                type="checkbox"
+                checked={allSelected}
+                ref={(el) => { if (el) el.indeterminate = someSelected; }}
+                onChange={onToggleAll}
+                className="table-view__checkbox"
+              />
+            </th>
+            <th>Title</th>
+            <th>Category</th>
+            <th>Year</th>
+            <th>Authors</th>
+            <th>Tags</th>
+            <th>Citations</th>
+          </tr>
+        </thead>
+        <tbody>
+          {papers.map((p) => {
+            const cat = CATEGORIES[p.category];
+            return (
+              <tr
+                key={p.id}
+                className={`table-view__row ${selected.has(p.id) ? "table-view__row--selected" : ""}`}
+              >
+                <td className="table-view__td-check">
+                  <input
+                    type="checkbox"
+                    checked={selected.has(p.id)}
+                    onChange={() => onToggle(p.id)}
+                    className="table-view__checkbox"
+                  />
+                </td>
+                <td>
+                  {p.slug ? (
+                    <Link href={`/papers/${p.slug}`} className="table-view__title-link">
+                      {p.title}
+                    </Link>
+                  ) : (
+                    <span className="table-view__title">{p.title}</span>
+                  )}
+                </td>
+                <td>
+                  <span
+                    className="paper-card__cat"
+                    style={{
+                      background: (cat?.color || "#638bd4") + "18",
+                      color: cat?.color || "#638bd4",
+                      borderColor: (cat?.color || "#638bd4") + "33",
+                    }}
+                  >
+                    {cat?.label || p.category}
+                  </span>
+                </td>
+                <td className="table-view__year">{p.year || "—"}</td>
+                <td className="table-view__authors">
+                  {p.authors?.map((a) => a.name).join(", ") || "—"}
+                </td>
+                <td>
+                  <div className="table-view__tags">
+                    {(p.tags || []).map((t) => (
+                      <span
+                        key={t.id}
+                        className="paper-card__tag"
+                        style={{
+                          background: t.color + "22",
+                          color: t.color,
+                          borderColor: t.color + "44",
+                        }}
+                      >
+                        {t.name}
+                      </span>
+                    ))}
+                  </div>
+                </td>
+                <td className="table-view__citations">
+                  {p.citation_count > 0 ? p.citation_count : "—"}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 export default function CollectionPage() {
   const { papers, tags, loading, refresh } = useResearch();
   const searchParams = useSearchParams();
@@ -111,6 +287,8 @@ export default function CollectionPage() {
     searchParams.get("category")
   );
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const filtered = useMemo(() => {
     let result = papers;
@@ -143,6 +321,32 @@ export default function CollectionPage() {
       return acc;
     }, {});
   }, [papers]);
+
+  const toggleSelect = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    const allFilteredSelected = filtered.every((p) => selected.has(p.id));
+    if (allFilteredSelected) {
+      setSelected((prev) => {
+        const next = new Set(prev);
+        filtered.forEach((p) => next.delete(p.id));
+        return next;
+      });
+    } else {
+      setSelected((prev) => {
+        const next = new Set(prev);
+        filtered.forEach((p) => next.add(p.id));
+        return next;
+      });
+    }
+  };
 
   if (loading) {
     return (
@@ -182,13 +386,40 @@ export default function CollectionPage() {
 
       {/* Search + Filters */}
       <div className="collection__filters">
-        <input
-          type="text"
-          placeholder="Search papers, authors..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="collection__search"
-        />
+        <div className="collection__filter-row">
+          <input
+            type="text"
+            placeholder="Search papers, authors..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="collection__search"
+          />
+          <div className="collection__view-toggle">
+            <button
+              className={`collection__view-btn ${viewMode === "grid" ? "collection__view-btn--active" : ""}`}
+              onClick={() => setViewMode("grid")}
+              title="Grid view"
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                <rect x="1" y="1" width="6" height="6" rx="1" />
+                <rect x="9" y="1" width="6" height="6" rx="1" />
+                <rect x="1" y="9" width="6" height="6" rx="1" />
+                <rect x="9" y="9" width="6" height="6" rx="1" />
+              </svg>
+            </button>
+            <button
+              className={`collection__view-btn ${viewMode === "table" ? "collection__view-btn--active" : ""}`}
+              onClick={() => setViewMode("table")}
+              title="Table view"
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                <rect x="1" y="2" width="14" height="2" rx="0.5" />
+                <rect x="1" y="7" width="14" height="2" rx="0.5" />
+                <rect x="1" y="12" width="14" height="2" rx="0.5" />
+              </svg>
+            </button>
+          </div>
+        </div>
         {tags.length > 0 && (
           <div className="collection__tag-filters">
             {tags.map((t) => (
@@ -209,6 +440,11 @@ export default function CollectionPage() {
         )}
       </div>
 
+      {/* Bulk tag bar */}
+      {selected.size > 0 && (
+        <BulkTagBar selected={selected} onClear={() => setSelected(new Set())} />
+      )}
+
       {/* Results */}
       <div className="collection__count">
         {filtered.length} paper{filtered.length !== 1 ? "s" : ""}
@@ -222,11 +458,20 @@ export default function CollectionPage() {
         )}
       </div>
 
-      <div className="collection__grid">
-        {filtered.map((p) => (
-          <PaperCard key={p.id} paper={p} />
-        ))}
-      </div>
+      {viewMode === "grid" ? (
+        <div className="collection__grid">
+          {filtered.map((p) => (
+            <PaperCard key={p.id} paper={p} />
+          ))}
+        </div>
+      ) : (
+        <TableView
+          papers={filtered}
+          selected={selected}
+          onToggle={toggleSelect}
+          onToggleAll={toggleSelectAll}
+        />
+      )}
 
       {filtered.length === 0 && (
         <div className="collection__empty">
