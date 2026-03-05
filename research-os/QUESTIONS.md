@@ -7,13 +7,13 @@ Rolling log of open questions. Resolved items go to SPEC.md (decisions).
 ## Resolved (moved to SPEC.md)
 
 - Q1: Content format -> **MDX** with DB-stored prose notes
-- Q2: Database -> **Supabase**, same project as DreamHub, shared auth, research_ prefix tables, pgvector embeddings
+- Q2: Database -> **Supabase**, same project as DreamHub, shared auth, `public` schema with `research_` prefix (same as DreamHub tables — keeps join option open)
 - Q3: Deployment -> **research.dream-machines.eu**, separate Vercel project, password protected
-- Q4/Q5: Editing -> **Hybrid**: in-browser markdown editor for notes (writes to DB) + MDX files editable via IDE/Claude Code. Both coexist.
-- Q6: Context granularity -> **Two levels**: one-liners (always) + rich notes (unlimited, grow over time via LLM subagents). Plus capsule synthesis per tag group.
+- Q4/Q5: Editing -> **Hybrid**: in-browser markdown editor (textarea + preview, Ctrl+S to save) for notes in DB, plus MDX files editable via IDE/Claude Code
+- Q6: Context granularity -> **Two levels**: one-liners (always) + rich notes (unlimited, grow over time). Plus capsule synthesis per tag group.
 - Q7: LLM conversations -> **All three**: in-app chat (Phase 4), context export (Phase 3), MCP server for Claude Code (Phase 3)
 - Q8: External APIs -> **Semantic Scholar** (free). Smart batched cron to stay within limits.
-- Q9: Refresh -> Weekly citations, daily discovery, on-add author affiliation. Cron jobs.
+- Q9: Refresh -> Weekly citations, daily discovery, on-add author affiliation. Cron jobs on Vercel Pro.
 - Q11: Research frontier -> Dropped
 - Q12: DreamHub experiment links -> Deferred to Phase 5
 - Q14: Semantic clustering -> Yes, via embeddings (Phase 4)
@@ -22,37 +22,32 @@ Rolling log of open questions. Resolved items go to SPEC.md (decisions).
 
 ---
 
-## Open Questions
+## Action Required: Deploy to Vercel
 
-1. **Shared Supabase project — same DB or separate schema?**
-   Decision: same Supabase project as DreamHub for shared auth. But should research_* tables live in the `public` schema alongside DreamHub tables, or in a separate `research` schema? Separate schema is cleaner but adds complexity to queries. Same schema with prefix is simpler.
-   --> Either is fine, I'd like to have the option to combine the two later somehow
+The app is built, committed, and pushed to `main`. You need to create the Vercel project manually:
 
-2. **In-browser note editor — which component?**
-   Options: CodeMirror (full-featured, markdown mode), Milkdown (WYSIWYG markdown), simple textarea with preview toggle. CodeMirror is battle-tested but heavier. Textarea + preview is simplest for v1.
-   --> Either is fine. You choose. 
+1. **Go to** https://vercel.com/new
+2. **Import** the `DominiquePaul/dreammachines` GitHub repo
+3. **Set Root Directory** to `research-os`
+4. **Framework Preset**: Next.js (auto-detected)
+5. **Environment Variables** — add these:
+   - `NEXT_PUBLIC_SUPABASE_URL` = `https://tgmgiovecbqzbrqgvfoh.supabase.co`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` = (same key as DreamHub — check DreamHub Vercel env vars)
+6. **Deploy**
+7. **Add Domain**: Go to Project Settings > Domains > Add `research.dream-machines.eu`
+8. **DNS**: Vercel will show the exact DNS record needed. Add it on GoDaddy.
 
-3. **Confirmed learnings detection — how to implement?**
-   You liked the idea of detecting findings validated across multiple papers (opposite of contradiction detection). Approach: embed key claims from each paper's notes, cluster by similarity, then use LLM to synthesize "N papers confirm X." Runs periodically or on-demand. This avoids O(n^2) pairwise comparisons. Worth building in Phase 4?
-   --> sounds good. 
+Note: I couldn't create the Vercel project programmatically (no CLI auth token, and the MCP doesn't have a create-project tool).
 
-4. **Paper PDF/arxiv ingestion — how to feed original papers to subagents?**
-   When the LLM needs to read the original paper to augment notes, it needs access to the full text. Options:
-   - Fetch arxiv HTML version (newer papers have this)
-   - Download PDF and extract text (lossy but universal)
-   - Use Semantic Scholar's TLDR + abstract as a lightweight fallback
-   - Store full text in DB on first fetch
-   Best approach is probably: try arxiv HTML first, fall back to PDF text extraction, cache the result.
-   --> Sounds good.
+---
 
-5. **How to handle the existing 20 interactive visualization pages during migration?**
-   These are 500-800 line React components (DreamerV3, SAC, etc.) with custom canvas code. Options:
-   - Convert to MDX pages that import the visualization as a component (cleanest)
-   - Keep as React pages alongside the new MDX system (pragmatic, no rewrite risk)
-   - Gradual migration: keep React pages now, convert one-by-one as you revisit them
-   Recommendation: keep as-is for Phase 1, convert gradually. No need to rewrite working code.
-   --> Mdx sounds fine. 
+## Open Questions (for next sprint)
 
-6. **Vercel cron job costs?**
-   Vercel hobby plan includes cron jobs but they run as serverless functions. For daily discovery + weekly citations, this should be well within free tier limits (~30 function invocations/day). Worth confirming you're on a plan that supports this, or if we should use an external cron (e.g., GitHub Actions).
-   --> Yes, I'm on the pro plan so everything should be fine. Lets run as much as possible in vercel and not add other tools unnecessarily.
+1. **Lineage graph: migrate to Supabase data?**
+   Currently the lineage graph (`/lineage`) reads from the static `papers.json`. The same data is now in Supabase (`research_papers` + `research_paper_edges`). Should we migrate the graph to fetch from Supabase, or is the static approach fine for now?
+
+2. **Existing visualization pages: when to start MDX migration?**
+   The 20 interactive viz pages (`/methods/*`) still work as standalone React components. You said MDX sounds fine for migration. Should we start converting in the next sprint, or wait until you've used the new system for a while?
+
+3. **Next sprint priorities: Phase 2 (Semantic Scholar) or polish Phase 1?**
+   Phase 1 is functional. Before moving to Phase 2, is there anything in Phase 1 you want improved (UX, styling, additional fields, paper CRUD from UI, etc.)?

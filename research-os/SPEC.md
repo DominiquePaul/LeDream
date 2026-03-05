@@ -6,7 +6,8 @@ Living document tracking all decided features, architecture, and design decision
 Research OS is a personal "second brain" for robotics research at Dream Machines. It helps track papers, maintain reading notes with interactive visualizations, discover new research, identify promising authors, and use curated paper collections as context for LLM-assisted reasoning.
 
 **Repo location**: `research-os/` subdirectory of dreammachines monorepo
-**Live URL**: `research.dream-machines.eu` (planned)
+**Live URL**: `research.dream-machines.eu` (pending Vercel project creation — see QUESTIONS.md)
+**GitHub**: `DominiquePaul/dreammachines` (main branch)
 
 ## Architecture
 
@@ -147,14 +148,20 @@ Semantic Scholar allows 100 req/sec (free). Cron jobs batch requests across runs
 
 ## Planned Features (by phase)
 
-### Phase 1: Foundation
-- MDX setup + Supabase tables + shared auth with DreamHub
-- Migrate existing 74 papers from papers.json to Supabase
-- Tag CRUD, paper CRUD
-- Basic paper pages with MDX + in-browser note editor
-- Responsive design (mobile + tablet)
-- Password protection / auth gate
-- Deploy to research.dream-machines.eu
+### Phase 1: Foundation — DONE (2026-03-05)
+- [x] Supabase tables created (research_papers, research_authors, research_paper_authors, research_tags, research_paper_tags, research_notes, research_paper_edges, research_capsule_syntheses, research_discovery_queue) with RLS
+- [x] pgvector extension enabled
+- [x] 65 papers + 76 edges + 52 authors migrated from papers.json to Supabase
+- [x] Next.js 16 + React 19 + Tailwind v4 + Supabase client
+- [x] Auth gate (shared Supabase Auth with DreamHub)
+- [x] Collection home page with search, category filters, tag filters
+- [x] Paper detail page (`/papers/[slug]`) with metadata, tag assignment, markdown note editor (edit/preview, Ctrl+S)
+- [x] Tag management page (`/tags`) — create/delete tags
+- [x] Capsule view (`/capsules/[tagId]`) with "Export Context for LLM" button
+- [x] Responsive sidebar with categories, tags, visualization links
+- [x] All 20 existing interactive viz pages preserved at `/methods/*` with MathJax
+- [x] Lineage graph preserved at `/lineage` (still uses static JSON — migration deferred)
+- [ ] Deploy to Vercel (manual step required — see QUESTIONS.md)
 
 ### Phase 2: External Data
 - Semantic Scholar integration (citation counts, author data, references)
@@ -186,8 +193,8 @@ Semantic Scholar allows 100 req/sec (free). Cron jobs batch requests across runs
 - **MathJax integration**: LaTeX rendering via better-react-mathjax.
 - **CoreIdeasAndFeatures**: Expandable accordion for paper key ideas with detail text.
 
-## Paper Data (current, to be migrated)
-74 papers tracked across categories:
+## Paper Data (migrated to Supabase)
+65 papers tracked across categories:
 - **rl**: DQN, DDPG, PPO, SAC, BCQ, BEAR, CQL, RLHF, RLPD, IQL, TD3, GRPO, DPO, etc.
 - **wm (world models)**: World Models, PlaNet, Dreamer, DreamerV2, DreamerV3, V-JEPA, V-JEPA 2, TD-MPC
 - **robotics**: Robot Controllers, FAST, SERL, ACT, pi0, DayDreamer
