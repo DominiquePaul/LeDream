@@ -5,10 +5,21 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { MathJaxContext } from "better-react-mathjax";
 import { useResearch } from "@/components/Shell";
 import { fetchPaperBySlug } from "@/lib/supabase-db";
 import { CATEGORIES } from "@/lib/types";
+import { getVizComponent, hasVizComponent } from "@/lib/viz-registry";
 import type { Paper } from "@/lib/types";
+
+const mathjaxConfig = {
+  loader: { load: ["[tex]/ams"] },
+  tex: {
+    packages: { "[+]": ["ams"] },
+    inlineMath: [["\\(", "\\)"]],
+    displayMath: [["$$", "$$"]],
+  },
+};
 
 function NoteEditor({ paper, onSave }: { paper: Paper; onSave: () => void }) {
   const { upsertNote } = useResearch();
@@ -32,7 +43,6 @@ function NoteEditor({ paper, onSave }: { paper: Paper; onSave: () => void }) {
     }
   }, [paper.id, content, upsertNote, onSave]);
 
-  // Ctrl+S to save
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if ((e.ctrlKey || e.metaKey) && e.key === "s") {
@@ -60,7 +70,6 @@ function NoteEditor({ paper, onSave }: { paper: Paper; onSave: () => void }) {
           Preview
         </button>
       </div>
-
       {tab === "edit" ? (
         <textarea
           className="note-editor__textarea"
@@ -77,18 +86,11 @@ function NoteEditor({ paper, onSave }: { paper: Paper; onSave: () => void }) {
           )}
         </div>
       )}
-
       <div className="note-editor__actions">
-        <button
-          className="note-editor__save"
-          onClick={handleSave}
-          disabled={saving}
-        >
+        <button className="note-editor__save" onClick={handleSave} disabled={saving}>
           {saving ? "Saving..." : "Save"}
         </button>
-        <span className="note-editor__status">
-          {saved ? "Saved!" : "Ctrl+S to save"}
-        </span>
+        <span className="note-editor__status">{saved ? "Saved!" : "Ctrl+S to save"}</span>
       </div>
     </div>
   );
@@ -126,10 +128,121 @@ function TagAssigner({ paper, onUpdate }: { paper: Paper; onUpdate: () => void }
             fontFamily: "var(--font-mono)",
           }}
         >
-          {paperTagIds.has(t.id) ? "✓ " : ""}#{t.name}
+          {paperTagIds.has(t.id) ? "- " : "+ "}#{t.name}
         </button>
       ))}
     </div>
+  );
+}
+
+function GenerateVizModal({
+  paper,
+  onClose,
+  onGenerated,
+}: {
+  paper: Paper;
+  onClose: () => void;
+  onGenerated: (html: string) => void;
+}) {
+  const { session } = useResearch();
+  const defaultPrompt = `Create an interactive visualization for this research paper:
+
+Title: "${paper.title}"
+${paper.year ? `Year: ${paper.year}` : ""}
+${paper.one_liner ? `Summary: ${paper.one_liner}` : ""}
+${paper.abstract ? `Abstract: ${paper.abstract}` : ""}
+
+Include these sections:
+1. **Big Ideas** - The core insights and innovations of this paper, explained clearly
+2. **Key Contributions** - What this paper specifically contributes to the field
+3. **Interactive Visualization** - An interactive diagram or visualization of the key concepts (use SVG, Canvas, or D3.js)
+4. **Paper Lineage** - Which papers this builds on and which papers followed that built on it`;
+
+  const [prompt, setPrompt] = useState(defaultPrompt);
+  const [generating, setGenerating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleGenerate = async () => {
+    setGenerating(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/generate-viz", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+        body: JSON.stringify({ paperId: paper.id, prompt }),
+      });
+      const data = await res.json();
+      if (data.error) {
+        setError(data.error);
+      } else {
+        onGenerated(data.html);
+        onClose();
+      }
+    } catch {
+      setError("Failed to generate visualization");
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  return (
+    <div className="viz-modal-overlay" onClick={onClose}>
+      <div className="viz-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="viz-modal__header">
+          <h2>Generate Visualization</h2>
+          <button className="viz-modal__close" onClick={onClose}>x</button>
+        </div>
+        <p className="viz-modal__desc">
+          Edit the prompt below, then click Generate. Claude will create an interactive HTML visualization.
+        </p>
+        <textarea
+          className="viz-modal__prompt"
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          rows={12}
+        />
+        {error && <p className="viz-modal__error">{error}</p>}
+        <div className="viz-modal__actions">
+          <button onClick={onClose} className="viz-modal__cancel">Cancel</button>
+          <button
+            onClick={handleGenerate}
+            disabled={generating}
+            className="viz-modal__generate"
+          >
+            {generating ? "Generating..." : "Generate Visualization"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EmbeddedViz({ slug }: { slug: string }) {
+  const VizComponent = getVizComponent(slug);
+  if (!VizComponent) return null;
+
+  return (
+    <MathJaxContext
+      version={3}
+      config={mathjaxConfig}
+      src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js"
+    >
+      <VizComponent />
+    </MathJaxContext>
+  );
+}
+
+function GeneratedViz({ html }: { html: string }) {
+  return (
+    <iframe
+      srcDoc={html}
+      className="paper-detail__generated-viz"
+      sandbox="allow-scripts"
+      title="Paper visualization"
+    />
   );
 }
 
@@ -138,6 +251,8 @@ export default function PaperDetailPage() {
   const slug = params.slug as string;
   const [paper, setPaper] = useState<Paper | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showVizModal, setShowVizModal] = useState(false);
+  const [vizTab, setVizTab] = useState<"viz" | "notes">("viz");
   const { edges, papers } = useResearch();
 
   const loadPaper = useCallback(async () => {
@@ -166,6 +281,9 @@ export default function PaperDetailPage() {
 
   const cat = CATEGORIES[paper.category];
   const authorStr = paper.authors?.map((a) => a.name).join(", ") || "";
+  const hasExistingViz = paper.slug ? hasVizComponent(paper.slug) : false;
+  const hasGeneratedViz = !!paper.visualization_html;
+  const hasAnyViz = hasExistingViz || hasGeneratedViz;
 
   // Find related papers from lineage graph
   const parentIds = edges
@@ -174,16 +292,14 @@ export default function PaperDetailPage() {
   const childIds = edges
     .filter((e) => e.target_id === paper.id)
     .map((e) => e.source_id);
-  const parents = papers.filter((p) => parentIds.includes(p.id));
-  const children = papers.filter((p) => childIds.includes(p.id));
-
-  // Check if this paper has an interactive visualization page
-  const hasVizPage = paper.slug && papers.find((p) => p.slug === paper.slug);
+  const parentPapers = papers.filter((p) => parentIds.includes(p.id));
+  const childPapers = papers.filter((p) => childIds.includes(p.id));
 
   return (
     <div className="paper-detail">
       <Link href="/" className="paper-detail__back">← Back to collection</Link>
 
+      {/* Meta row */}
       <div className="paper-detail__meta">
         {cat && (
           <span
@@ -208,57 +324,42 @@ export default function PaperDetailPage() {
             arXiv
           </a>
         )}
+        {paper.project_url && (
+          <a
+            href={paper.project_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ fontSize: "0.8rem", color: "var(--accent-primary)" }}
+          >
+            Project Page
+          </a>
+        )}
+        {paper.semantic_scholar_url && (
+          <a
+            href={paper.semantic_scholar_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}
+          >
+            Semantic Scholar
+          </a>
+        )}
       </div>
 
       <h1>{paper.title}</h1>
       {authorStr && <p className="paper-detail__authors">{authorStr}</p>}
       {paper.one_liner && <div className="paper-detail__oneliner">{paper.one_liner}</div>}
 
-      {/* Citation & External Links */}
-      {(paper.citation_count > 0 || paper.semantic_scholar_url) && (
+      {/* Citation info */}
+      {paper.citation_count > 0 && (
         <div className="paper-detail__citations">
-          {paper.citation_count > 0 && (
-            <span className="paper-detail__citation-badge">
-              {paper.citation_count} citations
-              {paper.citation_velocity > 0 && (
-                <span className="paper-detail__velocity">+{paper.citation_velocity} recent</span>
-              )}
-            </span>
-          )}
-          {paper.semantic_scholar_url && (
-            <a
-              href={paper.semantic_scholar_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ fontSize: "0.8rem", color: "var(--accent-primary)" }}
-            >
-              Semantic Scholar
-            </a>
-          )}
+          <span className="paper-detail__citation-badge">
+            {paper.citation_count} citations
+            {paper.citation_velocity > 0 && (
+              <span className="paper-detail__velocity">+{paper.citation_velocity} recent</span>
+            )}
+          </span>
         </div>
-      )}
-
-      {/* Interactive Visualization Link */}
-      {hasVizPage && (
-        <Link
-          href={`/methods/${paper.slug}`}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 8,
-            padding: "10px 20px",
-            background: "var(--accent-muted)",
-            border: "1px solid var(--border-emphasis)",
-            borderRadius: 8,
-            color: "var(--accent-primary)",
-            fontSize: "0.85rem",
-            fontWeight: 500,
-            textDecoration: "none",
-            marginBottom: 24,
-          }}
-        >
-          ◆ View Interactive Visualization
-        </Link>
       )}
 
       {/* Tags */}
@@ -267,21 +368,62 @@ export default function PaperDetailPage() {
         <TagAssigner paper={paper} onUpdate={loadPaper} />
       </div>
 
-      {/* Notes */}
-      <div className="paper-detail__section">
-        <h2>Notes</h2>
-        <NoteEditor paper={paper} onSave={loadPaper} />
+      {/* Visualization + Notes tabs */}
+      <div className="paper-detail__content-tabs">
+        <button
+          className={`paper-detail__content-tab ${vizTab === "viz" ? "paper-detail__content-tab--active" : ""}`}
+          onClick={() => setVizTab("viz")}
+        >
+          Visualization
+        </button>
+        <button
+          className={`paper-detail__content-tab ${vizTab === "notes" ? "paper-detail__content-tab--active" : ""}`}
+          onClick={() => setVizTab("notes")}
+        >
+          Notes
+        </button>
       </div>
 
+      {vizTab === "viz" ? (
+        <div className="paper-detail__viz-section">
+          {hasExistingViz && paper.slug ? (
+            <EmbeddedViz slug={paper.slug} />
+          ) : hasGeneratedViz ? (
+            <GeneratedViz html={paper.visualization_html!} />
+          ) : (
+            <div className="paper-detail__no-viz">
+              <p>No visualization yet for this paper.</p>
+              <button
+                className="paper-detail__generate-btn"
+                onClick={() => setShowVizModal(true)}
+              >
+                Generate Visualization
+              </button>
+            </div>
+          )}
+          {/* Regenerate button even if viz exists (for generated ones) */}
+          {hasGeneratedViz && !hasExistingViz && (
+            <button
+              className="paper-detail__regenerate-btn"
+              onClick={() => setShowVizModal(true)}
+            >
+              Regenerate
+            </button>
+          )}
+        </div>
+      ) : (
+        <NoteEditor paper={paper} onSave={loadPaper} />
+      )}
+
       {/* Related Papers */}
-      {(parents.length > 0 || children.length > 0) && (
+      {(parentPapers.length > 0 || childPapers.length > 0) && (
         <div className="paper-detail__section">
           <h2>Related Papers</h2>
           <div className="lineage-grid">
-            {parents.length > 0 && (
+            {parentPapers.length > 0 && (
               <div className="lineage-group">
                 <h4>Builds on</h4>
-                {parents.map((p) => (
+                {parentPapers.map((p) => (
                   <div key={p.id} className="lineage-item" style={{ borderColor: CATEGORIES[p.category]?.color || "var(--border-default)" }}>
                     {p.slug ? (
                       <Link href={`/papers/${p.slug}`}>
@@ -295,10 +437,10 @@ export default function PaperDetailPage() {
                 ))}
               </div>
             )}
-            {children.length > 0 && (
+            {childPapers.length > 0 && (
               <div className="lineage-group">
                 <h4>Built upon by</h4>
-                {children.map((p) => (
+                {childPapers.map((p) => (
                   <div key={p.id} className="lineage-item" style={{ borderColor: CATEGORIES[p.category]?.color || "var(--border-default)" }}>
                     {p.slug ? (
                       <Link href={`/papers/${p.slug}`}>
@@ -314,6 +456,17 @@ export default function PaperDetailPage() {
             )}
           </div>
         </div>
+      )}
+
+      {/* Generate Viz Modal */}
+      {showVizModal && (
+        <GenerateVizModal
+          paper={paper}
+          onClose={() => setShowVizModal(false)}
+          onGenerated={(html) => {
+            setPaper((prev) => prev ? { ...prev, visualization_html: html } : prev);
+          }}
+        />
       )}
     </div>
   );

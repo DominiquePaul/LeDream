@@ -11,6 +11,8 @@ export interface Paper {
   semantic_scholar_url: string | null;
   citation_count: number;
   citation_velocity: number;
+  project_url: string | null;
+  visualization_html: string | null;
   created_at: string;
   updated_at: string;
   // Joined data
