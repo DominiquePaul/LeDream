@@ -10,6 +10,7 @@ import type { Paper } from "@/lib/types";
 function SyncButton({ onDone }: { onDone: () => void }) {
   const { session } = useResearch();
   const [syncing, setSyncing] = useState(false);
+  const [resolving, setResolving] = useState(false);
   const [result, setResult] = useState<string | null>(null);
 
   const handleSync = async () => {
@@ -34,11 +35,43 @@ function SyncButton({ onDone }: { onDone: () => void }) {
     }
   };
 
+  const handleResolve = async () => {
+    setResolving(true);
+    setResult(null);
+    try {
+      const res = await fetch("/api/semantic-scholar/resolve", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+      });
+      const data = await res.json();
+      if (data.message) {
+        setResult(data.message);
+      } else {
+        const methods = data.results
+          ?.filter((r: { status: string }) => r.status === "resolved")
+          .map((r: { method: string }) => r.method);
+        setResult(
+          `AI resolved ${data.resolved}/${data.total} papers${methods?.length ? ` (${methods.join(", ")})` : ""}`
+        );
+      }
+      onDone();
+    } catch {
+      setResult("Resolve failed");
+    } finally {
+      setResolving(false);
+    }
+  };
+
+  const busy = syncing || resolving;
+
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
       <button
         onClick={handleSync}
-        disabled={syncing}
+        disabled={busy}
         style={{
           padding: "6px 14px",
           background: "var(--bg-surface)",
@@ -46,10 +79,25 @@ function SyncButton({ onDone }: { onDone: () => void }) {
           borderRadius: 6,
           color: "var(--text-secondary)",
           fontSize: "0.75rem",
-          cursor: syncing ? "wait" : "pointer",
+          cursor: busy ? "wait" : "pointer",
         }}
       >
         {syncing ? "Syncing..." : "Sync Citations"}
+      </button>
+      <button
+        onClick={handleResolve}
+        disabled={busy}
+        style={{
+          padding: "6px 14px",
+          background: "var(--bg-surface)",
+          border: "1px solid var(--border-default)",
+          borderRadius: 6,
+          color: "var(--accent-primary)",
+          fontSize: "0.75rem",
+          cursor: busy ? "wait" : "pointer",
+        }}
+      >
+        {resolving ? "AI Resolving..." : "AI Resolve"}
       </button>
       {result && (
         <span style={{ fontSize: "0.7rem", color: "var(--text-tertiary)" }}>

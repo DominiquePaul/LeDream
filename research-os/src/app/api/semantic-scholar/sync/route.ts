@@ -12,44 +12,60 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}));
   const batchSize = body.batchSize || 10;
 
-  // Fetch papers: unsynced first, or all if force
-  const query = supabase
+  // Prioritize papers with arxiv_ids (fast direct lookup, no rate limit)
+  const { data: withArxiv } = await supabase
     .from("research_papers")
     .select("id, title, arxiv_id, semantic_scholar_id, citation_count")
+    .is("semantic_scholar_id", null)
+    .not("arxiv_id", "is", null)
     .order("updated_at", { ascending: true })
     .limit(batchSize);
 
-  if (!body.force) {
-    query.is("semantic_scholar_id", null);
-  }
+  // Fill remaining slots with papers that need title search
+  const remaining = batchSize - (withArxiv?.length || 0);
+  const { data: withoutArxiv } = remaining > 0
+    ? await supabase
+        .from("research_papers")
+        .select("id, title, arxiv_id, semantic_scholar_id, citation_count")
+        .is("semantic_scholar_id", null)
+        .is("arxiv_id", null)
+        .order("updated_at", { ascending: true })
+        .limit(remaining)
+    : { data: [] };
 
-  const { data: papers, error } = await query;
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  if (!papers?.length) return NextResponse.json({ message: "All papers synced", synced: 0 });
+  const papers = [...(withArxiv || []), ...(withoutArxiv || [])];
+
+  if (!papers.length) {
+    return NextResponse.json({ message: "All papers synced!", synced: 0, notFound: 0 });
+  }
 
   const results: { id: string; title: string; status: string; citationCount?: number; error?: string }[] = [];
 
   for (const paper of papers) {
     try {
-      // Prefer direct arxiv lookup (no rate limit) over title search
       let s2Paper = null;
+
       if (paper.arxiv_id) {
         await delay(150);
         s2Paper = await getPaperByArxivId(paper.arxiv_id);
       }
 
       if (!s2Paper) {
-        // Title search is rate-limited, add longer delay
-        await delay(1000);
+        // Title search — needs longer delay to avoid 429
+        await delay(1500);
         s2Paper = await searchPaperByTitle(paper.title);
       }
 
       if (!s2Paper) {
+        // Mark updated_at so this paper goes to the back of the queue
+        await supabase
+          .from("research_papers")
+          .update({ updated_at: new Date().toISOString() })
+          .eq("id", paper.id);
         results.push({ id: paper.id, title: paper.title, status: "not_found" });
         continue;
       }
 
-      // Update paper with S2 data
       const updates: Record<string, unknown> = {
         semantic_scholar_id: s2Paper.paperId,
         citation_count: s2Paper.citationCount || 0,
@@ -57,12 +73,10 @@ export async function POST(request: Request) {
         updated_at: new Date().toISOString(),
       };
 
-      // Citation velocity = change since last sync
       if (paper.citation_count && s2Paper.citationCount) {
         updates.citation_velocity = s2Paper.citationCount - paper.citation_count;
       }
 
-      // Fill in abstract if missing
       if (s2Paper.abstract) {
         const { data: current } = await supabase
           .from("research_papers")
@@ -125,6 +139,7 @@ export async function POST(request: Request) {
     synced: results.filter((r) => r.status === "synced").length,
     notFound: results.filter((r) => r.status === "not_found").length,
     errors: results.filter((r) => r.status === "error").length,
+    total: papers.length,
     results,
   });
 }

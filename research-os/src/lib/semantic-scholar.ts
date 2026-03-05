@@ -52,19 +52,63 @@ async function s2Fetch<T>(path: string): Promise<T | null> {
 }
 
 export async function searchPaperByTitle(title: string): Promise<S2Paper | null> {
+  // Try exact title first
+  const result = await s2Search(title);
+  if (result) return result;
+
+  // Try simplified title (remove common prefixes/suffixes, punctuation)
+  const simplified = title
+    .replace(/^(a |an |the )/i, "")
+    .replace(/[:\-–—]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (simplified !== title) {
+    const result2 = await s2Search(simplified);
+    if (result2) return result2;
+  }
+
+  return null;
+}
+
+async function s2Search(query: string): Promise<S2Paper | null> {
   const res = await fetch(
-    `${S2_BASE}/paper/search?query=${encodeURIComponent(title)}&limit=1&fields=${PAPER_FIELDS}`,
+    `${S2_BASE}/paper/search?query=${encodeURIComponent(query)}&limit=3&fields=${PAPER_FIELDS}`,
     {
       headers: process.env.S2_API_KEY ? { "x-api-key": process.env.S2_API_KEY } : {},
     }
   );
   if (!res.ok) return null;
   const data = await res.json();
-  return data.data?.[0] || null;
+  if (!data.data?.length) return null;
+
+  // If only 1 result, return it
+  if (data.data.length === 1) return data.data[0];
+
+  // Pick the best match by title similarity
+  const queryLower = query.toLowerCase();
+  const scored = data.data.map((p: S2Paper) => ({
+    paper: p,
+    score: titleSimilarity(queryLower, p.title.toLowerCase()),
+  }));
+  scored.sort((a: { score: number }, b: { score: number }) => b.score - a.score);
+  return scored[0].score > 0.3 ? scored[0].paper : null;
+}
+
+function titleSimilarity(a: string, b: string): number {
+  const wordsA = new Set(a.split(/\s+/).filter((w) => w.length > 2));
+  const wordsB = new Set(b.split(/\s+/).filter((w) => w.length > 2));
+  if (wordsA.size === 0 || wordsB.size === 0) return 0;
+  let overlap = 0;
+  for (const w of wordsA) if (wordsB.has(w)) overlap++;
+  return overlap / Math.max(wordsA.size, wordsB.size);
 }
 
 export async function getPaperByArxivId(arxivId: string): Promise<S2Paper | null> {
   return s2Fetch<S2Paper>(`/paper/ArXiv:${arxivId}?fields=${PAPER_FIELDS}`);
+}
+
+export async function getPaperByDOI(doi: string): Promise<S2Paper | null> {
+  return s2Fetch<S2Paper>(`/paper/DOI:${doi}?fields=${PAPER_FIELDS}`);
 }
 
 export async function getPaperById(s2Id: string): Promise<S2Paper | null> {
