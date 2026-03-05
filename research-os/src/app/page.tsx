@@ -7,106 +7,6 @@ import { useResearch } from "@/components/Shell";
 import { CATEGORIES } from "@/lib/types";
 import type { Paper } from "@/lib/types";
 
-function SyncButton({ onDone }: { onDone: () => void }) {
-  const { session } = useResearch();
-  const [syncing, setSyncing] = useState(false);
-  const [resolving, setResolving] = useState(false);
-  const [result, setResult] = useState<string | null>(null);
-
-  const handleSync = async () => {
-    setSyncing(true);
-    setResult(null);
-    try {
-      const res = await fetch("/api/semantic-scholar/sync", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session?.access_token}`,
-        },
-        body: JSON.stringify({ batchSize: 10 }),
-      });
-      const data = await res.json();
-      setResult(`Synced ${data.synced}, ${data.notFound || 0} not found`);
-      onDone();
-    } catch {
-      setResult("Sync failed");
-    } finally {
-      setSyncing(false);
-    }
-  };
-
-  const handleResolve = async () => {
-    setResolving(true);
-    setResult(null);
-    try {
-      const res = await fetch("/api/semantic-scholar/resolve", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session?.access_token}`,
-        },
-      });
-      const data = await res.json();
-      if (data.message) {
-        setResult(data.message);
-      } else {
-        const methods = data.results
-          ?.filter((r: { status: string }) => r.status === "resolved")
-          .map((r: { method: string }) => r.method);
-        setResult(
-          `AI resolved ${data.resolved}/${data.total} papers${methods?.length ? ` (${methods.join(", ")})` : ""}`
-        );
-      }
-      onDone();
-    } catch {
-      setResult("Resolve failed");
-    } finally {
-      setResolving(false);
-    }
-  };
-
-  const busy = syncing || resolving;
-
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-      <button
-        onClick={handleSync}
-        disabled={busy}
-        style={{
-          padding: "6px 14px",
-          background: "var(--bg-surface)",
-          border: "1px solid var(--border-default)",
-          borderRadius: 6,
-          color: "var(--text-secondary)",
-          fontSize: "0.75rem",
-          cursor: busy ? "wait" : "pointer",
-        }}
-      >
-        {syncing ? "Syncing..." : "Sync Citations"}
-      </button>
-      <button
-        onClick={handleResolve}
-        disabled={busy}
-        style={{
-          padding: "6px 14px",
-          background: "var(--bg-surface)",
-          border: "1px solid var(--border-default)",
-          borderRadius: 6,
-          color: "var(--accent-primary)",
-          fontSize: "0.75rem",
-          cursor: busy ? "wait" : "pointer",
-        }}
-      >
-        {resolving ? "AI Resolving..." : "AI Resolve"}
-      </button>
-      {result && (
-        <span style={{ fontSize: "0.7rem", color: "var(--text-tertiary)" }}>
-          {result}
-        </span>
-      )}
-    </div>
-  );
-}
 
 function PaperCard({ paper }: { paper: Paper }) {
   const authorStr = paper.authors?.map((a) => a.name).join(", ") || "";
@@ -332,7 +232,7 @@ function TableView({
 }
 
 export default function CollectionPage() {
-  const { papers, tags, loading, refresh } = useResearch();
+  const { papers, tags, loading } = useResearch();
   const searchParams = useSearchParams();
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(
@@ -416,7 +316,6 @@ export default function CollectionPage() {
         <p className="collection__subtitle">
           {papers.length} papers tracked across {Object.keys(catCounts).length} categories
         </p>
-        <SyncButton onDone={refresh} />
       </div>
 
       {/* Stats */}

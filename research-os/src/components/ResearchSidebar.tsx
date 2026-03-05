@@ -51,6 +51,7 @@ export default function ResearchSidebar() {
     { href: "/discover", label: "Discovery", icon: "D", sublabel: "New papers" },
     { href: "/authors", label: "Authors", icon: "A", sublabel: "Author network" },
     { href: "/chat", label: "Chat", icon: "?", sublabel: "Ask Claude" },
+    { href: "/settings", label: "Settings", icon: "S", sublabel: "Sync & config" },
   ];
 
   // Category stats
