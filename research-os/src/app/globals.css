@@ -1514,6 +1514,8 @@ a .paper-card {
 /* Tag Cell – inline tag editor in table view */
 .tag-cell {
   position: relative;
+  min-height: 28px;
+  min-width: 60px;
 }
 
 .tag-cell__tags {
@@ -1521,6 +1523,7 @@ a .paper-card {
   gap: 4px;
   flex-wrap: wrap;
   align-items: center;
+  min-height: 28px;
 }
 
 .tag-cell__tag {
