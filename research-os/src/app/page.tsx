@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useResearch } from "@/components/Shell";
@@ -53,6 +53,153 @@ function PaperCard({ paper }: { paper: Paper }) {
     return <Link href={href} style={{ textDecoration: "none", color: "inherit" }}>{card}</Link>;
   }
   return card;
+}
+
+function TagCell({ paper }: { paper: Paper }) {
+  const { tags, addTagToPaper, removeTagFromPaper, createTag, refresh } = useResearch();
+  const [open, setOpen] = useState(false);
+  const [filter, setFilter] = useState("");
+  const [busy, setBusy] = useState(false);
+  const ref = React.useRef<HTMLDivElement>(null);
+  const inputRef = React.useRef<HTMLInputElement>(null);
+
+  // Close on outside click
+  React.useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+        setFilter("");
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  // Focus input when dropdown opens
+  React.useEffect(() => {
+    if (open) inputRef.current?.focus();
+  }, [open]);
+
+  const paperTagIds = new Set(paper.tags?.map((t) => t.id) || []);
+  const availableTags = tags.filter((t) => !paperTagIds.has(t.id));
+  const q = filter.toLowerCase().trim();
+  const filteredTags = q
+    ? availableTags.filter((t) => t.name.toLowerCase().includes(q))
+    : availableTags;
+  const exactMatch = tags.some((t) => t.name.toLowerCase() === q);
+  const showCreate = q.length > 0 && !exactMatch;
+
+  const handleAdd = async (tagId: string) => {
+    setBusy(true);
+    await addTagToPaper(paper.id, tagId);
+    await refresh();
+    setBusy(false);
+    setFilter("");
+  };
+
+  const handleRemove = async (e: React.MouseEvent, tagId: string) => {
+    e.stopPropagation();
+    setBusy(true);
+    await removeTagFromPaper(paper.id, tagId);
+    await refresh();
+    setBusy(false);
+  };
+
+  const handleCreate = async () => {
+    if (!q) return;
+    setBusy(true);
+    const colors = ["#ef4444", "#f59e0b", "#10b981", "#3b82f6", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16"];
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    const newTag = await createTag(q, color);
+    if (newTag) {
+      await addTagToPaper(paper.id, newTag.id);
+      await refresh();
+    }
+    setBusy(false);
+    setFilter("");
+  };
+
+  return (
+    <div className="tag-cell" ref={ref}>
+      <div className="tag-cell__tags">
+        {(paper.tags || []).map((t) => (
+          <span
+            key={t.id}
+            className="tag-cell__tag"
+            style={{
+              background: t.color + "22",
+              color: t.color,
+              borderColor: t.color + "44",
+            }}
+          >
+            {t.name}
+            <button
+              className="tag-cell__remove"
+              onClick={(e) => handleRemove(e, t.id)}
+              disabled={busy}
+              style={{ color: t.color }}
+            >
+              ×
+            </button>
+          </span>
+        ))}
+        <button
+          className="tag-cell__add-btn"
+          onClick={() => setOpen(!open)}
+          disabled={busy}
+        >
+          +
+        </button>
+      </div>
+      {open && (
+        <div className="tag-cell__dropdown">
+          <input
+            ref={inputRef}
+            className="tag-cell__input"
+            placeholder="Filter or create..."
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") { setOpen(false); setFilter(""); }
+              if (e.key === "Enter" && showCreate) { handleCreate(); }
+              if (e.key === "Enter" && !showCreate && filteredTags.length === 1) {
+                handleAdd(filteredTags[0].id);
+              }
+            }}
+          />
+          <div className="tag-cell__options">
+            {filteredTags.map((t) => (
+              <button
+                key={t.id}
+                className="tag-cell__option"
+                onClick={() => handleAdd(t.id)}
+                disabled={busy}
+              >
+                <span
+                  className="tag-cell__option-dot"
+                  style={{ background: t.color }}
+                />
+                {t.name}
+              </button>
+            ))}
+            {showCreate && (
+              <button
+                className="tag-cell__option tag-cell__option--create"
+                onClick={handleCreate}
+                disabled={busy}
+              >
+                + Create &ldquo;{filter}&rdquo;
+              </button>
+            )}
+            {filteredTags.length === 0 && !showCreate && (
+              <div className="tag-cell__empty">No tags available</div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 function BulkTagBar({
@@ -203,21 +350,7 @@ function TableView({
                   {p.authors?.map((a) => a.name).join(", ") || "—"}
                 </td>
                 <td>
-                  <div className="table-view__tags">
-                    {(p.tags || []).map((t) => (
-                      <span
-                        key={t.id}
-                        className="paper-card__tag"
-                        style={{
-                          background: t.color + "22",
-                          color: t.color,
-                          borderColor: t.color + "44",
-                        }}
-                      >
-                        {t.name}
-                      </span>
-                    ))}
-                  </div>
+                  <TagCell paper={p} />
                 </td>
                 <td className="table-view__citations">
                   {p.citation_count > 0 ? p.citation_count : "—"}
@@ -239,7 +372,7 @@ export default function CollectionPage() {
     searchParams.get("category")
   );
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
+  const [viewMode, setViewMode] = useState<"grid" | "table">("table");
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const filtered = useMemo(() => {

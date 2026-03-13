@@ -3,11 +3,11 @@
 import { MathJaxContext } from "better-react-mathjax";
 
 const mathjaxConfig = {
-  loader: { load: ["[tex]/ams"] },
+  loader: { load: ["[tex]/ams", "[tex]/color"] },
   tex: {
-    packages: { "[+]": ["ams"] },
+    packages: { "[+]": ["ams", "color"] },
     inlineMath: [["\\(", "\\)"]],
-    displayMath: [["$$", "$$"]],
+    displayMath: [["$$", "$$"], ["\\[", "\\]"]],
   },
 };
 
