@@ -14,6 +14,11 @@ export default function Angels() {
     if (sessionStorage.getItem('angels-auth') === '1') {
       setAuthenticated(true);
     }
+    // Preload images so they display instantly after password entry
+    const img1 = new window.Image();
+    img1.src = '/angels-collage.jpg';
+    const img2 = new window.Image();
+    img2.src = '/angels-logos.jpg';
   }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
