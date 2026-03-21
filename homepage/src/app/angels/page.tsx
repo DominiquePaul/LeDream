@@ -2,15 +2,29 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import AsciiEurope from '@/components/AsciiEurope';
 
 export default function Angels() {
   const [mounted, setMounted] = useState(false);
+  const [password, setPassword] = useState('');
+  const [authenticated, setAuthenticated] = useState(false);
 
   useEffect(() => {
     setMounted(true);
     document.documentElement.lang = 'en';
+    if (sessionStorage.getItem('angels-auth') === '1') {
+      setAuthenticated(true);
+    }
   }, []);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password === 'actuate2026') {
+      setAuthenticated(true);
+      sessionStorage.setItem('angels-auth', '1');
+    } else {
+      setPassword('');
+    }
+  };
 
   if (!mounted) {
     return (
@@ -22,17 +36,41 @@ export default function Angels() {
     );
   }
 
+  if (!authenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <form onSubmit={handleSubmit} className="flex flex-col items-center gap-4">
+          <h1
+            className="text-5xl md:text-7xl font-season text-navy mb-8"
+            style={{ fontVariationSettings: '"wght" 500, "SERF" 70', lineHeight: '0.9', letterSpacing: '-0.01em' }}
+          >
+            Dream Machines
+          </h1>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Password"
+            autoFocus
+            className="border border-navy/20 px-3 py-2 text-base lg:text-lg font-dm-mono text-navy bg-transparent focus:outline-none focus:ring-2 focus:ring-navy/30 placeholder:text-navy-muted w-64"
+          />
+          <button
+            type="submit"
+            className="px-5 py-2.5 text-base lg:text-lg bg-navy text-cream font-dm-mono font-medium hover:bg-navy-light transition-colors"
+          >
+            Enter
+          </button>
+        </form>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen relative">
-      {/* ASCII Globe */}
-      <div className="max-w-[1088px] mx-auto px-6">
-        <AsciiEurope />
-      </div>
-
-      {/* Content centered below globe */}
+      {/* Content */}
       <div className="max-w-[1088px] mx-auto px-6 flex flex-col items-center">
         {/* Hero Heading */}
-        <div className="text-center mt-10">
+        <div className="text-center mt-20">
           <h1
             className="text-5xl md:text-7xl lg:text-[110px] font-season text-navy"
             style={{ fontVariationSettings: '"wght" 500, "SERF" 70', lineHeight: '0.9', letterSpacing: '-0.01em' }}
@@ -116,8 +154,7 @@ export default function Angels() {
         {/* Contact note */}
         <div className="max-w-[758px] 2xl:max-w-[620px] w-full mt-8 mb-16">
           <p className="text-navy-muted font-dm-mono text-base lg:text-lg leading-[1.3]">
-            For enquiries, reach out to{' '}
-            <a href="mailto:team@dream-machines.eu" className="underline hover:text-navy transition-colors">team@dream-machines.eu</a>
+            <a href="mailto:dominique@dream-machines.eu" className="underline hover:text-navy transition-colors">dominique@dream-machines.eu</a>
           </p>
         </div>
       </div>
