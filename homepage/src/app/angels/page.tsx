@@ -102,7 +102,7 @@ export default function Angels() {
           />
 
           <p>
-            This is possible now because of a recent technical inflection point in robotic AI introduced by VLMs, video and world models. Foundation models for robotic manipulation, like Pi-0.5/0.6, have made learning from demonstration viable for the first time. But &ldquo;viable&rdquo; is not yet &ldquo;reliable.&rdquo; These models work reasonably well at a variety of tasks in the lab, but they&apos;re not reliably usable for single tasks across long stretches of time in real settings. Closing that reliability gap for real tasks in real factories is our short-term technical focus, and the reason we exist.
+            This is possible now because of a recent technical inflection point in robotic AI introduced by VLMs, video and world models. Foundation models for robotic manipulation, like Pi 0.5/0.6, have made learning from demonstration viable for the first time. But &ldquo;viable&rdquo; is not yet &ldquo;reliable.&rdquo; These models work reasonably well at a variety of tasks in the lab, but they&apos;re not reliably usable for single tasks across long stretches of time in real settings. Closing that reliability gap for real tasks in real factories is our short-term technical focus, and the reason we exist.
           </p>
 
           <p>
@@ -138,7 +138,7 @@ export default function Angels() {
               className="w-full rounded"
             />
             <p className="text-sm text-navy-muted/60 font-dm-mono mt-2">
-              Companies that have sent us their products to work on their use cases.
+              Companies that have sent us their products.
             </p>
           </div>
 
