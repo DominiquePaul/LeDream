@@ -93,13 +93,19 @@ export default function Angels() {
             Dream Machines replaces that process. A worker who knows the task demonstrates it to a bimanual robot arm. A model trains overnight. The robot starts working the next morning and improves over time. The worker grows from operator to robot supervisor. What used to take months and six figures now takes half a day of demonstrations and a monthly rental.
           </p>
 
-          <Image
-            src="/angels-collage.jpg"
-            alt="Factory visits, manufacturing work, and cold sales across Europe"
-            width={1200}
-            height={800}
-            className="w-full rounded mt-2"
-          />
+          <div className="mt-2">
+            <Image
+              src="/angels-collage.jpg"
+              alt="Factory visits, manufacturing work, and cold sales across Europe"
+              width={1200}
+              height={800}
+              className="w-full rounded"
+            />
+            <p className="text-sm text-navy-muted/60 font-dm-mono mt-2">
+              Impressions from 1.5 months on the road doing cold visits. Read more{' '}
+              <a href="https://thisiscrispin.substack.com/p/sales-september" target="_blank" rel="noopener noreferrer" className="underline hover:text-navy transition-colors">here</a>.
+            </p>
+          </div>
 
           <p>
             This is possible now because of a recent technical inflection point in robotic AI introduced by VLMs, video and world models. Foundation models for robotic manipulation, like Pi 0.5/0.6, have made learning from demonstration viable for the first time. But &ldquo;viable&rdquo; is not yet &ldquo;reliable.&rdquo; These models work reasonably well at a variety of tasks in the lab, but they&apos;re not reliably usable for single tasks across long stretches of time in real settings. Closing that reliability gap for real tasks in real factories is our short-term technical focus, and the reason we exist.
