@@ -120,7 +120,7 @@ export default function Home() {
       {/* Content centered below globe */}
       <div className="max-w-[1088px] mx-auto px-6 flex flex-col items-center">
         {/* Waitlist Counter */}
-        <WaitlistCounter language={language} />
+        {/* <WaitlistCounter language={language} /> */}
 
         {/* Hero Heading */}
         <div className="text-center mt-10">
