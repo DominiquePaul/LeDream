@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import AsciiEurope from '@/components/AsciiEurope';
 
 export default function Angels() {
@@ -54,8 +55,16 @@ export default function Angels() {
             Dream Machines replaces that process. A worker who knows the task demonstrates it to a bimanual robot arm. A model trains overnight. The robot starts working the next morning and improves over time. The worker grows from operator to robot supervisor. What used to take months and six figures now takes half a day of demonstrations and a monthly rental.
           </p>
 
+          <Image
+            src="/angels-collage.jpg"
+            alt="Factory visits, manufacturing work, and cold sales across Europe"
+            width={1200}
+            height={800}
+            className="w-full rounded mt-2"
+          />
+
           <p>
-            This is possible now because of a recent technical inflection point in robotic AI introduced by VLMs, video and world models. Foundation models for robotic manipulation, like &pi;0.5/0.6, have made learning from demonstration viable for the first time. But &ldquo;viable&rdquo; is not yet &ldquo;reliable.&rdquo; These models work reasonably well at a variety of tasks in the lab, but they&apos;re not reliably usable for single tasks across long stretches of time in real settings. Closing that reliability gap for real tasks in real factories is our short-term technical focus, and the reason we exist.
+            This is possible now because of a recent technical inflection point in robotic AI introduced by VLMs, video and world models. Foundation models for robotic manipulation, like Pi-0.5/0.6, have made learning from demonstration viable for the first time. But &ldquo;viable&rdquo; is not yet &ldquo;reliable.&rdquo; These models work reasonably well at a variety of tasks in the lab, but they&apos;re not reliably usable for single tasks across long stretches of time in real settings. Closing that reliability gap for real tasks in real factories is our short-term technical focus, and the reason we exist.
           </p>
 
           <p>
@@ -81,6 +90,19 @@ export default function Angels() {
           <p>
             Our product makes automation accessible for non-technical people who know the real-world problems and reduces setup costs to a day. Eight companies have already sent me their physical products because they want to work on their use cases first. The first paid deployment is planned for June.
           </p>
+
+          <div className="mt-2">
+            <Image
+              src="/angels-logos.jpg"
+              alt="Logos of companies that sent their products for pilot use cases"
+              width={1600}
+              height={400}
+              className="w-full rounded"
+            />
+            <p className="text-sm text-navy-muted/60 font-dm-mono mt-2">
+              Companies that have sent us their products to work on their use cases.
+            </p>
+          </div>
 
           <p>
             I studied ML and computer vision at ETH Zürich, have NeurIPS-published research, and have been building robotic AI models since early 2025. I originally come from a business background at HSG St. Gallen. Not many people who can build robotic AI models would sleep in a car for 1.5 months, driving through Europe, doing cold visits to 100+ manufacturers, and working in a Polish electronics factory to understand what the current state of automation is and how SME owners think.
