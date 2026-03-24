@@ -128,7 +128,7 @@ export default function Angels() {
           </p>
 
           <p>
-            Which tasks you deploy on matters enormously. And this is exactly the kind of thing you only learn by spending time on factory floors, not in a lab. I spent 1.5 months doing cold visits across central Europe, sleeping in the car between stops, talking to 80+ manufacturers, and working a week in an electronics factory in Płock. At a 99% success rate, a robot doing a 15-second task fails roughly every 17 minutes, essentially requiring constant supervision. But PCB testing involves 15 seconds of handling plus 92 seconds of machine testing where the operator is idle. With the same success rate the robot now runs over 2 hours between resets. The use case does the heavy lifting. We&apos;re starting with device testing, then battery slotting, component sorting, and beyond.
+            Which tasks you deploy on matters enormously. And this is exactly the kind of thing you only learn by spending time on factory floors, not in a lab. I spent 1.5 months doing cold visits across central Europe, sleeping in the car between stops, talking to 80+ manufacturers, and working a week in an electronics factory in Płock, Poland. At a 99% success rate, a robot doing a 15-second task fails roughly every 17 minutes, essentially requiring constant supervision. But PCB testing involves 15 seconds of handling plus 92 seconds of machine testing where the operator is idle. With the same success rate the robot now runs over 2 hours between resets. The use case does the heavy lifting. We&apos;re starting with device testing, then battery slotting, component sorting, and beyond.
           </p>
 
           <p>
@@ -163,7 +163,7 @@ export default function Angels() {
           </p>
 
           <p>
-            Phase 3 is mobile, collaborative robots that coordinate with each other and allow domain experts to design entire production lines without a single roboticist involved. At this stage, the most interesting market is no longer automating what&apos;s still being done by hand, but enabling new company models where a small team with product knowledge uses our systems to make production fully autonomous.
+            Phase 3 is mobile, collaborative robots that coordinate with each other and allow domain experts to design entire production lines without a single roboticist involved. At this stage, the most interesting market is no longer automating what&apos;s being done by hand now, but enabling entirely new company models where a small team with product knowledge uses our systems to make production fully autonomous.
           </p>
 
           <p>
