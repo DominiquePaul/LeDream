@@ -155,7 +155,7 @@ export default function Angels() {
 
           <p>
             <strong>Eight companies have sent us their physical products because they want us working on their use case first.</strong><span className="block h-[0.35em]" />
-            This is phase 1: three paid deployments, first one starting at the end of May, developing on-site with real tasks and real users. These early deployments where we sit on-site and next to the user let us close the loop between what the model does and real applications require, optimising the ML pipeline and the user interface before we start scaling it.
+            This is phase 1: three paid deployments, first one starting at the end of May, developing on-site with real tasks and real users. These early deployments where we sit on-site and next to the user let us close the loop between what the model does and what real applications require, optimising the ML pipeline and the user interface before we scale.
           </p>
 
           <p>
@@ -168,7 +168,7 @@ export default function Angels() {
 
           <p>
             <strong>My background: From business school to NeurIPS published research.</strong><span className="block h-[0.35em]" />
-            I studied Math at ETH Zurich, published papers in Nature Communications and NeurIPS, and have been building robotic AI models since early 2025. But unlike 99.9% of the people you&apos;ll find at such a conference I&apos;m the kind of person who&apos;ll sleep in a car for 1.5 months, do cold walk-ins with 80+ manufacturers and work in a Polish electronics factory to understand what SME automation means and how buyers and users think. It&apos;s this combination of technical depth and go-to-market intensity what Dream Machines is built on and the culture we&apos;re hiring for.
+            I studied Math at ETH Zurich, published papers in Nature Communications and NeurIPS, and have been building robotic AI models since early 2025. But unlike 99.9% of the people you&apos;ll find at such a conference I&apos;m the kind of person who&apos;ll sleep in a car for 1.5 months, do cold walk-ins with 80+ manufacturers and work in a Polish electronics factory to understand what SME automation means and how buyers and users think. It&apos;s this combination of technical depth and go-to-market intensity that Dream Machines is built on and the culture we&apos;re hiring for.
           </p>
 
           <p>
